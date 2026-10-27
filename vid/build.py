@@ -314,7 +314,8 @@ def proposal_markup(v):
     o += '<svg class="proposal-links" width="1600" height="970" style="position:absolute;left:0;top:0;z-index:1;pointer-events:none"><defs><marker id="proposal-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1 9 5 1 9" fill="none" stroke="#2563EB" stroke-width="1.5"/></marker></defs><g fill="none" stroke="#2563EB" stroke-width="1.8" marker-end="url(#proposal-arrow)">'
     live_target = 250 + d.get('live_target', 0) * 380
     history_target = 210 + d.get('history_target', 0) * 380
-    # Inference runs in an independent Kafka consumer, away from the critical alert job.
+    # The proposed Flink job in component 1 independently consumes retained Kafka.
+    # Its durable candidate topic feeds component 2; critical jobs do not wait for it.
     o += f'<path d="M940 670 V744 H{history_target} V764"/><path d="M1100 215 H1130 V166 H1574 V750 H{live_target} V764"/>'
     o += '<path d="M60 699 H38 V754 H168 V764"/>'
     for i in range(3):
@@ -322,9 +323,9 @@ def proposal_markup(v):
     o += '<path d="M1370 764 V700 H1350 V670"/></g></svg>'
     o += f'<div class="lbl" style="left:775px;top:680px;color:#1D4ED8">{esc(d["input"])}</div>'
     o += f'<div class="lbl" style="left:60px;top:688px;color:#1D4ED8">{esc(d["new_source"])}</div>'
-    o += '<div class="lbl" style="left:1380px;top:432px;color:#1D4ED8">AI consumer · own budget</div>'
+    o += '<div class="lbl" style="left:1370px;top:432px;color:#1D4ED8">separate Flink candidate job</div>'
     o += '<div class="lbl" style="left:1165px;top:680px;color:#1D4ED8">human-reviewed action</div>'
-    o += '<div style="position:absolute;left:66px;top:950px;font-size:12px;color:#56667C">Proposed, simulated extension · independent Kafka consumer / compute budget · bounded AI backlog · critical alerts do not wait for AI</div>'
+    o += '<div style="position:absolute;left:66px;top:950px;font-size:12px;color:#56667C">Simulated proposal · Flink candidates → durable topic → Temporal / Jev API → GenAI → review · critical alerts never wait · rules fallback</div>'
     return o
 
 
@@ -360,6 +361,7 @@ def page(v):
     architecture = arch
     if v in PROPOSALS:
         architecture = architecture.replace('REAL-WORLD ARCHITECTURE · PRODUCTION SYSTEM I LED', 'FUTURE PROPOSAL · SIMULATED EXTENSION OF THE EXISTING PLATFORM')
+        architecture = architecture.replace('<div class="lbl" style="left:900px;top:680px;', '<div class="lbl" style="display:none;left:900px;top:680px;')
         architecture += proposal_markup(v)
     proposal_script = '<script>window.PROPOSAL = ' + json.dumps(PROPOSALS[v], ensure_ascii=False) + ';</script>' if v in PROPOSALS else ''
     return f'''<!doctype html><html><head><meta charset="utf-8"><style>{css}</style></head><body>
@@ -392,7 +394,7 @@ engine = open(f'{ROOT}/pres/timeline2p.js').read().split('// ================= p
 engine = engine.replace("const VER = 'pres';", "const VER = QS.get('ver') || 'int';")
 open(f'{ROOT}/vid/timeline2.js', 'w').write('// Generated from pres/timeline2p.js by vid/build.py.\n' + engine.rstrip() + '\n')
 
-_proposal_frontend = {v: dict(page=v, slug=p['slug'], name=p['name'], components=p['components']) for v, p in PROPOSALS.items()}
+_proposal_frontend = {v: dict(page=v, slug=p['slug'], name=p['name'], components=p['components'], jev=p['jev'], question=p['question'], options=p['options']) for v, p in PROPOSALS.items()}
 open(f'{ROOT}/pres/proposals.js', 'w').write('// Generated from vid/proposal_data.py by tools/build.sh.\nconst PROPOSALS = ' + json.dumps(_proposal_frontend, ensure_ascii=False, indent=2) + ';\n')
 for v in range(1, 24):
     open(f'{ROOT}/vid/v{v}.html', 'w').write(page(v))

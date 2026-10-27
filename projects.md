@@ -100,3 +100,11 @@ Unconfirmed implementation mechanisms remain labelled as examples or design opti
 - Added `vid/proposal_data.py` as the component/timeline source, generated `pres/proposals.js`, and four architecture preview assets. The build now produces 23 timelines.
 - Reviewed the new content for technical correctness and clarity: made topic-cutover state/offset handling explicit, distinguished heartbeat event time from receipt time, specified consistent snapshot/replay boundaries, and clarified incident identity and Temporal versioning contracts.
 - Proposed AI paths use an independent Kafka consumer and capacity budget, identify additional evidence sources, preserve critical alerts, and explain missing-evidence/AI-outage handling. Numeric predictions remain illustrative until validated against real outcomes.
+
+## Jev decision service — future proposals
+
+- All four future architectures retain four components: a separately budgeted Flink candidate job, an internal decision service calling the official Jev API, cited GenAI assistance, and human review or a restricted diagnostic gate.
+- Corrected the brief against official API semantics: Noul supplies a yes/no probability; Score rates an ordered rubric. Default context limits are 64k/request and 32k/state plus any question. Alternative models require an adapter and re-evaluation.
+- Added question types/options, candidate-only Temporal activities, bounded retries/timeouts, circuit breaking and rule fallback to the UI and component close-ups. Critical alerts stay independent.
+- UI trade-offs explain DPA/redaction, regional disablement, shadow evaluation, calibration, drift/bias and scoped audit retention, with primary documentation links. Runbook scores never authorize production writes.
+- These remain simulations; no external model API or infrastructure tool is connected.

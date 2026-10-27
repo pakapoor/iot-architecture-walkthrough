@@ -295,11 +295,11 @@ if (VID === 19) {
 if (PROPOSAL) {
   st('a', 'a-edge', 'br', 'core', 'b', 'Future proposal: ' + PROPOSAL.name + ' · follow one example from existing telemetry to an operator decision');
   st('a', 'a-ing', 'br', 'core', 'b', 'Existing ingestion checks gateway identity and device/tenant scope. Authentication identifies the sender; it does not prove that every reading is true.');
-  st('a', 'a-kafka', 'br', 'core', 'b', 'A proposed independent Kafka consumer feeds the AI job with its own compute and read budgets. Bound its backlog; replay fresh work or mark recommendations unavailable if it falls behind.');
-  st('a', 'a-flink', 'br', 'deep', 'b', 'The existing Flink alert job keeps running independently. Heartbeats, critical rules and paging never wait for model inference or an LLM response.');
+  st('a', 'a-kafka', 'br', 'core', 'b', 'Reuse retained telemetry for a separately budgeted Flink candidate job. Its compute and broker read/write quotas protect reserved critical capacity; bound candidate age and backlog.');
+  st('a', 'a-flink', 'br', 'deep', 'b', 'Flink filters candidates into a durable topic; a separate consumer starts the decision workflow. Publish failures retry within that optional branch. Critical DEAD/thermal alerts never wait for candidate publication, Jev or GenAI.');
   st('a', 'a-stor', 'tr', 'deep', 'b', 'Reuse authorized ' + PROPOSAL.input.toLowerCase() + '. ' + PROPOSAL.new_source + ' must be integrated separately; these records are not assumed to exist in the current stores.', null, { via: [[1514, 425], [1082, 425]] });
   PROPOSAL.components.forEach((c, i) => st('a', 'a-ai' + (i + 1), 'br', 'deep', 'b', c[3]));
-  st('a', 'a-act', 'br', 'deep', 'b', PROPOSAL.output + '. Use existing integrations after that decision; persist a case/action ID so retries cannot create duplicate work.', null, { via: [[1570, 932], [1570, 700], [1350, 700]] });
+  st('a', 'a-act', 'br', 'deep', 'b', PROPOSAL.output + '. Carry a stable case/action key into an externally enforced idempotent write; reconcile ambiguous results before retrying external work.', null, { via: [[1570, 932], [1570, 700], [1350, 700]] });
   st('a', 'a-dash', 'br', 'core', 'g', 'Show authorized evidence, its age, the recommendation and review outcome. Expire stale suggestions; never display an unavailable AI assessment as a healthy device.');
   RECAP = { cap: 'Existing platform → proposed evidence/model/GenAI components → reviewed action · simulated future design', badge: null, boxes: ['a-flink', 'a-stor', 'a-ai1', 'a-ai2', 'a-ai3', 'a-ai4', 'a-act', 'a-dash'] };
   TRS = [];
@@ -677,6 +677,14 @@ setT(0);
   if (PROPOSAL) PROPOSAL.components.forEach((component, i) => {
     CU['a-ai' + (i + 1)] = { ic: '⚙️', name: component[0], role: 'Future proposal · ' + PROPOSAL.name,
       a: [component[1], component[2]], b: ['Connected to the existing stream, storage and action path.', 'Simulated proposal; no model service or infrastructure command is connected.'], why: safeHTML(component[3]) };
+    if (i === 1) {
+      const j = PROPOSAL.jev;
+      CU['a-ai2'] = { ic: '⚙️', name: component[0], role: j.role,
+        tall: true,
+        a: [safeHTML(PROPOSAL.question), safeHTML(PROPOSAL.options), 'Compact redacted state; no raw logs or PII. Default limits: 64k/request and 32k/state + question. Vendor DPA required.'],
+        b: ['Candidates only. Temporal activity: bounded timeout/retries + circuit breaker; failure → rules + no recommendation.', 'Shadow mode; validate calibration, drift and bias on real outcomes. Pin model/question versions.', 'China-region policy: feature off. Audit redacted inputs, outputs and human decisions; retain only within the agreed access/retention policy.'],
+        why: 'Simulated integration; no API call is made. Typed probabilities need local validation; a valid answer can still be wrong.' };
+    }
   });
 
   // ---------- DOM: start hint, close-up card, control bar, end bar ----------
@@ -752,7 +760,7 @@ setT(0);
   function openCU(id) {
     if (closeup || !archView() || !CU[id]) return; setMode('step'); if (moving()) t = target;
     const c = CU[id];
-    const to = c.img ? { x: 230, y: 84, w: 1460, h: 960 } : c.svg ? { x: 140, y: 150, w: 1640, h: 780 } : { x: 330, y: 250, w: 1260, h: 580 };
+    const to = c.img ? { x: 230, y: 84, w: 1460, h: 960 } : c.svg ? { x: 140, y: 150, w: 1640, h: 780 } : c.tall ? { x: 300, y: 140, w: 1320, h: 800 } : { x: 330, y: 250, w: 1260, h: 580 };
     to.x += OX; to.y += (SH - 1080) / 2;
     Object.assign(card.style, { left: to.x + 'px', top: to.y + 'px', width: to.w + 'px', height: to.h + 'px' });
     if (c.img) card.innerHTML = `<div class="top" style="padding:18px 28px 14px"><div class="ic" style="width:48px;height:48px;font-size:26px">${c.ic}</div><div><h2 style="font-size:30px">${c.name}</h2><div class="role" style="font-size:17px">${c.role}</div></div><button class="bk" type="button">← Back</button></div><img src="${c.img}" alt="${c.name}: ${c.role}" style="display:block;width:1380px;height:auto;max-height:780px;object-fit:contain;margin:0 40px">`;
