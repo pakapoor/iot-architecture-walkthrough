@@ -234,8 +234,11 @@ aside{transition:visibility 0s .25s}
 .mobile-learning{margin:0 0 22px;color:var(--muted)}
 .mobile-learning summary{cursor:pointer;padding:10px 0;font-size:14px;font-weight:500}
 .mobile-learning .item{font-size:14px;padding:10px 12px}
-.navselect{width:100%;min-width:0;min-height:42px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);padding:10px 28px 10px 12px;font:500 14px var(--body);cursor:pointer}
-.navselect:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.navitem{font-size:14px;padding:9px 12px}
+.navitem .ex{margin-left:auto;flex:none;font-size:12px;color:var(--muted)}
+.navgroup{display:grid;gap:2px}
+.navgroup + .navgroup{margin-top:12px}
+.navgroup-label{padding:7px 12px 3px;font-size:11px;font-weight:500;color:var(--muted)}
 .lesson-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .lesson-controls[hidden],.lesson-caption[hidden]{display:none}
 .lesson-controls button{border:0;border-radius:999px;background:var(--hover);color:var(--ink);padding:8px 13px;font:500 13px var(--body);cursor:pointer}
@@ -507,7 +510,7 @@ function openDetail(t, from) {
 }
 function closeDetail() {
   if ($('dmodal').hidden) return; $('dmodal').hidden = true;
-  stopLesson(); if (activeKnowledge) { deepSelect.value = futureSelect.value = mobileSelect.value = ''; }
+  stopLesson(); document.querySelectorAll('.navitem[data-topic]').forEach(b => { b.classList.remove('on'); b.setAttribute('aria-pressed', 'false'); });
   if (activeKnowledge) { activeKnowledge = null; const u = new URL(location.href); u.searchParams.delete('deep'); u.searchParams.delete('future'); history.replaceState(null, '', u); }
   $('panel').inert = false; $('paneltoggle').inert = false; if (frame) frame.inert = false;
   if (lastFocus && lastFocus.frame === frame) {
@@ -552,7 +555,7 @@ function load(f, autoplay) {
 function select(f, push = true, autoplay = false) {
   closeDetail();
   current = f || null; hideUpNext();
-  flowSelect.value = f && !f.infra ? f.slug : ''; issueSelect.value = f && f.infra ? f.slug : '';
+  document.querySelectorAll('.navitem[data-flow]').forEach(b => { const on = !!f && b.dataset.flow === f.slug; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
   if (f) setSection(f.infra ? 'issueToggle' : 'flowToggle', true);
   $('flowToggle').classList.toggle('has-active', !!f && !f.infra); $('issueToggle').classList.toggle('has-active', !!f && !!f.infra);
   $('home').hidden = $('share').hidden = !f; $('starthint').hidden = !!f; $('copied').textContent = '';
@@ -561,38 +564,44 @@ function select(f, push = true, autoplay = false) {
   if (push) { const u = new URL(location.href); if (f) u.searchParams.set('flow', f.slug); else u.searchParams.delete('flow'); try { history.replaceState(null, '', u); } catch (_) {} }
   load(f, autoplay);
 }
-function makeSelect(id, label, target) {
-  const select = document.createElement('select'); select.id = id; select.className = 'navselect'; select.setAttribute('aria-label', label);
-  select.add(new Option(label, '')); $(target).appendChild(select); return select;
+function navButton(label, action) {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'item navitem'; b.setAttribute('aria-pressed', 'false');
+  const name = document.createElement('span'); name.textContent = label; b.appendChild(name); b.addEventListener('click', () => action(b)); return b;
 }
-const flowSelect = makeSelect('flowSelect', 'Choose a flow', 'flows');
+function flowButton(f, target) {
+  const b = navButton(f.name, () => select(f)); b.dataset.flow = f.slug; b.title = f.sub;
+  const ex = document.createElement('span'); ex.className = 'ex'; ex.hidden = true; ex.textContent = '✓'; ex.title = 'Explored'; ex.setAttribute('aria-label', 'Explored'); b.appendChild(ex); target.appendChild(b);
+}
 FLOWS.forEach(f => {
-  const parent = f.items ? document.createElement('optgroup') : flowSelect;
-  if (f.items) { parent.label = f.group; flowSelect.appendChild(parent); }
-  (f.items || [f]).forEach(item => { const o = new Option(item.name, item.slug); o.dataset.slug = item.slug; o.dataset.label = item.name; parent.appendChild(o); });
+  if (!f.items) { flowButton(f, $('flows')); return; }
+  const group = document.createElement('div'); group.className = 'navgroup'; group.setAttribute('role', 'group'); group.setAttribute('aria-label', f.group);
+  const label = document.createElement('div'); label.className = 'navgroup-label'; label.textContent = f.group; group.appendChild(label);
+  f.items.forEach(item => flowButton(item, group)); $('flows').appendChild(group);
 });
-const issueSelect = makeSelect('issueSelect', 'Choose an infra issue', 'issues');
-ISSUES.forEach(f => { const o = new Option(f.name, f.slug); o.dataset.slug = f.slug; o.dataset.label = f.name; issueSelect.add(o); });
-[flowSelect, issueSelect].forEach(el => el.addEventListener('change', () => { const f = ALL.find(f => f.slug === el.value); if (f) select(f); }));
-function setSection(id, open) { const btn = $(id); btn.setAttribute('aria-expanded', open); $(btn.getAttribute('aria-controls')).hidden = !open; }
+ISSUES.forEach(f => flowButton(f, $('issues')));
+function setSection(id, open) {
+  if (open) ['flowToggle', 'issueToggle', 'deepToggle', 'futureToggle'].forEach(other => { if (other !== id) { const b = $(other); b.setAttribute('aria-expanded', 'false'); $(b.getAttribute('aria-controls')).hidden = true; } });
+  const btn = $(id); btn.setAttribute('aria-expanded', String(open)); $(btn.getAttribute('aria-controls')).hidden = !open;
+}
 ['flowToggle', 'issueToggle', 'deepToggle', 'futureToggle'].forEach(id => $(id).addEventListener('click', () => setSection(id, $(id).getAttribute('aria-expanded') !== 'true')));
 function openKnowledge(topic, trigger) {
   stopLesson(); teaser = 'off'; clearTimeout(teaserT); setSection(topic.section === 'deep' ? 'deepToggle' : 'futureToggle', true);
   openDetail(topic.title, trigger); activeKnowledge = topic; setLessonStep(0);
-  (topic.section === 'deep' ? deepSelect : futureSelect).value = topic.slug; mobileSelect.value = topic.slug;
+  document.querySelectorAll('.navitem[data-topic]').forEach(b => { const on = b.dataset.topic === topic.slug; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
   const u = new URL(location.href); u.searchParams.delete('deep'); u.searchParams.delete('future'); u.searchParams.set(topic.section, topic.slug); history.replaceState(null, '', u);
 }
-const deepSelect = makeSelect('deepSelect', 'Choose a deep dive', 'deepTopics');
-const futureSelect = makeSelect('futureSelect', 'Choose a future scenario', 'futureTopics');
-KNOWLEDGE.forEach(topic => (topic.section === 'deep' ? deepSelect : futureSelect).add(new Option(topic.title, topic.slug)));
-[deepSelect, futureSelect].forEach(el => el.addEventListener('change', () => { const topic = KNOWLEDGE.find(t => t.slug === el.value); if (topic) openKnowledge(topic, el); }));
+function topicButton(topic, target, prefix) {
+  const b = navButton(topic.title, button => openKnowledge(topic, button)); b.id = prefix + topic.slug; b.dataset.topic = topic.slug; target.appendChild(b);
+}
+KNOWLEDGE.forEach(topic => topicButton(topic, $(topic.section === 'deep' ? 'deepTopics' : 'futureTopics'), 'topic-'));
 const mobileLearning = document.createElement('details'); mobileLearning.className = 'mobile-learning';
 mobileLearning.innerHTML = '<summary>Deep dives &amp; future ideas</summary><div id="phoneTopics"></div>';
 $('vids').before(mobileLearning);
-const mobileSelect = makeSelect('mobileSelect', 'Choose a topic', 'phoneTopics');
-['deep','future'].forEach(section => { const g = document.createElement('optgroup'); g.label = section === 'deep' ? 'Deep dives' : 'Future enhancements';
-  KNOWLEDGE.filter(t => t.section === section).forEach(t => g.appendChild(new Option(t.title, t.slug))); mobileSelect.appendChild(g); });
-mobileSelect.addEventListener('change', () => { const t = KNOWLEDGE.find(t => t.slug === mobileSelect.value); if (t) openKnowledge(t, mobileSelect); });
+['deep', 'future'].forEach(section => {
+  const group = document.createElement('div'); group.className = 'navgroup'; group.setAttribute('role', 'group'); group.setAttribute('aria-label', section === 'deep' ? 'Deep dives' : 'Future enhancements');
+  const label = document.createElement('div'); label.className = 'navgroup-label'; label.textContent = group.getAttribute('aria-label'); group.appendChild(label);
+  KNOWLEDGE.filter(topic => topic.section === section).forEach(topic => topicButton(topic, group, 'mobile-topic-')); $('phoneTopics').appendChild(group);
+});
 
 ['tObs', 'tWhy', 'tCap'].forEach(id => $(id).addEventListener('change', () => {
   renderDD();
@@ -641,7 +650,7 @@ function pauseFrame(fr) { try { fr.contentWindow.PRESENTER?.pause(); } catch (e)
 let explored = new Set();
 try { explored = new Set(JSON.parse(localStorage.getItem('explored') || '[]').filter(s => ALL.some(f => f.slug === s))); } catch (e) {}
 function renderExplored() {
-  document.querySelectorAll('option[data-slug]').forEach(o => { o.textContent = (explored.has(o.dataset.slug) ? '✓ ' : '') + o.dataset.label; });
+  document.querySelectorAll('.navitem[data-flow]').forEach(b => { b.querySelector('.ex').hidden = !explored.has(b.dataset.flow); });
   $('explored').hidden = !explored.size; $('explored').textContent = `${explored.size} of ${ALL.length} explored`;
 }
 function markExplored(f) {
@@ -706,7 +715,7 @@ initDetail(); renderDD();
 const start = ALL.find(f => f.slug === new URLSearchParams(location.search).get('flow'));
 const knowledgeStart = KNOWLEDGE.find(t => new URLSearchParams(location.search).get(t.section) === t.slug);
 if (MQ.matches) showPhoneFlow(start); else select(start || null, false);
-if (knowledgeStart) openKnowledge(knowledgeStart, MQ.matches ? mobileSelect : knowledgeStart.section === 'deep' ? deepSelect : futureSelect);
+if (knowledgeStart) { if (MQ.matches) mobileLearning.open = true; openKnowledge(knowledgeStart, $((MQ.matches ? 'mobile-topic-' : 'topic-') + knowledgeStart.slug)); }
 // 13. layout switches: build the stage when entering desktop, pause it when entering phone
 MQ.addEventListener('change', e => {
   if (e.matches) { if (frame) pauseFrame(frame); hideUpNext(); clearTimeout(teaserT); teaser = 'off'; showPhoneFlow(current || start); }

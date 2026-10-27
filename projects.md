@@ -13,8 +13,8 @@ Presentation: [GitHub Pages walkthrough](https://pakapoor.github.io/iot-architec
 
 ### Navigation and visual design
 
-- Added consistent single-select dropdowns inside collapsible **Flows**, **Infra issues**, **Deep dives**, and **Future enhancements** sections.
-- Preserved existing flow categories through grouped options, direct links, keyboard shortcuts, explored progress and the selected scenario.
+- Added collapsible **Flows**, **Infra issues**, **Deep dives**, and **Future enhancements** sections. The follow-up UI fix replaces nested dropdowns with direct item lists: expanding a section immediately shows the choices.
+- Preserved existing flow categories through non-interactive group labels, direct links, keyboard shortcuts, explored progress and the selected scenario. Only one sidebar section opens at a time.
 - Flows opens by default; the other sections start collapsed. Direct links open the relevant section.
 - Kept the architecture overview sparse. Deeper answers use focused dialogs with a small diagram, step controls and expandable trade-offs.
 - Added mobile access to deep dives and future scenarios, plus video highlighting/scrolling or a desktop-only note for linked architecture flows.
@@ -68,7 +68,7 @@ Unconfirmed implementation mechanisms remain labelled as examples or design opti
 ### Interaction and accessibility fixes
 
 - Fixed connector SVGs intercepting clicks on design-decision cards.
-- Completed keyboard activation, dialog focus containment, Escape handling and focus restoration to the invoking card or selector.
+- Completed keyboard activation, dialog focus containment, Escape handling and focus restoration to the invoking card or item.
 - Preserved Claude's existing icon/check-mark freeze fix and verified its close-up interaction.
 - Kept manual completion separate from automatic Up next progression; automatic completion offers a real five-second countdown after the final card.
 - Hardened iframe sender/origin checks and dynamic text rendering.
@@ -81,7 +81,7 @@ Unconfirmed implementation mechanisms remain labelled as examples or design opti
 - Added [browser regression checks](tools/browser_check.py) and [asset rendering](tools/render_assets.py).
 - Regenerated `pres/arch_snapshot.png`, `pres/actions_detail.png`, `docs/og.png` and the vector `docs/architecture.svg` from HTML.
 - Updated [README.md](README.md) with navigation, scenarios, build/check commands and scope qualifications.
-- Browser-checked every pause in all 19 timelines, automatic completion for six representative scenarios, manual stepping, selectors, dialogs, light/dark layouts, mobile links/resizing, all ten visual lessons, message handling and the delayed-autoplay guard.
+- Browser-checked every pause in all 19 timelines, automatic completion for six representative scenarios, manual stepping, navigation lists, dialogs, light/dark layouts, mobile links/resizing, all ten visual lessons, message handling and the delayed-autoplay guard.
 - Checked 57 JavaScript blocks/files, Python syntax, local asset references, duplicate HTML IDs, vector XML, storage SVG text bounds and deterministic regeneration. `git diff --check` passed.
 
 ### Remaining limitations

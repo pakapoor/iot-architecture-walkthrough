@@ -71,19 +71,20 @@ def run(output, playback=None):
         passed('all 19 timelines render every pause without runtime errors')
 
         frame = shell()
-        assert page.locator('#flowSelect option[data-slug]').count() == 14
-        assert page.locator('#issueSelect option[data-slug]').count() == 5
+        assert page.locator('#flows button[data-flow]').count() == 14
+        assert page.locator('#issues button[data-flow]').count() == 5
         assert page.locator('#deepToggle').get_attribute('aria-expanded') == 'false'
         assert page.locator('#futureToggle').get_attribute('aria-expanded') == 'false'
         page.locator('#issueToggle').click()
-        page.locator('#issueSelect').select_option('growth')
+        page.locator('#issues button[data-flow="growth"]').click()
         page.wait_for_function("document.querySelector('#stage iframe')?.src.includes('flow19.html')")
         page.wait_for_timeout(500)
         page.locator('#issueToggle').click()
         assert page.locator('#issueToggle').evaluate("e => e.classList.contains('has-active')")
         page.keyboard.press('9')
         assert page.locator('#issueToggle').get_attribute('aria-expanded') == 'true'
-        passed('grouped flow/infra selectors preserve selection, deep links and shortcuts')
+        assert page.locator('select').count() == 0
+        passed('section headers reveal direct item lists; selection, links and shortcuts are preserved')
 
         frame = shell()
         page.locator('#tWhy').check()
@@ -166,10 +167,10 @@ def run(output, playback=None):
         lessons.goto(f'{base}/pres/?future=predictive')
         lessons.locator('#dmodal').wait_for(state='visible')
         lessons.keyboard.press('Escape')
-        lessons.locator('.mobile-learning summary').click()
+        lessons.locator('.mobile-learning').evaluate('e => e.open = true')
         topics = lessons.evaluate('KNOWLEDGE.map(t => ({slug:t.slug, count:t.steps.length, section:t.section}))')
         for topic in topics:
-            lessons.locator('#mobileSelect').select_option(topic['slug'])
+            lessons.locator('#mobile-topic-' + topic['slug']).click()
             assert lessons.locator('#dmodal').is_visible()
             lessons.locator('#lessonPlay').click()
             lessons.clock.run_for(2700 * topic['count'])
@@ -179,7 +180,7 @@ def run(output, playback=None):
             if topic['section'] == 'future':
                 assert 'GenAI' in lessons.locator('#dsnap').inner_text()
             lessons.keyboard.press('Escape')
-            assert lessons.locator('#mobileSelect').evaluate('e => e === document.activeElement')
+            assert lessons.locator('#mobile-topic-' + topic['slug']).evaluate('e => e === document.activeElement')
         lessons.close()
         passed('all six deep dives and four AI proposals run to completion; mobile focus returns correctly')
 
@@ -209,7 +210,7 @@ def run(output, playback=None):
         page.set_viewport_size({'width': 1440, 'height': 900})
         page.evaluate("select(ALL.find(f => f.slug === 'telemetry'), true, true)")
         page.locator('#futureToggle').click()
-        page.locator('#futureSelect').select_option('predictive')
+        page.locator('#topic-predictive').click()
         page.wait_for_timeout(1300)
         assert page.evaluate("!document.querySelector('iframe').contentDocument.getElementById('bPlay').classList.contains('on')")
         page.keyboard.press('Escape')

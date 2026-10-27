@@ -9,13 +9,13 @@ This is a static educational presentation. Recovery mechanisms introduced during
 Run `python3 tools/browser_check.py` after `./tools/build.sh`. Results and inspection screenshots are written to `/tmp/iot-browser-checks/` by default.
 
 - Every pause in all 19 architecture timelines renders without JavaScript exceptions.
-- Grouped flow and infrastructure dropdowns preserve selection, shortcuts and direct links; disclosure controls reopen selected sections.
+- Flow and infrastructure section headers reveal direct item lists, preserving selection, shortcuts and direct links. No nested selection dropdown is required. Opening a section closes the other sidebar sections.
 - Design-decision cards open with a real mouse click and Enter. Dialog focus, Tab/Shift+Tab containment, Escape and focus restoration are checked.
 - The Cloud Gateway close-up exercises the previous icon/check-mark freeze case.
 - Manual arrow stepping records completion without automatic navigation.
 - Automatic playback reaches the final card, displays a real five-second countdown and advances for `cicd-svc`, `cicd-dash`, `telemetry`, `storm`, `red-snow` and `growth`. Timeline frame time is accelerated in this regression check; countdown time is not.
 - Light and dark themes are checked at desktop, narrow desktop and phone sizes. Phone links highlight/scroll videos or show a desktop note, and widening initializes the selected interactive flow.
-- All six deep dives and four future AI scenarios run through their UI steps. Future diagrams explicitly identify GenAI components. Playback ends, stops on close and returns focus to its selector.
+- All six deep dives and four future AI scenarios run through their UI steps. Future diagrams explicitly identify GenAI components. Playback ends, stops on close and returns focus to its triggering item.
 - Sender checks reject unrelated shell messages; dynamic design-card text escapes executable HTML.
 - Raw/warm storage schemas, Redis and the S3 detail SVGs were inspected for text beyond their view boxes. Architecture typography and refreshed images were visually inspected.
 

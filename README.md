@@ -11,7 +11,7 @@ An interactive, click-to-advance walkthrough of a commercial IoT monitoring plat
 ![Commercial IoT Monitoring System architecture](docs/architecture.svg)
 
 ## How to use it
-Choose a walkthrough from the grouped **Flows** or **Infra issues** dropdown, then press play or step through with the arrow keys. Each section can collapse; a direct link opens the selected section. Click or keyboard-activate a component for a close-up. In Tiered Storage, select a store to inspect its example schema. Two toggles add extra layers:
+Expand **Flows** or **Infra issues** and click a walkthrough directly, then press play or step through with the arrow keys. Each section reveals its items immediately; opening another section closes the previous one. Direct links open the selected section. Click or keyboard-activate a component for a close-up. In Tiered Storage, select a store to inspect its example schema. Two toggles add extra layers:
 - **Observability** overlays the Datadog view.
 - **Design decisions** adds the trade-offs behind each step.
 
