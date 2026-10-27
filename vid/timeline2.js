@@ -65,7 +65,7 @@ if (isRed) {
   st('b', 'b-tmp', 'tr', 'deep', 'v', 'Temporal: one durable workflow now owns the whole incident');
   zoomIn(1, 'Zooming in: inside the Temporal workflow 🔍');
   if (VID === 5) {
-  st('w', 'ws1', 'br', 'deep', 'v', 'Step 1 · Activity: upsert the ServiceNow ticket — idempotent by workflowId', (S) => { S.wSteps[0] = 'on'; }, { pop: true });
+  st('w', 'ws1', 'br', 'deep', 'v', 'Step 1 · Activity: upsert the ServiceNow ticket — idempotent by incident ID (unique correlation_id)', (S) => { S.wSteps[0] = 'on'; }, { pop: true });
   st('w', 'act-sn', 'tr', 'core', 'r', 'Attempt 1 → <b>503</b> · Temporal backs off, retries in 2 s', (S) => {
     S.act['act-sn'] = ['503 · unavailable', red[0], red[1]]; S.wl[0] = ['⚠ attempt 1 · 503 · retry in 2 s', '#DC2626']; });
   st('w', 'act-sn', 'tr', 'core', 'r', 'Attempt 2 → <b>timeout</b> · the ticket <b>may</b> have been created anyway', (S) => {
@@ -80,9 +80,9 @@ if (isRed) {
     S.wSteps[1] = 'done'; S.wSteps[2] = 'on'; const m = Math.min(42, Math.floor(43 * prog(t, s.ta, s.te))); S.wl[2] = [`⏳ waiting for ops · ${m} min`, '#C2620A']; });
   st('w', 'act-x', 'tr', 'core', 'r', 'No ack at the original 30-min deadline → L2 is paged while ticket creation remains parked', S => { S.act['act-x'] = ['📟 L2 paged · original deadline', red[0], red[1]]; });
   st('w', 'act-sn', 'tr', 'core', 'g', 'ServiceNow recovers · ops checks it is healthy before replaying', (S) => { S.act['act-sn'] = ['🟢 healthy again', grn[0], grn[1]]; S.wl[2] = ['⏳ waiting for ops · 42 min', '#C2620A']; });
-  st('w', 'act-oc', 'tr', 'deep', 'g', 'Ops clicks <b>Replay</b> → signal to the same workflow · same pattern as payment approval', (S) => {
+  st('w', 'act-oc', 'tr', 'deep', 'g', 'Ops clicks <b>Replay</b> → signal to the same workflow · a human approval step inside a long-running workflow', (S) => {
     S.act['act-oc'] = ['▶ Replay sent', grn[0], grn[1]]; S.wl[2] = ['✓ "replay" signal received', '#15803D']; });
-  st('w', 'ws4', 'br', 'core', 'v', 'Step 4 · Replay: upsert again — idempotent by workflowId', (S) => {
+  st('w', 'ws4', 'br', 'core', 'v', 'Step 4 · Replay: upsert again — idempotent by incident ID', (S) => {
     S.wSteps[2] = 'done'; S.wSteps[3] = 'on'; S.wstat = ['● Running', '#EDE7FF', '#5B3FD9']; });
   st('w', 'act-sn', 'tr', 'deep', 'g', 'Exactly one ticket <b>INC-1042</b> · P1 reflects the original escalation deadline, even if an earlier attempt landed', (S) => {
     S.act['act-sn'] = ['INC-1042 · Open · P1', org[0], org[1]]; S.wl[3] = ['✓ INC-1042 · exactly one ticket', '#15803D']; });
@@ -91,10 +91,10 @@ if (isRed) {
     S.wstat = ['● Running · escalated', '#EDE7FF', '#5B3FD9']; S.bChip = ['INC-1042 · Open', org[0], org[1]]; });
   RECAP = { cap: 'ServiceNow outage → retries → parked → human replay → one ticket ✅', badge: ['📷 CAM-14 · INC-1042 open', ...red], boxes: ['a-edge', 'a-gw', 'a-ing', 'a-kafka', 'a-flink', 'a-act'] };
   } else {
-  st('w', 'ws1', 'br', 'deep', 'v', 'Step 1 · Activity: upsert the ServiceNow ticket — idempotent by workflowId', (S) => { S.wSteps[0] = 'on'; }, { pop: true });
+  st('w', 'ws1', 'br', 'deep', 'v', 'Step 1 · Activity: upsert the ServiceNow ticket — idempotent by incident ID (unique correlation_id)', (S) => { S.wSteps[0] = 'on'; }, { pop: true });
   st('w', 'act-sn', 'tr', 'core', 'v', 'ServiceNow is down (503) → Temporal retries with backoff', (S) => {
     S.act['act-sn'] = ['503 · unavailable', red[0], red[1]]; S.wl[0] = ['⚠ ServiceNow 503 · retry 1 in 2 s (backoff)', '#DC2626']; });
-  st('w', 'act-sn', 'tr', 'core', 'v', 'Retry succeeds → <b>INC-1042</b> created · idempotent by workflowId', (S) => {
+  st('w', 'act-sn', 'tr', 'core', 'v', 'Retry succeeds → <b>INC-1042</b> created · idempotent by incident ID', (S) => {
     S.act['act-sn'] = ['INC-1042 · Open · P3', org[0], org[1]]; S.wl[0] = ['✓ INC-1042 created on attempt 2', '#15803D']; }, { stay: true });
   st('w', 'ws2', 'br', 'deep', 'v', 'Step 2 · Durable ack deadline: 30 min from the original page; retries do not reset it', (S, t, s) => {
     S.wSteps[0] = 'done'; S.wSteps[1] = 'on'; S.act['act-oc'] = ['waiting for ack…', org[0], org[1]];
@@ -116,7 +116,7 @@ if (isRed) {
       S.wSteps[3] = 'done'; S.act['act-oc'] = ['✅ stood down', grn[0], grn[1]]; S.wstat = ['✅ Completed', '#DCFCE7', '#15803D']; S.bSteps = ['done', 'done', 'done', 'done']; S.bChip = ['INC-1042 · Closed ✅', grn[0], grn[1]]; });
     RECAP = { cap: 'Full loop: camera down → Flink → Temporal → ServiceNow → field fix → closed ✅', badge: ['📷 CAM-14 · replaced ✅', ...grn], boxes: ['a-edge', 'a-gw', 'a-ing', 'a-kafka', 'a-flink', 'a-act'] };
   } else {
-    st('w', 'act-x', 'tr', 'deep', 'g', '<b>CAM-14</b> comes back online → Flink signals the <b>same</b> workflowId', (S) => { S.wSteps[2] = 'done'; S.act['act-x'] = ['🟢 back online', grn[0], grn[1]]; });
+    st('w', 'act-x', 'tr', 'deep', 'g', '<b>CAM-14</b> is back and stays healthy (e.g. 5 min) → Flink signals the <b>same</b> incident workflow', (S) => { S.wSteps[2] = 'done'; S.act['act-x'] = ['🟢 back online', grn[0], grn[1]]; });
     st('w', 'ws4', 'br', 'core', 'g', 'Step 4 · Auto-resolve: signal received → resolve the ticket', (S) => { S.wSteps[3] = 'on'; S.wl[3] = ['✓ signal received → resolving ticket', '#15803D']; });
     st('w', 'act-sn', 'tr', 'core', 'g', 'Ticket <b>INC-1042</b> auto-resolved ✅', (S) => { S.act['act-sn'] = ['INC-1042 · Resolved ✅', grn[0], grn[1]]; });
     st('w', 'act-oc', 'tr', 'pass', 'g', 'On-call stood down — no human needed. Workflow complete ✅', (S) => {
@@ -163,13 +163,13 @@ if (VID === 6) {
   st('a', 'a-obsp', 'tl', 'core', 'y', 'Observability: Datadog tiles turn red — lag, freshness, throughput', null, { pt: () => { const r = rectOf('a-ob0'); return [r.x - 26, r.y + r.h / 2, r.x + r.w / 2, r.y + r.h / 2]; } });
   zoomIn(0, 'Zooming in: the Datadog dashboard 🔍');
   st('m', 'm-ingest', 'tr', 'core', 'y', 'Spools flush: gateway ingress rises from 200K envelopes/sec normal peak to a designed-for 500K envelopes/sec burst; Kafka carries the unpacked device readings', mT(0.04, 0.12), { pop: true });
-  st('m', 'm-lag', 'tr', 'core', 'y', 'Consumer lag climbs · Kafka is buffering, so nothing is lost', mT(0.12, 0.14));
+  st('m', 'm-lag', 'tr', 'core', 'y', 'Consumer lag climbs · Kafka buffers within retention, so nothing is lost', mT(0.12, 0.14));
   st('m', 'm-mon', 'bl', 'core', 'r', 'Monitor fires: freshness p99 > 2 min → on-call paged', (S) => { S.mT = 0.14; S.mAlert = 'fire'; S.mAnn = 1; }, { pt: () => { const r = rectOf('m-mon'); return [r.x - 30, r.y + r.h / 2, r.x + r.w / 2, r.y + r.h / 2]; } });
-  st('m', 'm-fresh', 'tr', 'deep', 'y', 'Telemetry freshness climbs… <b>heartbeats stay fresh</b> — the priority topic protects DEAD detection', (S, t, s) => { S.mAlert = 'fire'; S.mAnn = 1; mT(0.14, 0.48)(S, t, s); });
+  st('m', 'm-fresh', 'tr', 'deep', 'y', 'Telemetry freshness climbs… <b>heartbeats stay fresh</b> — a priority topic plus reserved heartbeat processing protects DEAD detection', (S, t, s) => { S.mAlert = 'fire'; S.mAnn = 1; mT(0.14, 0.48)(S, t, s); });
   st('m', 'm-bp', 'tr', 'deep', 'v', '🤖 <b>Automatic fix 1</b> · the autoscaler sees Flink falling behind → adds workers 24 → 48 · nobody clicks anything', (S, t, s) => { S.mAnn = 2; mT(0.48, 0.62)(S, t, s); });
   st('m', 'm-e2', 'tr', 'deep', 'v', '🤖 <b>Automatic fix 2</b> · the writer flushes every 1 s <b>or</b> 50K rows → in a burst, chunks grow on their own', (S, t, s) => { S.mAnn = 3; mT(0.62, 0.72)(S, t, s); });
   st('m', 'm-mon', 'bl', 'deep', 'v', '👩‍💻 <b>DevOps</b> checks the dashboard · heartbeats fresh, autoscaler under its limit → no action, just watch', null, { pt: () => { const r = rectOf('m-mon'); return [r.x - 30, r.y + r.h / 2, r.x + r.w / 2, r.y + r.h / 2]; } });
-  st('m', 'm-mon', 'bl', 'deep', 'v', '👩‍💻 Still not draining? Autoscaler at its max → raise the limit (up to the partition count) or add K8s nodes', null, { stay: true });
+  st('m', 'm-mon', 'bl', 'deep', 'v', '👩‍💻 Still not draining? Autoscaler at its max → raise the limit (source readers up to the partition count; keyed operators scale separately) or add K8s nodes', null, { stay: true });
   st('m', 'm-mon', 'bl', 'deep', 'v', '👩‍💻 ClickHouse the bottleneck? Scale ClickHouse · <b>never</b> add Kafka partitions mid-incident — it breaks per-device order', null, { stay: true });
   st('m', 'm-lag', 'tr', 'deep', 'g', 'Lag drains · freshness back under 2 min · monitor resolves', (S, t, s) => { mT(0.72, 1)(S, t, s); if (S.mT > 0.9) { S.mAlert = 'ok'; S.mAnn = 4; S.obsBad = 0; } });
   st('m', 'm-fresh', 'tr', 'core', 'g', 'Takeaway: automation handles the expected burst · humans step in past the guardrails · alert on <b>freshness</b>', (S) => { S.mT = 1; S.mAlert = 'ok'; S.mAnn = 4; S.obsBad = 0; });
@@ -250,7 +250,7 @@ if (VID === 16) {   // alert storm
   st('a', 'a-act', 'tr', 'deep', 'r', 'Suppression: <b>one</b> SITE-DOWN incident pages on-call · the 200 device alerts are grouped under it', (S) => { S.laneR = 1; });
   st('a', 'a-act', 'tr', 'core', 'r', 'One ServiceNow ticket for the site · device tickets are held while the site is down', null, { stay: true });
   st('a', 'a-dash', 'tr', 'core', 'y', 'Dashboard: Site-07 shows SITE DOWN · 200 affected devices · no wall of red', null, { via: [[1350, 690], [570, 690]] });
-  st('a', 'a-edge', 'br', 'deep', 'g', 'Power returns → gateways flush their spools → devices come back → the site incident auto-resolves', (S) => { S.aBadge = ['✅ Site-07 back · auto-resolved', ...grn]; S.chip = null; S.laneR = 0; S.obsT = {}; }, { via: [[570, 430], [175, 430]] });
+  st('a', 'a-edge', 'br', 'deep', 'g', 'Power returns → gateways reconnect · fresh heartbeats stay stable → the site incident auto-resolves; devices still silent get their own alerts', (S) => { S.aBadge = ['✅ Site-07 back · auto-resolved', ...grn]; S.chip = null; S.laneR = 0; S.obsT = {}; }, { via: [[570, 430], [175, 430]] });
   RECAP = { cap: 'Power cut → 200 DEAD → correlated to one site → one page, one ticket → auto-resolves ⚡', badge: ['✅ Site-07 back online', ...grn], boxes: ['a-edge', 'a-flink', 'a-act', 'a-dash'] };
   TRS = [];
 }
