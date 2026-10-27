@@ -319,7 +319,7 @@ html,body{margin:0;background:#EEF3F9}
 <div class="cards">
 <div class="card"><div class="h">⏱ Timers, not polling</div><div class="p">"Device down &gt; X min" is a per-device timer in Flink state. No scanning 100M rows in a DB — why Flink beat Kinesis + Lambda.</div></div>
 <div class="card"><div class="h">🚨 Two alert lanes</div><div class="p">Critical pages on-call instantly. Minor issues roll into 15-min site digests. No alert storms, no 3 AM pings.</div></div>
-<div class="card"><div class="h">🔁 Idempotent actions</div><div class="p">Correlation ID = device + window. Retries upsert the same ticket; failures go to a DLQ with alarms. Zero duplicate tickets.</div></div>
+<div class="card"><div class="h">🔁 Idempotent actions</div><div class="p">Incident ID = tenant + device + outage generation. Retries upsert the same ticket; failures go to a DLQ with alarms. No duplicate tickets.</div></div>
 <div class="card"><div class="h">💰 Pay for what's hot</div><div class="p">7 days hot for live views, 6-month rollups, sampled cold archive. Tiered retention bounds hot-storage cost per device.</div></div>
 <div class="card"><div class="h">🛟 Degrade, don't die</div><div class="p">Edge buffers through outages, standby gateway takes over, Kafka replays. Bounded buffering + failover; recovery is monitored.</div></div>
 </div>

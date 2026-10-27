@@ -319,7 +319,7 @@ html,body{margin:0;background:#EEF3F9}
 <div class="cards">
 <div class="card"><div class="h">⏱ Timers, not polling</div><div class="p">"Device down &gt; X min" is a per-device timer in Flink state. No scanning 100M rows in a DB — why Flink beat Kinesis + Lambda.</div></div>
 <div class="card"><div class="h">🚨 Two alert lanes</div><div class="p">Critical pages on-call instantly. Minor issues roll into 15-min site digests. No alert storms, no 3 AM pings.</div></div>
-<div class="card"><div class="h">🔁 Idempotent actions</div><div class="p">Correlation ID = device + window. Retries upsert the same ticket; failures go to a DLQ with alarms. Zero duplicate tickets.</div></div>
+<div class="card"><div class="h">🔁 Idempotent actions</div><div class="p">Incident ID = tenant + device + outage generation. Retries upsert the same ticket; failures go to a DLQ with alarms. No duplicate tickets.</div></div>
 <div class="card"><div class="h">💰 Pay for what's hot</div><div class="p">7 days hot for live views, 6-month rollups, sampled cold archive. Tiered retention bounds hot-storage cost per device.</div></div>
 <div class="card"><div class="h">🛟 Degrade, don't die</div><div class="p">Edge buffers through outages, standby gateway takes over, Kafka replays. Bounded buffering + failover; recovery is monitored.</div></div>
 </div>
@@ -415,7 +415,7 @@ html,body{margin:0;background:#EEF3F9}
 </div>
 <div id="veil" style="position:absolute;inset:0;z-index:59;background:radial-gradient(1100px 650px at 50% 45%,rgba(255,255,255,.88),rgba(238,243,249,.72))"></div>
 <div id="hook" class="full" style="background:transparent"><img src="sdi_logo.png" style="mix-blend-mode:multiply;height:96px;margin-bottom:34px"><div class="kk">COMMERCIAL IOT MONITORING SYSTEM · 100M+ DEVICES</div><h1>ServiceNow is down. 🎫</h1><p>A camera just died. Will the incident get lost?</p><div style="position:absolute;bottom:52px;font-size:19px;letter-spacing:3px;color:#7A8BA0;font-weight:700">SYSTEM-DESIGN.IN · REAL-WORLD ARCHITECTURE SERIES</div></div>
-<div id="endc" class="full" style="opacity:0"><div class="band2"></div><div class="kk">REAL-WORLD ARCHITECTURE</div><h1>Nothing lost. No duplicate tickets. ✅</h1><p>Bounded retries → parked → human replay → one ticket.</p><img src="sdi_logo.png" style="mix-blend-mode:multiply;height:120px;margin-top:56px"></div>
+<div id="endc" class="full" style="opacity:0"><div class="band2"></div><div class="kk">REAL-WORLD ARCHITECTURE</div><h1>One incident, one ticket. ✅</h1><p>Bounded retries → parked → human replay → one ticket.</p><img src="sdi_logo.png" style="mix-blend-mode:multiply;height:120px;margin-top:56px"></div>
 <div id="fx" style="position:absolute;inset:0;z-index:55;display:none;background:radial-gradient(1200px 700px at 50% 45%,rgba(255,255,255,.95),rgba(233,240,248,.98))"></div>
 <div id="cap"></div>
 </div>
