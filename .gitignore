@@ -1,0 +1,7 @@
+vid/f*/
+vid/out/
+vid/v*.html
+frames/
+__pycache__/
+*.pyc
+dist/

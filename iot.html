@@ -1,0 +1,194 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#F5F8FC}
+#c{width:1600px;height:1000px;position:relative;overflow:hidden;font-family:Inter,"Segoe UI",Helvetica,Arial,sans-serif;color:#0F1E33;
+ background:radial-gradient(1100px 600px at 72% 35%,#FFFFFF 0%,#EEF3F9 70%)}
+.band{position:absolute;top:0;left:0;right:0;height:8px;background:linear-gradient(90deg,#FF9933 0 33.3%,#E8ECF2 33.3% 66.6%,#22A33A 66.6%)}
+.hdr{position:absolute;left:60px;top:34px}
+.hdr .k{font-size:14px;letter-spacing:4px;color:#E07A10;font-weight:700}
+.hdr h1{font-size:40px;font-weight:800;letter-spacing:-.5px;margin-top:4px;color:#0B1F3F}
+.hdr h1 span{color:#2563EB;font-weight:700}
+.stats{position:absolute;left:60px;top:128px;display:flex;gap:10px}
+.pill{border:1px solid #D3DDEA;background:#fff;border-radius:999px;padding:6px 14px;font-size:14px;font-weight:600;color:#4A5B70;box-shadow:0 2px 6px rgba(15,30,51,.05)}
+.pill b{color:#0B1F3F}
+.box{position:absolute;border-radius:14px;background:#fff;border:1.5px solid #D3DDEA;padding:14px 16px;box-shadow:0 8px 24px rgba(15,30,51,.08);z-index:3}
+.box .t{font-size:18px;font-weight:700;display:flex;align-items:center;gap:9px;color:#0B1F3F}
+.box .s{font-size:13.5px;color:#4A5B70;margin-top:7px;line-height:1.5}
+.box .s b{color:#0B1F3F;font-weight:600}
+.ic{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:15px;flex:none}
+.blue{border-color:#3B82F6;border-top-width:4px}.blue .ic{background:#DBEAFE}
+.cyan{border-color:#0EA5B7;border-top-width:4px}.cyan .ic{background:#CFF4F8}
+.green{border-color:#16A34A;border-top-width:4px}.green .ic{background:#DCFCE7}
+.violet{border-color:#7C5CFA;border-top-width:4px}.violet .ic{background:#EDE7FF}
+.orange{border-color:#F08A1C;border-top-width:4px}.orange .ic{background:#FFEDD5}
+.pink{border-color:#E0458F;border-top-width:4px}.pink .ic{background:#FCE7F3}
+.ops{margin-top:8px;display:grid;gap:6px}
+.op{background:#F5F7FB;border:1px solid #DFE6EF;border-radius:8px;padding:6px 10px;font-size:13px;color:#4A5B70}
+.op b{color:#0B1F3F}
+.op.rule{border-color:#7C5CFA;background:#F6F3FF;animation:glow 1.5s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 0 rgba(124,92,250,0)}50%{box-shadow:0 0 16px rgba(124,92,250,.45)}}
+.chip{display:inline-block;margin-top:7px;font-size:12px;color:#5B3FD9;border:1px dashed #7C5CFA;border-radius:6px;padding:3px 8px;background:#FAF8FF}
+.lane{border-radius:9px;padding:7px 10px;font-size:13px;color:#33465C;margin-top:7px;line-height:1.4}
+.lane b{font-size:13px}
+.lane.r{background:#FEF2F2;border:1px solid #EF4444}.lane.r b{color:#DC2626}
+.lane.y{background:#FFFBEB;border:1px solid #F5B70A}.lane.y b{color:#B7791F}
+.lane.r{animation:redp 3s linear infinite}
+@keyframes redp{0%,38%,70%,100%{box-shadow:0 0 0 rgba(239,68,68,0)}46%{box-shadow:0 0 20px rgba(239,68,68,.6)}}
+.tbl{margin-top:4px;display:grid;gap:3px}
+.tbl div{background:#F5F7FB;border:1px solid #DFE6EF;border-radius:8px;padding:3px 10px;font-size:12.5px;display:flex;justify-content:space-between;gap:8px}
+.tbl div span:first-child{color:#0B1F3F;font-weight:600}
+.tbl div span:last-child{color:#4A5B70}
+.lbl{position:absolute;font-size:12px;color:#33465C;background:#fff;padding:2px 7px;border-radius:6px;border:1px solid #D3DDEA;white-space:nowrap;z-index:4;font-weight:600}
+.dot{position:absolute;left:0;top:0;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;z-index:2;offset-rotate:0deg;animation:mv linear infinite}
+@keyframes mv{from{offset-distance:0%}to{offset-distance:100%}}
+.d-c{background:#0EA5B7;box-shadow:0 0 8px rgba(14,165,183,.7)}
+.d-b{background:#3B82F6;box-shadow:0 0 8px rgba(59,130,246,.7)}
+.d-r{background:#EF4444;box-shadow:0 0 10px rgba(239,68,68,.8);width:12px;height:12px}
+.d-y{background:#F5B70A;box-shadow:0 0 8px rgba(245,183,10,.8)}
+.d-g{background:#16A34A;box-shadow:0 0 8px rgba(22,163,74,.7)}
+.d-v{background:#7C5CFA;box-shadow:0 0 8px rgba(124,92,250,.7)}
+.d-p{background:#E0458F;box-shadow:0 0 10px rgba(224,69,143,.8)}
+svg .flow{stroke-dasharray:7 6;animation:dash 1.5s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-26}}
+.rhead{position:absolute;left:60px;top:712px;font-size:14px;letter-spacing:3px;font-weight:800;color:#E07A10}
+.cards{position:absolute;left:60px;right:60px;top:740px;display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.card{background:#fff;border:1px solid #D3DDEA;border-radius:12px;padding:12px 14px;border-top:4px solid #7C5CFA;box-shadow:0 6px 18px rgba(15,30,51,.06)}
+.card:nth-child(2){border-top-color:#EF4444}.card:nth-child(3){border-top-color:#F08A1C}.card:nth-child(4){border-top-color:#0EA5B7}.card:nth-child(5){border-top-color:#16A34A}
+.card .h{font-size:16px;font-weight:700;margin-bottom:5px;color:#0B1F3F}
+.card .p{font-size:13px;color:#4A5B70;line-height:1.45}
+.foot{position:absolute;left:60px;right:60px;bottom:22px;display:flex;justify-content:space-between;align-items:center}
+.obs{font-size:13.5px;color:#4A5B70;line-height:1.6}
+.obs b{color:#0B1F3F}
+.logo{display:flex;align-items:center}
+#a-stor .tbl,.box .tbl{gap:3px}
+.tbl div{padding:2px 10px!important;line-height:1.3;font-size:12.5px!important}
+</style></head><body><div id="c">
+<div class="band"></div>
+
+<div class="hdr"><div class="k">REAL-WORLD ARCHITECTURE · PRODUCTION SYSTEM I LED</div>
+<h1>Commercial IoT Monitoring System <span>· 100M+ devices</span></h1></div>
+<div class="stats">
+<div class="pill"><b>100M+</b> devices</div>
+<div class="pill"><b>200K</b> msgs/sec peak</div>
+<div class="pill"><b>1000s</b> of tenants · 100K+ sites</div>
+<div class="pill"><b>Out-of-order</b> telemetry handled</div>
+<div class="pill"><b>99.9%</b> uptime</div>
+</div>
+
+<!-- connectors -->
+<svg width="1600" height="1000" style="position:absolute;left:0;top:0;z-index:1">
+<defs>
+<marker id="m1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7F95B2"/></marker>
+</defs>
+<g fill="none" stroke-width="2.2" stroke="#9FB2CA">
+<path class="flow" d="M290 300 H350" marker-end="url(#m1)"/>
+<path class="flow" d="M560 300 H620" marker-end="url(#m1)"/>
+<path class="flow" d="M830 300 H890" marker-end="url(#m1)"/>
+<path class="flow" d="M1100 300 H1160" marker-end="url(#m1)"/>
+<path class="flow" d="M1265 405 V448" stroke="#EF4444" marker-end="url(#m1)"/>
+<path class="flow" d="M1445 405 V448" stroke="#E0A800" marker-end="url(#m1)"/>
+<path class="flow" d="M1190 405 V425 H940 V448" marker-end="url(#m1)"/>
+<path class="flow" d="M1172 405 V437 H600 V448" stroke="#16A34A" marker-end="url(#m1)"/>
+<path class="flow" d="M770 560 H720" marker-end="url(#m1)"/>
+<path class="flow" d="M370 560 H420" marker-end="url(#m1)"/>
+<path class="flow" d="M1350 670 V690 H570 V672" stroke="#E0A800" marker-end="url(#m1)"/>
+<path class="flow" d="M175 448 V392" stroke="#E0458F" marker-end="url(#m1)"/>
+</g>
+</svg>
+
+<!-- moving packets -->
+<div id="dots"></div>
+
+<!-- labels -->
+<div class="lbl" style="left:290px;top:268px">mTLS</div>
+<div class="lbl" style="left:1272px;top:414px;border-color:#EF4444;color:#DC2626">critical</div>
+<div class="lbl" style="left:1452px;top:414px;border-color:#E0A800;color:#B7791F">minor</div>
+<div class="lbl" style="left:990px;top:412px">raw + rollups</div>
+<div class="lbl" style="left:640px;top:426px;border-color:#16A34A;color:#15803D">live updates</div>
+<div class="lbl" style="left:900px;top:680px;border-color:#E0A800;color:#B7791F">alert + ticket status</div>
+<div class="lbl" style="left:186px;top:408px;border-color:#E0458F;color:#C0307A">firmware rollout (canary %)</div>
+
+<!-- Row 1 -->
+<div class="box cyan" style="left:60px;top:190px;width:230px;height:215px">
+<div class="t"><span class="ic">📡</span>Edge Site</div>
+<div class="s">Cameras · sensors (<b>MQTT/CoAP</b>)<br><b>Active/Standby</b> gateways<br>Local buffer + retry on outage<br>Firmware agent: apply / rollback</div>
+</div>
+<div class="box blue" style="left:350px;top:190px;width:210px;height:215px">
+<div class="t"><span class="ic">🔐</span>Cloud Gateway</div>
+<div class="s"><b>mTLS</b> device identity<br>Auth + <b>per-tenant quotas</b><br>Rate limiting<br>Load balancing</div>
+</div>
+<div class="box blue" style="left:620px;top:190px;width:210px;height:215px">
+<div class="t"><span class="ic">⚙️</span>Ingestion</div>
+<div class="s">Stateless, autoscaled pool<br>Validate · tag tenant<br><b>Heartbeats prioritised</b> over bulk telemetry</div>
+</div>
+<div class="box green" style="left:890px;top:190px;width:210px;height:215px">
+<div class="t"><span class="ic">⇶</span>Kafka</div>
+<div class="s">Topics: <b>heartbeats</b> ⚡ · <b>telemetry</b><br>Partitioned by <b>deviceId</b><br>Ordering per device<br>Durable · <b>replay</b> on failure<br>Absorbs bursts</div>
+</div>
+<div class="box violet" style="left:1160px;top:190px;width:380px;height:215px">
+<div class="t"><span class="ic">🧠</span>Stream Processing · Flink on K8s</div>
+<div class="ops">
+<div class="op"><b>Dedup + enrich</b> · keyed state, metadata join</div>
+<div class="op rule"><b>⏱ Rule engine</b> · DEAD · SLOW · HOT via device timers</div>
+<div class="op"><b>Rollups</b> · 1-hour aggregates for history</div>
+</div>
+<span class="chip">↻ per-tenant rules pushed live from Control Plane</span>
+</div>
+
+<!-- Row 2 -->
+<div class="box pink" style="left:60px;top:448px;width:310px;height:222px">
+<div class="t"><span class="ic">🏢</span>Multi-tenant Control Plane</div>
+<div class="s">Tenants · sites · <b>RBAC</b><br>Device onboarding / offboarding<br>Rules per device type + <b>tenant overrides</b><br>Firmware rollouts: canary → fleet</div>
+</div>
+<div class="box cyan" style="left:420px;top:448px;width:300px;height:222px">
+<div class="t"><span class="ic">📊</span>Dashboards</div>
+<div class="s">Admin + tenant dashboards<br>Drill-down: <b>tenant → site → device</b><br>Health charts · alerts · ticket status<br><b>Dashboard service</b>: live push from Flink over <b>SSE</b> · history via REST</div>
+</div>
+<div class="box orange" style="left:770px;top:448px;width:340px;height:222px">
+<div class="t"><span class="ic">🗄️</span>Tiered Storage</div>
+<div class="tbl">
+<div><span>Live · Redis</span><span>latest state · counts</span></div>
+<div><span>Hot · ClickHouse</span><span>7 days · charts</span></div>
+<div><span>Warm · ClickHouse</span><span>6-month rollups</span></div>
+<div><span>Cold · object store</span><span>sampled archive</span></div>
+<div><span>Metadata · MongoDB</span><span>registry · configs</span></div>
+</div>
+</div>
+<div class="box" style="left:1160px;top:448px;width:380px;height:222px;border-color:#EF4444;border-top-width:4px">
+<div class="t"><span class="ic" style="background:#FEE2E2">🚨</span>Action Execution</div>
+<div class="lane r"><b>CRITICAL · immediate</b> → pager / on-call, bypasses batching</div>
+<div class="lane y"><b>MINOR · batched</b> → 15-min digest per site, quiet hours</div>
+<div class="s" style="margin-top:6px"><b>ServiceNow</b> tickets: idempotent upsert · retries + DLQ</div>
+</div>
+
+<div class="rhead">WHY IT'S BUILT THIS WAY</div>
+<div class="cards">
+<div class="card"><div class="h">⏱ Timers, not polling</div><div class="p">"Device down &gt; X min" is a per-device timer in Flink state. No scanning 100M rows in a DB — why Flink beat Kinesis + Lambda.</div></div>
+<div class="card"><div class="h">🚨 Two alert lanes</div><div class="p">Critical pages on-call instantly. Minor issues roll into 15-min site digests. No alert storms, no 3 AM pings.</div></div>
+<div class="card"><div class="h">🔁 Idempotent actions</div><div class="p">Correlation ID = device + window. Retries upsert the same ticket; failures go to a DLQ with alarms. Zero duplicate tickets.</div></div>
+<div class="card"><div class="h">💰 Pay for what's hot</div><div class="p">7 days hot for live views, 6-month rollups, sampled cold archive. Cost per device stays flat as the fleet grows.</div></div>
+<div class="card"><div class="h">🛟 Degrade, don't die</div><div class="p">Edge buffers through outages, standby gateway takes over, Kafka replays. No single point of failure.</div></div>
+</div>
+
+<div class="foot">
+<div class="obs"><b>Observability:</b> consumer lag · checkpoint health · throughput · end-to-end trace ID (edge → ticket)<br><b>Deployment:</b> independent services on K8s · global region + isolated China region</div>
+<div class="logo"><img src="sdi_logo_v2_crop.png" style="height:46px"></div>
+</div>
+</div>
+
+<script>
+const L=document.getElementById('dots');
+function dots(path,cls,dur,n,phase=0){for(let i=0;i<n;i++){const d=document.createElement('div');d.className='dot '+cls;
+ d.style.offsetPath=`path('${path}')`;d.style.animationDuration=dur+'s';d.style.animationDelay=(-(i/n)*dur-phase)+'s';L.appendChild(d);}}
+// main pipeline: packets hop between boxes (hidden under boxes)
+dots('M150 300 H1300','d-c',3,10);
+dots('M1265 380 V470','d-r',3,1,1.0);
+dots('M1445 380 V470','d-y',1.5,2);
+dots('M1190 380 V425 H940 V470','d-b',1.5,2);
+dots('M800 560 H690','d-g',1,1);
+dots('M340 560 H450','d-v',1.5,1);
+dots('M1350 650 V690 H570 V650','d-y',3,3);
+dots('M175 470 V370','d-p',3,1,0.5);
+</script>
+</body></html>

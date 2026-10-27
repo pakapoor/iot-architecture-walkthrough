@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IoT Architecture Walkthrough</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: architecture stage (iframe) on the left, flow picker panel on the right; phones get a video list instead */
+:root{
+  --bg:#EEF3F9; --surface:#FFFFFF; --ink:#0B1F3F; --muted:#56667C; --line:#D6DFEA; --hover:#F1F5FB;
+  --accent:#2563EB; --g:#16A34A; --r:#DC2626; --y:#B7791F; --v:#6D4AE8; --dd:#632CA6;
+  --display:"Sora",ui-sans-serif,system-ui,sans-serif; --body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0C1422;--surface:#132036;--ink:#E7EEF8;--muted:#9AAAC0;--line:#24344F;--hover:#1A2A44;--accent:#6EA2FF;--g:#3BD16A;--r:#FF7A7A;--y:#F2C14E;--v:#A48BFF;--dd:#B48BEF;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0C1422;--surface:#132036;--ink:#E7EEF8;--muted:#9AAAC0;--line:#24344F;--hover:#1A2A44;--accent:#6EA2FF;--g:#3BD16A;--r:#FF7A7A;--y:#F2C14E;--v:#A48BFF;--dd:#B48BEF;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
+.app{display:grid;grid-template-columns:minmax(0,1fr) 290px;height:100vh;height:100dvh}
+.stagewrap{position:relative;background:#EEF3F9;overflow:hidden}
+.stagewrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;transition:opacity .35s ease}
+aside{border-left:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;gap:18px;padding:20px 16px;overflow-y:auto}
+.brand{display:grid;gap:4px}
+.kick{font:500 11px/1.3 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.brand h1{font-family:var(--display);font-size:19px;line-height:1.2;margin:0}
+.home{justify-self:start;margin-top:6px;border:1px solid var(--line);background:transparent;color:var(--ink);font:600 13px var(--body);border-radius:8px;padding:6px 10px;cursor:pointer}
+.home:hover{background:var(--hover)}
+.home[hidden]{display:none}
+.grp h2{font:600 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.list{display:grid;gap:4px}
+.item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:1px solid transparent;background:transparent;color:var(--ink);font:500 14.5px var(--body);border-radius:10px;padding:9px 10px;cursor:pointer}
+.item:hover{background:var(--hover)}
+.item:focus-visible,.home:focus-visible,.sw input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.item.on{background:var(--hover);border-color:var(--accent);font-weight:600}
+.item .dot{width:11px;height:11px;border-radius:50%;flex:none}
+.item .k{margin-left:auto;font:500 11px var(--mono);color:var(--muted);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px}
+.item .chev{margin-left:auto;color:var(--muted);transition:transform .2s}
+.item[aria-expanded="true"] .chev{transform:rotate(90deg)}
+.sub{display:grid;gap:2px;margin:2px 0 4px 21px;padding-left:10px;border-left:2px solid var(--line)}
+.sub[hidden]{display:none}
+.sub .item{font-size:13.5px;padding:7px 10px}
+.toggles{display:grid;gap:10px;border-top:1px solid var(--line);padding-top:16px}
+.sw{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;cursor:pointer}
+.sw input{position:absolute;opacity:0;width:1px;height:1px}
+.sw span{position:relative;width:34px;height:20px;border-radius:10px;background:var(--line);flex:none;transition:background .2s}
+.sw span::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .2s}
+.sw input:checked+span{background:var(--accent)}
+.sw input:checked+span::after{transform:translateX(14px)}
+.sw input:disabled+span{opacity:.55}
+.hint{font-size:12.5px;color:var(--muted);margin-top:auto;line-height:1.5}
+.dd{display:grid;gap:8px;border-top:1px solid var(--line);padding-top:14px}
+.dd[hidden]{display:none}
+.dd h2{font:600 11px/1.3 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 2px}
+.dd .d{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:0;padding:8px 10px;font-size:13px;line-height:1.4;color:var(--muted)}
+.dd .d b{display:block;color:var(--ink);font-size:13.5px;margin-bottom:2px}
+.dd .d{cursor:pointer;text-align:left;font:inherit;background:transparent;width:100%}
+.dd .d:hover{background:var(--hover)}
+.dd .d:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.dd .more{display:block;margin-top:4px;font:500 11px var(--mono);color:var(--accent)}
+.dmodal{position:absolute;inset:0;z-index:20;background:rgba(11,31,63,.42);display:flex;align-items:center;justify-content:center;padding:24px}
+.dmodal[hidden]{display:none}
+.dcard{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:16px;box-shadow:0 30px 80px rgba(11,31,63,.35);width:min(1180px,100%);max-height:100%;overflow:auto;display:grid;grid-template-rows:auto 1fr}
+.dhead{display:flex;align-items:flex-start;gap:14px;padding:18px 22px 14px;border-bottom:1px solid var(--line)}
+.dhead h2{font-family:var(--display);font-size:24px;line-height:1.2;margin:4px 0 0}
+.dclose{margin-left:auto;border:0;background:var(--ink);color:var(--surface);font:600 14px var(--body);border-radius:10px;padding:9px 14px;cursor:pointer}
+.dclose:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.dbody{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);gap:22px;padding:18px 22px 22px}
+@media (max-width:1100px){.dbody{grid-template-columns:1fr}}
+.dsec{margin:0 0 12px}
+.dsec h3{font:600 11px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
+.dsec p{margin:0;font-size:15px;line-height:1.5}
+.dline{border-left:3px solid var(--accent);padding:8px 12px;background:var(--hover);font-weight:600;font-size:15px;line-height:1.45}
+.snap{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#EEF3F9;align-self:start}
+.snap img{display:block;width:100%;height:auto}
+.snap .hl{position:absolute;border:3px solid #2563EB;border-radius:10px;box-shadow:0 0 0 4px rgba(37,99,235,.18),0 0 26px rgba(37,99,235,.45)}
+.snap .dim{position:absolute;inset:0;background:rgba(238,243,249,.55)}
+figure{margin:0;display:grid;gap:8px;align-content:start}
+figcaption{font-size:12.5px;color:var(--muted)}
+
+.hint kbd{font:500 11px var(--mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px}
+/* phone layout */
+.phone{display:none;padding:24px max(16px,env(safe-area-inset-left,0px)) 40px;max-width:640px;margin:0 auto}
+.phone h1{font-family:var(--display);font-size:24px;line-height:1.2;margin:8px 0 6px}
+.phone p.lede{color:var(--muted);margin:0 0 18px}
+.vcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:16px}
+.vcard video{display:block;width:100%;aspect-ratio:16/9;background:#EEF3F9}
+.vcard .vt{padding:12px 14px;display:flex;align-items:center;gap:10px;font-weight:600}
+.vcard .vt small{display:block;font-weight:400;color:var(--muted);font-size:13px}
+@media (max-width:820px){.app{display:none}.phone{display:block}}
+@media (prefers-reduced-motion:reduce){.stagewrap iframe,.item .chev,.sw span,.sw span::after{transition:none}}
+
+/* ---- clean, Apple-like refresh (overrides the base styles above) ---- */
+:root{--bg:#F5F5F7;--surface:#FBFBFD;--card:#FFFFFF;--ink:#1D1D1F;--muted:#6E6E73;--line:#E5E5EA;--hover:#EFEFF2;--accent:#0071E3;--ok:#34C759;
+  --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Sora",ui-sans-serif,system-ui,sans-serif;--body:-apple-system,BlinkMacSystemFont,"SF Pro Text","IBM Plex Sans",ui-sans-serif,system-ui,sans-serif}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#000000;--surface:#1C1C1E;--card:#2C2C2E;--ink:#F5F5F7;--muted:#98989D;--line:#38383A;--hover:#2C2C2E;--accent:#0A84FF;--ok:#30D158;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#000000;--surface:#1C1C1E;--card:#2C2C2E;--ink:#F5F5F7;--muted:#98989D;--line:#38383A;--hover:#2C2C2E;--accent:#0A84FF;--ok:#30D158;color-scheme:dark}
+body{-webkit-font-smoothing:antialiased}
+aside{padding:30px 20px 24px;gap:26px;border-left:1px solid var(--line)}
+.kick{font:500 11px/1.35 var(--body);letter-spacing:.06em;color:var(--muted)}
+.brand{gap:6px}
+.brand h1{font-family:var(--display);font-size:21px;font-weight:600;letter-spacing:-.015em;line-height:1.2}
+.home{border:0;background:var(--hover);border-radius:999px;padding:7px 14px;font:500 13px var(--body)}
+.grp h2{font:600 11px/1 var(--body);letter-spacing:.06em;color:var(--muted);margin:0 0 10px 10px}
+.list{gap:2px}
+.item{border:0;border-radius:10px;padding:9px 10px;font:500 15px var(--body);transition:background .15s}
+.item:hover{background:var(--hover)}
+.item.on{background:color-mix(in srgb,var(--accent) 12%,var(--surface));color:var(--accent);box-shadow:none;font-weight:600}
+.item .dot{width:9px;height:9px;box-shadow:none}
+.item .k{border:0;background:var(--hover);border-radius:6px;padding:1px 7px;font:500 11.5px var(--body);color:var(--muted)}
+.item.on .k{background:var(--bg)}
+.sub{border-left:0;margin-left:18px;padding-left:0}
+.sub .item{font-size:14px;padding:7px 10px}
+.toggles{border-top:1px solid var(--line);padding-top:20px;gap:14px}
+.sw{font-size:14.5px}
+.sw[hidden],.toggles[hidden]{display:none}
+.sw span{width:44px;height:26px;border-radius:13px;background:var(--line)}
+.sw span::after{top:2px;left:2px;width:22px;height:22px;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+.sw input:checked+span{background:var(--ok)}
+.sw input:checked+span::after{transform:translateX(18px)}
+.hint{font-size:12px;color:var(--muted)}
+.hint kbd{border:0;background:var(--hover);border-radius:5px;padding:0 6px;font:500 11px var(--body)}
+.dmodal{background:rgba(0,0,0,.25);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.dcard{background:var(--card);border:0;border-radius:24px;box-shadow:0 40px 100px rgba(0,0,0,.22),0 0 0 1px rgba(0,0,0,.04)}
+.dhead{border-bottom:1px solid var(--line);padding:22px 26px 18px}
+.dhead h2{font-weight:600;letter-spacing:-.015em}
+.dclose{background:var(--hover);color:var(--ink);border-radius:999px;font:600 13.5px var(--body);padding:8px 16px}
+.dbody{padding:22px 26px 26px;gap:28px}
+.dsec h3{font:600 11px/1.2 var(--body);letter-spacing:.06em}
+.dline{border-left:0;border-radius:14px;background:var(--hover);padding:12px 16px;font-weight:600}
+.snap{border:0;border-radius:16px;box-shadow:0 0 0 1px var(--line)}
+.vcard{border:0;border-radius:18px;box-shadow:0 1px 3px rgba(0,0,0,.08),0 0 0 1px var(--line)}
+
+/* spacious navigation panel */
+.app{grid-template-columns:minmax(0,1fr) 320px}
+aside{padding:40px 28px 32px;gap:34px}
+.brand h1{display:none}
+.brand .kick{font-size:12px;letter-spacing:.04em;text-transform:none;font-weight:600;color:var(--ink)}
+.grp h2{margin:0 0 12px 12px}
+.list{gap:4px}
+.item{padding:11px 12px;font-size:15.5px}
+.item .k{opacity:0;transition:opacity .15s}
+.item:hover .k,.item.on .k{opacity:1}
+.sub .item{padding:9px 12px}
+.hint{display:none}
+.toggles{padding-top:26px;gap:18px}
+</style>
+
+<div class="app">
+  <main class="stagewrap" id="stage" aria-label="Architecture walkthrough">
+    <div class="dmodal" id="dmodal" hidden><div class="dcard" role="dialog" aria-modal="true" aria-labelledby="dtitle">
+      <div class="dhead"><div><div class="kick" id="dkick"></div><h2 id="dtitle"></h2></div><button class="dclose" id="dclose" type="button">Close · Esc</button></div>
+      <div class="dbody"><div id="dtext"></div><figure><div class="snap" id="dsnap"></div><figcaption id="dcap"></figcaption></figure></div>
+    </div></div>
+  </main>
+  <aside aria-label="Choose a flow">
+    <div class="brand">
+      <div class="kick">System-Design.in</div>
+      <h1>Commercial IoT Monitoring System</h1>
+      <button class="home" id="home" type="button" hidden><svg class="emi" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.125em;margin-right:6px"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Back to architecture</button>
+    </div>
+    <section class="grp" aria-labelledby="g1"><h2 id="g1">Flows</h2>
+      <div class="list" id="flows"></div>
+    </section>
+    <section class="grp" aria-labelledby="g2"><h2 id="g2">Infra issues</h2>
+      <div class="list" id="issues"></div>
+    </section>
+    <div class="toggles">
+      <label class="sw">Observability (Datadog)<input type="checkbox" id="tObs"><span></span></label>
+      <label class="sw">Design decisions<input type="checkbox" id="tWhy"><span></span></label>
+      <label class="sw">Captions<input type="checkbox" id="tCap" checked><span></span></label>
+    </div>
+    <section class="dd" id="dd" hidden aria-live="polite"></section>
+    <div class="hint"><kbd>→</kbd> or the flashing ball steps · <kbd>1</kbd>–<kbd>8</kbd> flows · click a box to zoom in</div>
+  </aside>
+</div>
+
+<div class="phone" id="phone">
+  <div class="kick">System-Design.in · real-world architecture</div>
+  <h1>Commercial IoT Monitoring System</h1>
+  <p class="lede">100M+ devices · 200K msgs/sec · 99.9% uptime. Each video follows one message through the system. Open this page on a laptop for the interactive, step-by-step walkthrough.</p>
+  <div id="vids"></div>
+</div>
+
+<script>
+const FLOWS = [
+  { group: 'Device data', slug: 'g-data', key: '1', color: 'var(--g)', items: [
+    { slug: 'health', name: 'Heartbeat', page: 7, color: 'var(--g)', video: 'IoT_7.mp4', sub: 'Heartbeat → priority topic → Flink timer reset → Redis → ONLINE' },
+    { slug: 'telemetry', name: 'Telemetry', page: 4, color: 'var(--v)', video: 'IoT_4.mp4', sub: 'Sensor → Kafka → Flink → live push (SSE) + ClickHouse history' } ] },
+  { group: 'Alerts', slug: 'g-alerts', key: '2', color: 'var(--r)', items: [
+    { slug: 'red-fix', name: 'Critical · field fix', page: 1, color: 'var(--r)', video: 'IoT_1.mp4', sub: 'DEAD → PagerDuty + Temporal → ServiceNow → tech replaces device' },
+    { slug: 'red-auto', name: 'Critical · auto-resolve', page: 2, color: 'var(--r)', video: 'IoT_2.mp4', sub: 'Device comes back → signal → ticket closes itself' },
+    { slug: 'red-snow', name: 'Critical · ServiceNow down', page: 5, color: 'var(--r)', video: 'IoT_5.mp4', sub: 'Retries → parked → human replay → one ticket' },
+    { slug: 'yellow', name: 'Minor · digest', page: 3, color: 'var(--y)', video: 'IoT_3.mp4', sub: 'SLOW → minor lane → 15-min digest' } ] },
+  { slug: 'tenants', key: '3', name: 'Multi-tenancy', page: 8, color: 'var(--accent)', video: 'IoT_8.mp4', sub: 'Two tenants, one platform: quotas, isolation, own rules, RBAC' },
+  { group: 'Deployment & upgrades', slug: 'g-cicd', key: '4', color: '#0EA5A4', items: [
+    { slug: 'firmware', name: 'Device firmware', page: 9, color: '#D946EF', video: null, sub: 'Canary 1% → health gates → waves → auto-halt + A/B rollback' },
+    { slug: 'cicd-svc', name: 'Gateway + Ingestion', page: 11, color: '#0EA5A4', video: null, sub: 'Stateless services: canary pods, connection draining' },
+    { slug: 'cicd', name: 'Flink jobs', page: 10, color: '#0EA5A4', video: null, sub: 'Stateful: savepoint upgrade and rollback' },
+    { slug: 'cicd-wf', name: 'Temporal + Action services', page: 12, color: '#0EA5A4', video: null, sub: 'Workflow versioning, replay tests' },
+    { slug: 'cicd-dash', name: 'Dashboard service + UI', page: 13, color: '#0EA5A4', video: null, sub: 'CDN assets, feature flags, SSE drain' },
+    { slug: 'cicd-data', name: 'Data stores', page: 14, color: '#0EA5A4', video: null, sub: 'Expand → migrate → contract, zero downtime' },
+    { slug: 'cicd-kafka', name: 'Kafka + platform', page: 15, color: '#0EA5A4', video: null, sub: 'Infra as code, rolling broker upgrades' } ] }
+];
+const ISSUES = [
+  { slug: 'lag', key: '5', name: 'Queue depth rising', page: 6, color: 'var(--dd)', video: 'IoT_6.mp4', sub: 'Burst → lag + freshness alert → scale → drain', infra: true },
+  { slug: 'storm', key: '6', name: 'Alert storm', page: 16, color: 'var(--r)', video: null, sub: 'Site power cut → 200 DEAD → one correlated page', infra: true },
+  { slug: 'crash', key: '7', name: 'Flink job crash', page: 17, color: 'var(--v)', video: null, sub: 'Checkpoint restore + Kafka replay + idempotent actions', infra: true },
+  { slug: 'hot', key: '8', name: 'Hot partition', page: 18, color: 'var(--y)', video: null, sub: 'One runaway device → one lagging partition → per-device limit', infra: true }
+];
+const DECISIONS = Object.assign({
+  main: [['Timers, not polling', '"Device down > X min" is a per-device timer in Flink state. No scanning 100M rows — why Flink beat Kinesis + Lambda.'],
+    ['Two alert lanes', 'Critical pages on-call instantly. Minor issues roll into 15-min site digests. No alert storms, no 3 AM pings.'],
+    ['Idempotent actions', 'Correlation ID = device + window. Retries upsert the same ticket; failures go to a DLQ with alarms. Zero duplicate tickets.'],
+    ['Pay for what\'s hot', '7 days hot for live views, 6-month rollups, sampled cold archive. Cost per device stays flat as the fleet grows.'],
+    ['Degrade, don\'t die', 'Edge buffers through outages, standby gateway takes over, Kafka replays. No single point of failure.']],
+  cicd: [['Git is the source of truth', 'GitOps: the deploy repo says what runs; Argo CD makes clusters match it.'],
+    ['Contracts before code ships', 'Avro schema compatibility is checked in CI, so a deploy can\'t break consumers.'],
+    ['Test with real traffic', 'Recorded device traffic is replayed in CI and staging through the new rules.'],
+    ['Canary + metric gate', 'Prod canary is judged by Datadog against the previous version before going to 100%.'],
+    ['Stateful upgrades via savepoints', 'Flink jobs move between versions from a savepoint — forward or back, no state lost.'],
+    ['Rollback = revert a commit', 'Undoing a release is the same Git operation as shipping one.']],
+  firmware: [['Canary first, then waves', '1% → 10% → 50% → 100%; every wave must pass its own health gate.'],
+    ['Compare against a baseline', 'Health is judged as 4.3.0 vs 4.2.1 on the same metrics, not against fixed thresholds.'],
+    ['Spread the canary', 'The 1% spans tenants, sites and device models, so one site\'s quirk can\'t pass or fail a release.'],
+    ['A/B slots on the device', 'The new image goes into a spare slot; a bad boot falls back on its own, with no site visit.'],
+    ['Halt is automatic, resume is human', 'A failed gate stops the rollout instantly; a person decides to fix, resume or roll back.'],
+    ['Same pipeline, no side channel', 'Version rides on normal heartbeats, so rollout health uses the platform\'s own monitoring.']],
+  tenants: [['Quotas at the front door', 'Per-tenant rate limits at the gateway stop a noisy neighbour before it costs anything downstream.'],
+    ['Shared Kafka, keyed by deviceId', 'Simple: all tenants share topics; isolation comes from quotas upstream and tenant tags.'],
+    ['Shared storage, scoped queries', 'Every row carries tenant_id and every query is scoped by tenant.'],
+    ['Rules per tenant', 'Overrides (e.g. DEAD after 5 vs 10 min) are pushed live from the control plane to Flink, no redeploy.'],
+    ['RBAC end to end', 'A tenant admin only ever sees their own tenants, sites and devices.'],
+    ['Data residency', 'China tenants run in an isolated region.']],
+  telemetry: [['Pay for what\'s hot', 'Raw data hot for 7 days, 6-month rollups warm, S3 cold. Cost per device stays flat as the fleet grows.'],
+    ['Roll up in the stream', 'Flink computes 1-hour aggregates as data flows, so history charts never scan raw rows.'],
+    ['Live path straight from Flink', 'Flink pushes updates to the dashboard service; databases only serve history.'],
+    ['Push, don\'t poll', 'Live views get changes pushed over SSE instead of thousands of dashboards polling the hot store.'],
+    ['Key by deviceId', 'One partition per device keeps its events in order, which is how out-of-order telemetry is handled.']],
+  health: [['Timers, not polling', 'Each heartbeat resets a per-device timer in Flink state. No scanning 100M rows to find silent devices.'],
+    ['Batch at the edge', '100M devices × 1 heartbeat/min would be ~1.7M msgs/sec; per-site batching brings it to ~200K at peak.'],
+    ['Heartbeats get priority', 'Their own topic, so liveness never waits behind bulk telemetry.'],
+    ['Emit transitions only', 'ONLINE → ONLINE produces nothing downstream; only ONLINE ↔ DEAD leaves Flink.'],
+    ['Counts from Redis', 'Dashboard tiles read a count cache instead of counting devices on every page load.']],
+  'red-fix': [['Two alert lanes', 'Critical skips batching and pages now; minor waits for the digest.'],
+    ['One workflow per incident', 'signalWithStart keyed by deviceId + incident window, so duplicate alerts join the same workflow.'],
+    ['Escalation is code, not cron', 'A durable 30-min ack timer inside the workflow; no scheduler tables to poll.'],
+    ['Wait for days, durably', 'The workflow sleeps until ServiceNow says "closed" and survives deploys and crashes.'],
+    ['Idempotent ticket upsert', 'Retries update the same ticket by workflowId; never a duplicate.']],
+  'red-auto': [['Same workflow hears the recovery', 'When the device returns, Flink signals the same workflowId instead of opening something new.'],
+    ['Self-healing', 'Auto-resolve closes the ticket and stands down on-call; humans only see real problems.'],
+    ['Idempotent ticket upsert', 'Open, escalate and resolve all hit one ticket, keyed by workflowId.']],
+  'red-snow': [['The page never waits on ticketing', 'PagerDuty is paged straight off SNS; a ServiceNow outage only delays the ticket.'],
+    ['Bounded retries with backoff', 'Retrying forever hides an outage; a limit makes it visible.'],
+    ['Park, don\'t drop', 'Exhausted retries mark the workflow PARKED; the parked list is the DLQ, one source of truth.'],
+    ['Humans decide the replay', 'Ops replays after checking ServiceNow is healthy, so recovery doesn\'t flood it.'],
+    ['Timeout-safe idempotency', 'A timed-out attempt may have landed; upsert by workflowId still gives exactly one ticket.'],
+    ['Two retry layers', 'SQS handles delivery retries; Temporal handles business retries.']],
+  yellow: [['Minor never pages', 'SLOW goes to the minor lane; nobody is woken at 3 AM.'],
+    ['15-min site digest', 'Fifty minor alerts become one Email/Slack digest per site.'],
+    ['Suppression + quiet hours', 'Repeats are folded and delivery respects quiet hours.'],
+    ['Dashboard shows it anyway', 'The device turns yellow live, so nothing is hidden.']],
+  lag: [['Kafka is the shock absorber', 'A burst becomes lag, not data loss; Flink catches up at its own pace.'],
+    ['Protect the critical path', 'Heartbeats on a priority topic keep DEAD detection fresh while telemetry lags.'],
+    ['Alert on freshness, not just lag', 'Lag is a count; freshness is what users feel.'],
+    ['Autoscale within guardrails', 'The autoscaler adds Flink workers up to the partition count, with a cooldown so it doesn\'t flap.'],
+    ['Flush on size or time', '1 s or 50K rows, whichever comes first, so writes batch up on their own under load.'],
+    ['Never add partitions mid-incident', 'It remaps deviceIds and breaks per-device ordering.']]
+}, {"cicd-svc": [["Canary by traffic", "New pods take 5% of traffic; the rest stays on stable pods until the gate passes."], ["Drain, don't drop", "Old pods stop taking new connections and finish in-flight work before exiting."], ["Load test in CI", "A 200K msgs/sec burst is replayed before every release."], ["Rollback is instant", "Stateless services roll back by shifting traffic — nothing to undo."]], "cicd-wf": [["Replay tests for determinism", "Recorded workflow histories are replayed against new code in CI."], ["Versioned workers", "New incidents run on new code; in-flight ones finish on the old workers."], ["Retire old workers when drained", "Old builds shut down only when no running workflow needs them."], ["Queues and alarms as code", "SNS, SQS, DLQs and alarms ship through the same pipeline."]], "cicd-dash": [["Ship dark, flag on", "Features deploy hidden and are switched on per tenant."], ["Assets first, index last", "New UI assets reach the CDN before the page that uses them."], ["Tenant isolation is a test", "Every endpoint is called as the wrong tenant in CI."], ["SSE survives deploys", "Browsers reconnect with Last-Event-ID and miss nothing."]], "cicd-data": [["Expand → migrate → contract", "Add new, move data, remove old — every step reversible until the last."], ["Backfill in throttled batches", "Resumable batches keep production load flat."], ["Online index builds", "Indexes build without blocking reads or writes."], ["Rolling version upgrades", "Secondaries first, then step down the primary."]], "cicd-kafka": [["Infrastructure as code", "Brokers, topics and configs live in Git."], ["Policy as code", "Unsafe settings fail the pipeline."], ["One broker at a time", "Each broker must be back in sync before the next one restarts."], ["Pin the protocol until the end", "Old and new brokers stay compatible mid-upgrade."]], "storm": [["Correlate before you page", "Group failures by topology before alerting anyone."], ["One ticket per root cause", "The site gets a ticket; device tickets are held."], ["Auto-resolve on recovery", "When the site comes back, so does the incident."], ["Rate-limit pages", "An on-call person gets at most a few pages per window."]], "crash": [["Checkpoint often", "Every device's state and timers are snapshotted about every minute."], ["Kafka is the replay log", "Everything since the checkpoint is still in Kafka."], ["Exactly-once state, idempotent effects", "Replays can't double-count or double-page."], ["Restart is automatic", "Kubernetes and Flink's restart strategy recover without a human."]], "hot": [["Fine-grained keys", "Partitioning by deviceId spreads load across 100M keys."], ["Per-device rate limits", "Tenant quotas aren't enough — one device can still flood a partition."], ["Watch lag per partition", "Total lag hides one hot partition."], ["Scaling won't fix a hot key", "One partition = one worker, however many you add."]]});
+const ARCHBOX = { edge: [60, 190, 230, 215], gw: [350, 190, 210, 215], ing: [620, 190, 210, 215], kafka: [890, 190, 210, 215], flink: [1160, 190, 380, 215], ctrl: [60, 448, 310, 222], dash: [420, 448, 300, 222], stor: [770, 448, 340, 222], act: [1160, 448, 380, 222] };
+const ACT = 'actions_detail.png', DD = 'datadog_detail.png';
+const DETAIL = Object.assign({
+  'Timers, not polling': { p: 'Detect "device silent for 5 min" across 100M+ devices.', d: 'A per-device timer lives in Flink keyed state. Every heartbeat resets it; if it fires, the device is DEAD.', alt: 'Store last-seen in a database and scan it on a schedule (e.g. Kinesis + Lambda).', tr: 'Flink is stateful infrastructure to run (checkpoints, Kubernetes). A scan grows with the fleet and detects only as fast as it runs.', line: 'Silence only becomes an event if something is waiting for it — so every device gets a timer.', boxes: ['flink'] },
+  'Two alert lanes': { p: 'Critical and minor issues need opposite handling: one must page now, the other must not page at all.', d: 'Critical skips batching: SNS → SQS → PagerDuty. Minor goes to a notification service with a 15-min site/region digest, suppression and quiet hours.', alt: 'One pipeline with a severity flag.', tr: 'Two paths to build, test and operate.', line: 'Separate the urgent from the important, or people start ignoring both.', boxes: ['flink', 'act'] },
+  'Idempotent actions': { p: 'At-least-once delivery and retries mean the same incident can arrive more than once.', d: 'Correlation ID = device + incident window. Actions upsert by that ID; failures go to a DLQ with alarms.', alt: 'Chase exactly-once end to end — not achievable once an external system like ServiceNow is involved.', tr: 'Needs a stable key and an upsert-capable API on every integration.', line: 'Assume duplicates, make them harmless.', boxes: ['act'] },
+  "Pay for what's hot": { p: '7-day detail and 6-month history, at up to 200K msgs/sec.', d: 'ClickHouse hot for 7 days of raw data, warm for 6-month rollups, S3 cold for a sampled archive.', alt: 'Keep everything in one hot store.', tr: 'Rollups lose detail and queries that span tiers are more complex — but cost per device stays flat.', line: 'Store data at the resolution people actually look at it.', boxes: ['stor', 'flink'] },
+  "Degrade, don't die": { p: 'Site networks and cloud components fail.', d: 'Edge gateways spool and retry, run active/standby, and Kafka keeps a durable log that can be replayed.', alt: 'Rely on cloud-side availability only.', tr: 'More logic at the edge, and reconnects arrive as bursts (see "Queue depth rising").', line: 'Every layer can lose its neighbour without losing data.', boxes: ['edge', 'kafka'] },
+  'Roll up in the stream': { p: '6-month charts would otherwise scan billions of raw rows.', d: 'Flink computes 1-hour aggregates as data flows and writes them to the warm tier.', alt: 'Batch rollup jobs, or aggregate at query time.', tr: 'Rollups are fixed upfront; a new one needs a backfill (replay Kafka within retention).', line: 'Do the arithmetic once, while the data is passing by.', boxes: ['flink', 'stor'] },
+  "Push, don't poll": { p: 'Thousands of live dashboards watching device status.', d: 'Live views get changes pushed over SSE (server-sent events); history comes over REST. Updates flow one way, so SSE fits: plain HTTP through the gateway, built-in reconnect with replay (Last-Event-ID).', alt: 'Polling the hot store, or WebSocket — two-way, more than a one-way feed needs.', tr: 'Long-lived connections to manage; serve over HTTP/2 to avoid the browser\'s ~6-connections-per-domain limit on HTTP/1.1.', line: 'Send what changed, not what didn\'t.', boxes: ['dash'] },
+  'Git is the source of truth': { p: 'Who changed production, when, and what is actually running?', d: 'Every deploy is a commit to the deploy repo; Argo CD continuously syncs each cluster to match it (example tooling: GitHub Actions + Argo CD + Helm).', alt: 'CI pushes directly to clusters, or engineers run kubectl.', tr: 'Two repos (code and deploy) to keep in step.', line: 'If it isn\'t in Git, it isn\'t in production.', boxes: ['ctrl'] },
+  'Contracts before code ships': { p: 'A new event field can break every consumer downstream.', d: 'CI checks Avro schemas against the schema registry for backward compatibility before anything is built.', alt: 'Find out in production.', tr: 'Schema changes need more care up front.', line: 'Break the build, not the consumers.', boxes: ['kafka', 'ing'] },
+  'Test with real traffic': { p: 'Unit tests don\'t catch what 100M real devices send.', d: 'Recorded device traffic is replayed through the new Flink job in CI and in staging.', alt: 'Synthetic test data only.', tr: 'Recordings must be scrubbed and refreshed.', line: 'The best test data is yesterday\'s production.', boxes: ['kafka', 'flink'] },
+  'Canary + metric gate': { p: 'Some bugs only show under production load.', d: 'A small canary runs in production; Datadog compares errors, lag and checkpoint time with the previous version before promotion.', alt: 'Deploy to 100% and watch.', tr: 'Slower releases; needs good baseline metrics.', line: 'Let the metrics, not a person, say go.', boxes: ['flink'] },
+  'Stateful upgrades via savepoints': { p: 'A Flink job holds timers and state for every device; redeploying must not lose them.', d: 'Stop-with-savepoint, then start the new version from it; rollback starts the old version from the same savepoint.', alt: 'Restart from scratch and rebuild state from Kafka.', tr: 'State schema changes need migration.', line: 'Upgrade a stateful job like moving house, not rebuilding it.', boxes: ['flink'] },
+  'Rollback = revert a commit': { p: 'Rollbacks under pressure are where mistakes happen.', d: 'Reverting the deploy commit makes Argo CD roll back; Flink restarts the old job from the savepoint.', alt: 'Manual rollback runbooks.', tr: 'Database migrations must be backward-compatible to allow it.', line: 'Undo should be as boring as deploy.', boxes: ['flink', 'ctrl'] },
+  'Canary first, then waves': { p: 'A bad firmware on 100M devices is a fleet-wide outage.', d: 'Start with 1%, then widen 10% → 50% → 100%; each wave must pass a health gate before the next starts.', alt: 'Ship to everyone at once, or by hand per tenant.', tr: 'A full rollout takes days instead of hours.', line: 'Limit the blast radius before you know it\'s safe.', boxes: ['ctrl', 'edge'] },
+  'Compare against a baseline': { p: 'Is a 0.3% crash rate good or bad? It depends on the device.', d: 'Flink compares the new version against the old one on the same metrics: crash loops, heartbeat gaps, error rate.', alt: 'Fixed thresholds for every device type.', tr: 'Needs enough devices on both versions to compare fairly.', line: 'Judge a release against what it replaces.', boxes: ['flink'] },
+  'Spread the canary': { p: 'A canary of one site can miss problems — or invent them.', d: 'The 1% is sampled across tenants, sites and device models.', alt: 'Canary on one friendly tenant.', tr: 'A bug can reach several tenants (in small numbers) at once.', line: 'A canary should look like the fleet.', boxes: ['ctrl', 'edge'] },
+  'A/B slots on the device': { p: 'A bricked device needs a truck roll.', d: 'The agent installs into a spare slot and keeps the old image; a failed boot or a halt command falls back automatically.', alt: 'Overwrite in place.', tr: 'Double the flash storage per device.', line: 'Every update ships with its own undo.', boxes: ['edge'] },
+  'Halt is automatic, resume is human': { p: 'At 10%, every minute of a bad rollout adds affected devices.', d: 'A failed gate stops the rollout immediately; the platform admin decides what happens next.', alt: 'Humans watch dashboards and stop it by hand.', tr: 'False alarms pause good rollouts; tune gates carefully.', line: 'Machines stop the bleeding; people decide the cure.', boxes: ['ctrl', 'flink'] },
+  'Same pipeline, no side channel': { p: 'Rollout health needs data from every updated device.', d: 'The firmware version rides on normal heartbeats and telemetry, so the existing pipeline measures health.', alt: 'A separate reporting channel for updates.', tr: 'Version must be in every message schema.', line: 'If the platform can see a device, it can judge its firmware.', boxes: ['gw', 'ing', 'kafka', 'flink'] },
+  'Live path straight from Flink': { p: 'Charts must refresh in near real time for every open dashboard.', d: 'Flink publishes each update to the dashboard service (via Redis pub/sub) and writes it to the databases in parallel; live views never wait on a DB round-trip.', alt: 'Dashboards poll ClickHouse for the latest points.', tr: 'Two paths (live and history) must show the same numbers.', line: 'Live comes from the stream; history comes from the store.', boxes: ['flink', 'dash'] },
+  'Key by deviceId': { p: 'Telemetry arrives out of order and sometimes twice.', d: 'Kafka is partitioned by deviceId and Flink keeps keyed per-device state: per-device ordering, dedup, idempotent processing.', alt: 'Random partitioning for perfectly even load.', tr: 'A very chatty device or tenant can skew a partition.', line: 'Order only matters per device, so partition per device.', boxes: ['kafka', 'flink'] },
+  'Batch at the edge': { p: '100M devices × 1 heartbeat/min is ~1.7M msgs/sec.', d: 'Edge gateways batch per site, bringing the cloud to ~200K msgs/sec at peak.', alt: 'Every device talks to the cloud directly.', tr: 'Adds a small batching delay, and makes the gateway critical — hence active/standby.', line: 'Aggregate as close to the source as you can.', boxes: ['edge', 'gw'] },
+  'Heartbeats get priority': { p: 'Liveness must never wait behind bulk telemetry.', d: 'Ingestion prioritises heartbeats and they travel on their own topic.', alt: 'One shared topic for everything.', tr: 'More topics and consumers to manage.', line: 'Protect the signal that drives paging.', boxes: ['ing', 'kafka'] },
+  'Emit transitions only': { p: 'Forwarding every heartbeat would flood everything downstream.', d: 'Flink emits only state changes: ONLINE ↔ DEAD.', alt: 'Forward every heartbeat and filter later.', tr: 'Downstream relies on Flink state as the source of truth.', line: 'Downstream cares about changes, not confirmations.', boxes: ['flink', 'act'] },
+  'Counts from Redis': { p: 'Tiles show counts across 100K+ sites on every page load.', d: 'A Redis count cache serves the tiles.', alt: 'COUNT queries against the hot store.', tr: 'A cache can drift, so it needs a way to be rebuilt from the source.', line: 'Pre-compute what every page asks for.', boxes: ['stor', 'dash'] },
+  'One workflow per incident': { p: 'One outage can produce several DEAD events.', d: 'signalWithStart with workflowId = deviceId + incident window: the first event starts the workflow, the rest signal it.', alt: 'A dedupe table in a database.', tr: 'The workflowId must match what "one incident" means.', line: 'The incident is the unit of work, not the event.', img: ACT, boxes: [] },
+  'Escalation is code, not cron': { p: '"No ack in 30 min → page L2 and raise to P1".', d: 'A durable 30-min timer inside the workflow.', alt: 'A cron job scanning a tickets table.', tr: 'Needs a Temporal cluster to run.', line: 'The rule reads like the runbook.', img: ACT, boxes: [] },
+  'Wait for days, durably': { p: 'A field fix can take 2 days.', d: 'The workflow sleeps until ServiceNow signals "closed"; its state survives deploys and crashes.', alt: 'A status-polling job or a hand-rolled state machine in a database.', tr: 'Long-running workflows need versioning when the code changes.', line: 'Waiting is a first-class step, not a background job.', img: ACT, boxes: [] },
+  'Idempotent ticket upsert': { p: 'Retries and duplicate events must not create duplicate tickets.', d: 'Every ticket call is an upsert keyed by workflowId / correlation ID.', alt: 'Create first, deduplicate later.', tr: 'Depends on ServiceNow lookup or upsert by correlation ID.', line: 'One incident, one ticket, however many retries.', img: ACT, boxes: [] },
+  'Same workflow hears the recovery': { p: 'A device often comes back on its own.', d: 'Flink sends the recovery as a signal to the same workflowId.', alt: 'Open a separate "resolved" event and match it up later.', tr: 'Recovery has to find the right incident window.', line: 'The workflow that opened it is the one that closes it.', img: ACT, boxes: [] },
+  'Self-healing': { p: 'On-call time spent on problems that fix themselves.', d: 'A recovery signal auto-resolves the ticket and stands down on-call.', alt: 'Humans close every ticket.', tr: 'Needs a clear rule for "recovered" so it doesn\'t flap.', line: 'Humans only see what actually needs a human.', img: ACT, boxes: [] },
+  'The page never waits on ticketing': { p: 'ServiceNow can be down when something critical happens.', d: 'PagerDuty is paged straight off SNS; the ticket follows separately.', alt: 'Page from the ticket workflow.', tr: 'Two paths to keep consistent.', line: 'Ticketing is bookkeeping; paging is the alarm.', img: ACT, boxes: [] },
+  'Bounded retries with backoff': { p: 'ServiceNow returns 503s, 429s and timeouts during an outage.', d: 'Temporal retries with exponential backoff, up to a limit.', alt: 'Retry forever.', tr: 'A limit needs a plan for what happens next — parking.', line: 'Retrying forever hides an outage; a limit makes it visible.', img: ACT, boxes: [] },
+  "Park, don't drop": { p: 'Retries are used up but the incident still needs a ticket.', d: 'The workflow marks itself PARKED and waits; the list of parked workflows is the DLQ.', alt: 'Publish to a separate SQS DLQ.', tr: 'Ops needs a view of parked workflows.', line: 'One owner, one history, one source of truth.', img: ACT, boxes: [] },
+  'Humans decide the replay': { p: 'Replaying everything the moment ServiceNow recovers can knock it over again.', d: 'Ops checks ServiceNow is healthy, then signals "replay" — the same pattern as payment approval.', alt: 'Automatic replay on a health check.', tr: 'Slower recovery; needs someone on shift.', line: 'Temporal is built for long flows with a human step in the middle.', img: ACT, boxes: [] },
+  'Timeout-safe idempotency': { p: 'A timed-out call may have created the ticket anyway.', d: 'The replay upserts by workflowId, so it finds and updates the existing ticket.', alt: 'Check-then-create.', tr: 'Relies on correlation-ID lookup in ServiceNow.', line: 'A timeout means "unknown", not "failed".', img: ACT, boxes: [] },
+  'Two retry layers': { p: 'Different hops fail in different ways.', d: 'SQS redelivers to the ticket starter (visibility timeout, SQS DLQ after N receives); Temporal retries the ServiceNow call.', alt: 'One retry mechanism for everything.', tr: 'Two places to look when debugging.', line: 'SQS handles delivery retries; Temporal handles business retries.', img: ACT, boxes: [] },
+  'Minor never pages': { p: 'A slow sensor is worth knowing about, not worth waking someone.', d: 'SLOW goes to the minor lane only.', alt: 'Page on everything, tune later.', tr: 'A minor issue can sit longer before someone looks.', line: 'The cheapest alert is the one nobody gets at 3 AM.', boxes: ['flink', 'act'] },
+  '15-min site digest': { p: 'Fifty minor alerts from one site in an hour.', d: 'One Email/Slack digest per site every 15 minutes.', alt: 'One message per alert.', tr: 'Up to 15 minutes of delay on minor issues.', line: 'Batch by where people act: the site.', boxes: ['act'] },
+  'Suppression + quiet hours': { p: 'Repeats and off-hours noise.', d: 'Repeated alerts are folded; delivery respects quiet hours.', alt: 'Deliver everything immediately.', tr: 'Rules to maintain per tenant.', line: 'Respect people\'s attention as a resource.', boxes: ['act'] },
+  'Dashboard shows it anyway': { p: 'Batching must not hide problems.', d: 'The device turns yellow on the live dashboard immediately.', alt: 'Only show what was notified.', tr: 'Two views of the same alert to keep in sync.', line: 'Batch the notification, never the visibility.', boxes: ['dash', 'act'] },
+  'Quotas at the front door': { p: 'One tenant\'s buggy firmware can flood the platform.', d: 'Per-tenant quotas and rate limits at the cloud gateway.', alt: 'Global limits only.', tr: 'Quotas must be sized per tenant and adjusted as tenants grow.', line: 'Stop a noisy neighbour where it costs the least.', boxes: ['gw'] },
+  'Shared Kafka, keyed by deviceId': { p: 'Thousands of tenants on one pipeline.', d: 'All tenants share topics partitioned by deviceId; every message carries tenant_id. A noisy tenant is stopped by its quota at the gateway before it reaches Kafka.', alt: 'A topic per tenant.', tr: 'A huge tenant could still create hot partitions, so quotas and partition headroom matter.', line: 'Keep the pipe simple; enforce fairness at the front door.', boxes: ['gw', 'kafka'] },
+  'Shared storage, scoped queries': { p: 'Thousands of tenants in one storage layer.', d: 'Every row carries tenant_id and every query is scoped by tenant.', alt: 'A database or partition per tenant.', tr: 'Isolation depends on every query being scoped correctly.', line: 'Share the storage, never the results.', boxes: ['stor'] },
+  'Rules per tenant': { p: 'Tenants want different thresholds.', d: 'Rules per device type with tenant overrides, pushed live from the control plane to Flink.', alt: 'One global rule set, or a redeploy per change.', tr: 'Rule changes must be versioned and validated before going live.', line: 'Configuration is data, not a deploy.', boxes: ['ctrl', 'flink'] },
+  'RBAC end to end': { p: 'Admins must only see their own tenant.', d: 'RBAC in the control plane, enforced in the dashboard API.', alt: 'Filter in the UI.', tr: 'Every new endpoint must enforce it.', line: 'Authorisation happens on the server, every time.', boxes: ['ctrl', 'dash'] },
+  'Data residency': { p: 'Some tenants\' data must stay in-country.', d: 'China tenants run in an isolated region.', alt: 'One global deployment.', tr: 'Two regions to deploy and operate.', line: 'Residency is decided by where the stack runs.', boxes: ['ctrl'] },
+  'Kafka is the shock absorber': { p: 'Reconnecting sites flush hours of spooled data at once.', d: 'Kafka buffers the burst as lag; Flink catches up at its own pace.', alt: 'Push straight into processing and drop on overload.', tr: 'Data is delayed during the burst.', line: 'A burst becomes lag, not loss.', boxes: ['kafka'], img: null },
+  'Protect the critical path': { p: 'Bulk telemetry backs up during a burst.', d: 'Heartbeats on a priority topic keep DEAD detection fresh.', alt: 'Everything shares one queue.', tr: 'More topics to run.', line: 'Decide in advance what must never wait.', boxes: ['ing', 'kafka', 'flink'] },
+  'Alert on freshness, not just lag': { p: 'Lag is a count; users feel delay.', d: 'The monitor fires on freshness p99 (event age at processing) > 2 min, plus lag.', alt: 'Alert on lag thresholds only.', tr: 'Freshness needs event timestamps you can trust.', line: 'Measure what the user experiences.', img: DD, boxes: [] },
+  'Autoscale within guardrails': { p: 'Bursts need more Flink capacity, fast.', d: 'The autoscaler adds workers (24 → 48), capped at the Kafka partition count, with a cooldown.', alt: 'Scale by hand during incidents.', tr: 'Rescaling Flink restarts from a savepoint — a short pause.', line: 'Automation for the expected, humans past the guardrails.', img: DD, boxes: [] },
+  'Flush on size or time': { p: 'Many small writes overload ClickHouse during a burst.', d: 'The sink writes every 1 s or every 50K rows, whichever comes first.', alt: 'A fixed batch size, changed by hand.', tr: 'A little extra latency at low traffic.', line: 'The batching rule adapts on its own.', boxes: ['flink', 'stor'] },
+  'Never add partitions mid-incident': { p: 'Adding Kafka partitions looks like a quick capacity fix.', d: 'Partition headroom is planned upfront; never added during an incident.', alt: 'Add partitions when lag grows.', tr: 'Needs capacity planning ahead of time.', line: 'More partitions remaps deviceIds and breaks per-device order.', boxes: ['kafka'] }
+}, {"Canary by traffic": {"p": "A bad ingestion build could reject or corrupt everyone's data.", "d": "Argo Rollouts shifts 5% → 25% → 50% → 100% of traffic, pausing for a Datadog gate at each step.", "alt": "Rolling update with no pause.", "tr": "Slower full rollout.", "line": "Expose a little traffic, learn, then expose more.", "boxes": ["gw", "ing"]}, "Drain, don't drop": {"p": "Killing a pod mid-request drops device batches.", "d": "Readiness probes pull a pod out of rotation first; it drains connections, then exits. Gateways reconnect with backoff.", "alt": "Kill pods immediately.", "tr": "Deploys take a little longer.", "line": "A deploy should be invisible to devices.", "boxes": ["gw", "ing"]}, "Load test in CI": {"p": "Throughput regressions only show at full load.", "d": "A perf environment replays a recorded 200K msgs/sec burst; throughput and reject rate must match the last release.", "alt": "Find out in production.", "tr": "A perf environment costs money.", "line": "If peak load isn't in the test, peak load is the test.", "boxes": ["ing", "kafka"]}, "Rollback is instant": {"p": "A bad release needs to be gone in seconds.", "d": "Traffic shifts back to the stable pods; there is no state to migrate back.", "alt": "Redeploy the old version.", "tr": "Keep the old ReplicaSet around until the release is promoted.", "line": "Statelessness is what makes rollback cheap.", "boxes": ["gw", "ing"]}, "Replay tests for determinism": {"p": "Temporal replays history to rebuild a workflow; changed step order breaks running ones.", "d": "CI replays thousands of recorded histories against the new code; any non-determinism fails the build.", "alt": "Hope nothing changed shape.", "tr": "Histories must be collected and kept fresh.", "line": "Test new code against old executions, not just new ones.", "boxes": ["act"]}, "Versioned workers": {"p": "An incident can wait days for a field fix.", "d": "Workers are versioned by build; new workflows go to the new build, running ones stay on the build that started them.", "alt": "Upgrade every worker at once.", "tr": "Two worker versions run side by side for a while.", "line": "Never change the rules of a game already in progress.", "boxes": ["act"]}, "Retire old workers when drained": {"p": "Removing old workers too early strands in-flight incidents.", "d": "Datadog tracks running workflows per build; the old build is retired at zero.", "alt": "Fixed retirement after N days.", "tr": "Old builds can live for days.", "line": "Let the work finish before the worker leaves.", "boxes": ["act"]}, "Queues and alarms as code": {"p": "Hand-made queues drift between regions.", "d": "Terraform defines topics, queues, DLQs and alarms, reviewed and applied via the pipeline.", "alt": "Click-ops in the console.", "tr": "Infra changes need the same review discipline as code.", "line": "If the queue isn't in Git, it doesn't exist.", "boxes": ["act"]}, "Ship dark, flag on": {"p": "Deploying and releasing at the same moment makes every deploy risky.", "d": "Code ships behind a feature flag; it's turned on for an internal tenant first, then everyone.", "alt": "Release on deploy.", "tr": "Flags need cleanup after rollout.", "line": "Separate deploying code from releasing features.", "boxes": ["dash"]}, "Assets first, index last": {"p": "A browser can load the new page with old assets mid-deploy.", "d": "Versioned assets upload first; the index switches last, so every page load is consistent.", "alt": "Overwrite files in place.", "tr": "Old asset versions must be kept for a while.", "line": "Never let a user see half a release.", "boxes": ["dash"]}, "Tenant isolation is a test": {"p": "A tenant data leak is the worst possible bug.", "d": "Automated tests call each endpoint with another tenant's token; any data returned fails the build.", "alt": "Rely on code review.", "tr": "Tests must cover every new endpoint.", "line": "Treat a leak as a failed build, not a bug report.", "boxes": ["dash", "ctrl"]}, "SSE survives deploys": {"p": "Restarting pods cuts every live stream.", "d": "Old pods drain streams; browsers reconnect to new pods with Last-Event-ID and the service replays what they missed.", "alt": "Force a page reload.", "tr": "The service keeps a short replay buffer.", "line": "A deploy should look like nothing happened on screen.", "boxes": ["dash"]}, "Expand → migrate → contract": {"p": "Schema changes are the classic cause of deploy downtime.", "d": "Add the new field, ship code that reads both shapes, backfill, then remove the old shape last.", "alt": "Big-bang migration in a maintenance window.", "tr": "More releases per change.", "line": "Change the schema the way you change a tyre on a moving car: one bolt at a time.", "boxes": ["stor"]}, "Backfill in throttled batches": {"p": "One giant UPDATE locks tables and spikes load.", "d": "A resumable job walks the data in small, throttled batches; MongoDB documents can also migrate lazily when read.", "alt": "One big migration statement.", "tr": "Backfills take hours, not minutes.", "line": "Slow and steady never pages anyone.", "boxes": ["stor"]}, "Online index builds": {"p": "A blocking index build is an outage.", "d": "MongoDB 4.2+ builds indexes online; very large ones build one replica-set member at a time.", "alt": "Build during a maintenance window.", "tr": "Builds use extra I/O while running.", "line": "Indexes are a deploy too — ship them carefully.", "boxes": ["stor"]}, "Rolling version upgrades": {"p": "Database upgrades traditionally mean downtime.", "d": "Upgrade replica-set secondaries one by one, then step down the primary; the election takes seconds and retryable writes absorb it.", "alt": "Stop the world and upgrade.", "tr": "Requires replica sets everywhere.", "line": "Zero downtime is a design choice, not a feature.", "boxes": ["stor"]}, "Infrastructure as code": {"p": "Hand-edited brokers drift and nobody knows why.", "d": "Terraform and Helm define clusters and topics; every change is a reviewed plan.", "alt": "Manual changes on brokers.", "tr": "Slower for \"quick fixes\" — on purpose.", "line": "The plan is the change log.", "boxes": ["kafka"]}, "Policy as code": {"p": "One wrong setting (replication 1, partition decrease) can lose data.", "d": "Policy checks enforce replication ≥ 3, min in-sync ≥ 2, no partition decrease, retention within bounds.", "alt": "Rely on reviewers spotting it.", "tr": "Policies need maintaining.", "line": "Make the dangerous change impossible, not just discouraged.", "boxes": ["kafka"]}, "One broker at a time": {"p": "Restarting brokers too fast leaves partitions without replicas.", "d": "Rolling restart gated on under-replicated partitions = 0 between brokers.", "alt": "Restart all brokers together.", "tr": "A full upgrade takes hours.", "line": "Never take away the safety net you're relying on.", "boxes": ["kafka"]}, "Pin the protocol until the end": {"p": "Mixed-version clusters must still talk to each other and to clients.", "d": "The inter-broker protocol stays at the old version until all brokers are upgraded, then it's bumped — the point of no return.", "alt": "Upgrade protocol with the binaries.", "tr": "Two steps instead of one.", "line": "Keep the way back open as long as possible.", "boxes": ["kafka"]}, "Correlate before you page": {"p": "A site power cut makes 200 devices DEAD at once.", "d": "Flink checks the site's gateways: if they're DEAD too, the 200 alerts share one root cause — SITE DOWN.", "alt": "Page once per device.", "tr": "Correlation rules need the site → gateway → device topology.", "line": "Page on causes, not symptoms.", "boxes": ["flink"]}, "One ticket per root cause": {"p": "200 tickets bury the one that matters.", "d": "One SITE-DOWN incident and ticket; device alerts attach to it and are released only if they outlive the site outage.", "alt": "200 tickets, closed by hand later.", "tr": "A real device fault during a site outage is noticed later.", "line": "The ticket queue should read like a story, not a log.", "boxes": ["act"]}, "Auto-resolve on recovery": {"p": "Humans waste time closing incidents that fixed themselves.", "d": "When heartbeats return, the site incident resolves and devices still silent get their own alerts.", "alt": "Manual close.", "tr": "Needs a clear \"recovered\" rule to avoid flapping.", "line": "Close what closed itself.", "boxes": ["flink", "act"]}, "Rate-limit pages": {"p": "Even correlated alerts can pile up in a regional event.", "d": "Paging is rate-limited per on-call rotation; excess alerts batch into a summary.", "alt": "Unlimited paging.", "tr": "A second real issue may wait a few minutes.", "line": "A flooded pager is an ignored pager.", "boxes": ["act"]}, "Checkpoint often": {"p": "A crashed job must not forget 100M devices' timers.", "d": "Flink checkpoints all keyed state and timers to durable storage about every minute.", "alt": "Rebuild state from scratch.", "tr": "Checkpoints cost I/O; watch their duration.", "line": "A crash should cost a minute, not a morning.", "boxes": ["flink"]}, "Kafka is the replay log": {"p": "Events that arrived during the crash can't be lost.", "d": "On restore, Flink rewinds to the checkpoint's offsets and replays from Kafka.", "alt": "Accept the gap.", "tr": "Retention must exceed the worst recovery time.", "line": "Durable log + snapshot = time travel.", "boxes": ["kafka", "flink"]}, "Exactly-once state, idempotent effects": {"p": "Replayed events re-trigger the same actions.", "d": "State is exactly-once via checkpoints; external actions are idempotent by correlation ID, so repeats are no-ops.", "alt": "Distributed transactions with every external system.", "tr": "Every integration needs an idempotency key.", "line": "Make \"again\" harmless.", "boxes": ["flink", "act"]}, "Restart is automatic": {"p": "Night-time crashes shouldn't need a person.", "d": "Kubernetes reschedules pods; Flink restarts from the last checkpoint; a restart alert informs the team.", "alt": "Manual restart runbook.", "tr": "Crash loops need a limit, then escalate.", "line": "Humans investigate; machines recover.", "boxes": ["flink"]}, "Fine-grained keys": {"p": "Coarse keys (tenant, site) create permanent hot spots.", "d": "Kafka is keyed by deviceId, so load spreads evenly; only a single misbehaving device can create a hot key.", "alt": "Key by tenant or site.", "tr": "Cross-device ordering isn't guaranteed (it isn't needed).", "line": "Pick the smallest key that still gives you the ordering you need.", "boxes": ["kafka"]}, "Per-device rate limits": {"p": "A big tenant's quota is large enough to hide one runaway device.", "d": "The gateway also limits each device; the excess is dropped and counted.", "alt": "Tenant-level quotas only.", "tr": "Limits must allow legitimate bursts.", "line": "Fairness at every level: tenant and device.", "boxes": ["gw"]}, "Watch lag per partition": {"p": "Aggregate lag looks fine while one partition burns.", "d": "Datadog shows consumer lag per partition; one outlier points to a hot key, not a capacity problem.", "alt": "Alert on total lag only.", "tr": "More metrics to store.", "line": "Averages hide the outlier you care about.", "boxes": ["kafka", "flink"]}, "Scaling won't fix a hot key": {"p": "The instinct is to add Flink workers.", "d": "A partition is consumed by one worker; the fix is to stop the hot key at the source, not to scale.", "alt": "Autoscale and hope.", "tr": "Needs the diagnosis first — hence per-partition metrics.", "line": "Find the hot key before you buy more hardware.", "boxes": ["flink"]}});
+
+let lastFocus = null;
+function openDetail(t, from) {
+  const x = DETAIL[t]; if (!x) return; lastFocus = from || null;
+  $('dkick').textContent = 'Design decision' + (current ? ' · ' + current.name : '');
+  $('dtitle').textContent = t;
+  const sec = (h, v) => `<div class="dsec"><h3>${h}</h3><p>${v}</p></div>`;
+  $('dtext').innerHTML = sec('Problem', x.p) + sec('Decision', x.d) + sec('Alternative', x.alt) + sec('Trade-off', x.tr) + `<div class="dline">“${x.line}”</div>`;
+  if (x.img) { $('dsnap').innerHTML = `<img src="${x.img}" alt="Diagram for ${t}">`; $('dcap').textContent = x.img === ACT ? 'Action Execution: SNS / SQS → Temporal → ServiceNow' : 'Datadog: ingest pipeline health'; }
+  else { $('dsnap').innerHTML = `<img src="arch_snapshot.png" alt="Architecture with the relevant components highlighted"><div class="dim"></div>` +
+      x.boxes.map(k => { const [bx, by, bw, bh] = ARCHBOX[k]; return `<div class="hl" style="left:${bx / 16}%;top:${by / 7.2}%;width:${bw / 16}%;height:${bh / 7.2}%"></div>`; }).join('');
+    $('dcap').textContent = 'Highlighted: where this decision lives in the architecture'; }
+  $('dmodal').hidden = false; $('dclose').focus();
+}
+function closeDetail() { if ($('dmodal').hidden) return; $('dmodal').hidden = true; if (lastFocus) lastFocus.focus(); }
+function initDetail() {
+$('dclose').addEventListener('click', closeDetail);
+$('dmodal').addEventListener('click', e => { if (e.target.id === 'dmodal') closeDetail(); });
+addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+}
+function renderDD() {
+  const box = $('dd'); const list = null;
+  box.hidden = !list; if (!list) { box.innerHTML = ''; return; }
+  box.innerHTML = `<h2>Design decisions · ${current ? current.name : 'Why it\'s built this way'}</h2>` + list.map(([t, d]) => `<button type="button" class="d" data-t="${t.replace(/"/g, '&quot;')}"><b>${t}</b>${d}<span class="more">Open details →</span></button>`).join('');
+  box.querySelectorAll('.d').forEach(b => b.addEventListener('click', () => openDetail(b.dataset.t, b)));
+}
+const ALL = FLOWS.flatMap(f => f.items || [f]).concat(ISSUES);
+const $ = id => document.getElementById(id);
+let current = null, frame = null;
+
+function opts() { const k = current ? current.slug : 'main';
+  return { obs: $('tObs').checked, why: $('tWhy').checked, caps: $('tCap').checked, dd: DECISIONS[k], ddTitle: current ? 'DESIGN DECISIONS · ' + current.name.toUpperCase() : "WHY IT'S BUILT THIS WAY" }; }
+function src(f) { const o = opts(); const q = new URLSearchParams({ embed: '1', obs: o.obs ? 1 : 0, why: o.why ? 1 : 0, caps: o.caps ? 1 : 0 });
+  if (!f) { q.set('idle', '1'); return 'flow4.html?' + q; } return `flow${f.page}.html?` + q; }
+
+function load(f) {
+  const old = frame, nf = document.createElement('iframe');
+  nf.title = f ? `${f.name} walkthrough` : 'Architecture overview'; nf.style.opacity = '0'; nf.src = src(f);
+  nf.addEventListener('load', () => { try { nf.contentWindow.postMessage(Object.assign({ type: 'opts' }, opts()), '*'); } catch (_) {} requestAnimationFrame(() => { nf.style.opacity = '1'; try { nf.focus(); } catch (_) {} });
+    if (old) setTimeout(() => old.remove(), 380); }, { once: true });
+  $('stage').appendChild(nf); frame = nf;
+}
+function select(f, push = true) {
+  current = f || null;
+  document.querySelectorAll('.item[data-slug]').forEach(b => { const on = !!f && b.dataset.slug === f.slug; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+  if (f && f.group) setGroup(f.group, true); else for (const k in GROUPS) setGroup(k, false);
+  $('home').hidden = !f;
+  $('tObs').disabled = !!(f && f.infra); if (f && f.infra) $('tObs').checked = true;
+  renderDD();
+  if (push) { const u = new URL(location.href); if (f) u.searchParams.set('flow', f.slug); else u.searchParams.delete('flow'); try { history.replaceState(null, '', u); } catch (_) {} }
+  load(f);
+}
+function itemBtn(f, small) {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'item'; b.dataset.slug = f.slug; b.setAttribute('aria-pressed', 'false'); b.title = f.sub;
+  b.innerHTML = `${small ? '' : `<span class="dot" style="background:${f.color}"></span>`}<span>${f.name}</span>${f.key ? `<span class="k">${f.key}</span>` : ''}`;
+  b.addEventListener('click', () => select(f)); return b;
+}
+const GROUPS = {};
+function setGroup(g, open) { const x = GROUPS[g]; if (!x) return; if (open) for (const k in GROUPS) if (k !== g) { GROUPS[k].btn.setAttribute('aria-expanded', false); GROUPS[k].sub.hidden = true; } x.btn.setAttribute('aria-expanded', open); x.sub.hidden = !open; }
+FLOWS.forEach(f => {
+  if (!f.items) { $('flows').appendChild(itemBtn(f)); return; }
+  const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'item'; btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-controls', 'sub-' + f.slug);
+  btn.innerHTML = `<span class="dot" style="background:${f.color}"></span><span>${f.group}</span><span class="k">${f.key}</span><span class="chev" aria-hidden="true" style="margin-left:6px">›</span>`;
+  const sub = document.createElement('div'); sub.className = 'sub'; sub.id = 'sub-' + f.slug; sub.hidden = true;
+  f.items.forEach(x => { x.group = f.slug; sub.appendChild(itemBtn(x, f.slug !== 'g-alerts')); });
+  btn.addEventListener('click', () => setGroup(f.slug, sub.hidden));
+  GROUPS[f.slug] = { btn, sub, first: f.items[0] };
+  $('flows').append(btn, sub);
+});
+ISSUES.forEach(f => $('issues').appendChild(itemBtn(f)));
+
+['tObs', 'tWhy', 'tCap'].forEach(id => $(id).addEventListener('change', () => {
+  renderDD();
+  if (frame && frame.contentWindow) frame.contentWindow.postMessage(Object.assign({ type: 'opts' }, opts()), '*'); }));
+$('home').addEventListener('click', () => { if (current && current.infra) $('tObs').checked = false; $('tObs').disabled = false; select(null); });
+addEventListener('message', e => { const d = e.data || {}; if (d.type === 'home') $('home').click(); if (d.type === 'key') jump(d.key); if (d.type === 'dd') openDetail(d.t); if (d.type === 'view') setView(d.view); });
+function setView(v) { const arch = v === 'idle' || v === 'arch';
+  $('tObs').closest('.sw').hidden = !arch; $('tWhy').closest('.sw').hidden = !arch; $('tCap').closest('.sw').hidden = !(v === 'arch' || v === 'zoom');
+  document.querySelector('.toggles').hidden = !arch && !(v === 'arch' || v === 'zoom'); }
+function jump(k) { const f = ALL.find(x => x.key === k); if (f) { select(f); return; } const g = FLOWS.find(x => x.items && x.key === k); if (g) select(g.items[0]); }
+addEventListener('keydown', e => { if (e.target.closest && e.target.closest('input')) return; if (/^[1-8]$/.test(e.key)) jump(e.key); });
+
+// phone: plain video list
+$('vids').innerHTML = ALL.filter(f => f.video).map(f => `<div class="vcard"><video controls playsinline preload="none" src="m/${f.video}" poster="m/${f.video.replace('.mp4', '.jpg')}" aria-label="${f.name} walkthrough video"></video><div class="vt"><span class="dot" style="width:11px;height:11px;border-radius:50%;background:${f.color};flex:none"></span><div>${f.infra ? 'Infra issue · ' : ''}${f.name}<small>${f.sub}</small></div></div></div>`).join('');
+
+// start: deep link or architecture
+initDetail(); renderDD();
+const start = ALL.find(f => f.slug === new URLSearchParams(location.search).get('flow'));
+if (matchMedia('(max-width:820px)').matches) { /* phone: no iframe */ } else select(start || null, false);
+</script>
+</html>

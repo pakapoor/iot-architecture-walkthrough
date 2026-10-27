@@ -1,0 +1,210 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#F5F8FC}
+#c{width:1600px;height:960px;position:relative;overflow:hidden;font-family:Inter,"Segoe UI",Helvetica,Arial,sans-serif;color:#0F1E33;
+ background:radial-gradient(1100px 600px at 72% 35%,#FFFFFF 0%,#EEF3F9 70%)}
+.band{position:absolute;top:0;left:0;right:0;height:8px;background:linear-gradient(90deg,#FF9933 0 33.3%,#E8ECF2 33.3% 66.6%,#22A33A 66.6%)}
+.hdr{position:absolute;left:60px;top:34px}
+.hdr .k{font-size:14px;letter-spacing:4px;color:#E07A10;font-weight:700}
+.hdr h1{font-size:40px;font-weight:800;letter-spacing:-.5px;margin-top:4px;color:#0B1F3F}
+.hdr h1 span{color:#2563EB;font-weight:700}
+.stats{position:absolute;left:60px;top:128px;display:flex;gap:10px}
+.pill{border:1px solid #D3DDEA;background:#fff;border-radius:999px;padding:6px 14px;font-size:14px;font-weight:600;color:#4A5B70;box-shadow:0 2px 6px rgba(15,30,51,.05)}
+.pill b{color:#0B1F3F}
+.box{position:absolute;border-radius:14px;background:#fff;border:1.5px solid #D3DDEA;padding:14px 16px;box-shadow:0 8px 24px rgba(15,30,51,.08);z-index:3}
+.box .t{font-size:18px;font-weight:700;display:flex;align-items:center;gap:9px;color:#0B1F3F}
+.box .s{font-size:13.5px;color:#4A5B70;margin-top:7px;line-height:1.5}
+.box .s b{color:#0B1F3F;font-weight:600}
+.ic{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:15px;flex:none}
+.blue{border-color:#3B82F6;border-top-width:4px}.blue .ic{background:#DBEAFE}
+.cyan{border-color:#0EA5B7;border-top-width:4px}.cyan .ic{background:#CFF4F8}
+.green{border-color:#16A34A;border-top-width:4px}.green .ic{background:#DCFCE7}
+.violet{border-color:#7C5CFA;border-top-width:4px}.violet .ic{background:#EDE7FF}
+.orange{border-color:#F08A1C;border-top-width:4px}.orange .ic{background:#FFEDD5}
+.pink{border-color:#E0458F;border-top-width:4px}.pink .ic{background:#FCE7F3}
+.ops{margin-top:8px;display:grid;gap:6px}
+.op{background:#F5F7FB;border:1px solid #DFE6EF;border-radius:8px;padding:6px 10px;font-size:13px;color:#4A5B70}
+.op b{color:#0B1F3F}
+.op.rule{border-color:#7C5CFA;background:#F6F3FF;animation:glow 1.5s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 0 rgba(124,92,250,0)}50%{box-shadow:0 0 16px rgba(124,92,250,.45)}}
+.chip{display:inline-block;margin-top:7px;font-size:12px;color:#5B3FD9;border:1px dashed #7C5CFA;border-radius:6px;padding:3px 8px;background:#FAF8FF}
+.lane{border-radius:9px;padding:7px 10px;font-size:13px;color:#33465C;margin-top:7px;line-height:1.4}
+.lane b{font-size:13px}
+.lane.r{background:#FEF2F2;border:1px solid #EF4444}.lane.r b{color:#DC2626}
+.lane.y{background:#FFFBEB;border:1px solid #F5B70A}.lane.y b{color:#B7791F}
+.lane.r{animation:redp 3s linear infinite}
+@keyframes redp{0%,38%,70%,100%{box-shadow:0 0 0 rgba(239,68,68,0)}46%{box-shadow:0 0 20px rgba(239,68,68,.6)}}
+.tbl{margin-top:8px;display:grid;gap:6px}
+.tbl div{background:#F5F7FB;border:1px solid #DFE6EF;border-radius:8px;padding:6px 10px;font-size:13px;display:flex;justify-content:space-between;gap:8px}
+.tbl div span:first-child{color:#0B1F3F;font-weight:600}
+.tbl div span:last-child{color:#4A5B70}
+.lbl{position:absolute;font-size:12px;color:#33465C;background:#fff;padding:2px 7px;border-radius:6px;border:1px solid #D3DDEA;white-space:nowrap;z-index:4;font-weight:600}
+.dot{position:absolute;left:0;top:0;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;z-index:2;offset-rotate:0deg;animation:mv linear infinite}
+@keyframes mv{from{offset-distance:0%}to{offset-distance:100%}}
+.d-c{background:#0EA5B7;box-shadow:0 0 8px rgba(14,165,183,.7)}
+.d-b{background:#3B82F6;box-shadow:0 0 8px rgba(59,130,246,.7)}
+.d-r{background:#EF4444;box-shadow:0 0 10px rgba(239,68,68,.8);width:12px;height:12px}
+.d-y{background:#F5B70A;box-shadow:0 0 8px rgba(245,183,10,.8)}
+.d-g{background:#16A34A;box-shadow:0 0 8px rgba(22,163,74,.7)}
+.d-v{background:#7C5CFA;box-shadow:0 0 8px rgba(124,92,250,.7)}
+.d-p{background:#E0458F;box-shadow:0 0 10px rgba(224,69,143,.8)}
+svg .flow{stroke-dasharray:7 6;animation:dash 1.5s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-26}}
+.rhead{position:absolute;left:60px;top:712px;font-size:14px;letter-spacing:3px;font-weight:800;color:#E07A10}
+.cards{position:absolute;left:60px;right:60px;top:740px;display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.card{background:#fff;border:1px solid #D3DDEA;border-radius:12px;padding:12px 14px;border-top:4px solid #7C5CFA;box-shadow:0 6px 18px rgba(15,30,51,.06)}
+.card:nth-child(2){border-top-color:#EF4444}.card:nth-child(3){border-top-color:#F08A1C}.card:nth-child(4){border-top-color:#0EA5B7}.card:nth-child(5){border-top-color:#16A34A}
+.card .h{font-size:16px;font-weight:700;margin-bottom:5px;color:#0B1F3F}
+.card .p{font-size:13px;color:#4A5B70;line-height:1.45}
+.foot{position:absolute;left:60px;right:60px;bottom:22px;display:flex;justify-content:space-between;align-items:center}
+.obs{font-size:13.5px;color:#4A5B70;line-height:1.6}
+.obs b{color:#0B1F3F}
+.logo{display:flex;align-items:center}
+
+.step{display:flex;gap:12px;align-items:flex-start;background:#F5F7FB;border:1.5px solid #DFE6EF;border-radius:10px;padding:8px 12px;margin-top:8px;transition:none}
+.step .n{width:26px;height:26px;border-radius:50%;background:#E4E9F1;color:#33465C;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex:none;margin-top:1px}
+.step .x{font-size:13px;color:#4A5B70;line-height:1.4}
+.step .x b{color:#0B1F3F;font-size:14px}
+@keyframes hl{0%,24%{border-color:#7C5CFA;background:#F3EFFF;box-shadow:0 0 18px rgba(124,92,250,.35)}25%,100%{border-color:#DFE6EF;background:#F5F7FB;box-shadow:none}}
+.wid{margin-top:6px;font-size:13px;background:#0B1F3F;color:#E6EDF5;border-radius:8px;padding:6px 10px;font-family:"JetBrains Mono",Consolas,monospace}
+.wid b{color:#FFD23F}
+.mono{font-family:"JetBrains Mono",Consolas,monospace;font-size:12.5px;color:#7C5CFA;font-weight:600}
+.cards{top:742px;grid-template-columns:repeat(4,1fr)}
+.rhead{top:714px}
+
+.step.on{border-color:#7C5CFA;background:#F3EFFF;box-shadow:0 0 18px rgba(124,92,250,.35)}
+.step.on .n{background:#7C5CFA;color:#fff}
+.step.done .n{background:#16A34A;color:#fff}
+.narr{background:#0B1F3F;color:#fff;border-radius:999px;padding:8px 18px;font-size:16px;font-weight:600;min-width:900px;box-shadow:0 6px 18px rgba(15,30,51,.15)}
+.narr .k{color:#FFD23F;margin-right:8px}
+.box{transform-origin:center center}
+.dim{opacity:.55}
+#pk{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;z-index:8;display:none}
+.snchip{display:inline-block;margin-left:10px;font-size:13px;font-weight:700;border-radius:6px;padding:3px 9px;background:#EEF2F7;color:#33465C}
+svg .flow{animation-duration:1.5s}
+</style></head><body><div id="c">
+<div class="band"></div>
+<div class="hdr"><div class="k">DEEP DIVE · COMMERCIAL IOT MONITORING SYSTEM</div>
+<h1>Self-healing ServiceNow ticketing <span>· with Temporal</span></h1></div>
+<div class="stats"><div class="narr" id="narr"></div></div>
+
+<svg width="1600" height="960" style="position:absolute;left:0;top:0;z-index:1">
+<defs><marker id="m1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7F95B2"/></marker></defs>
+<g fill="none" stroke-width="2.2" stroke="#9FB2CA">
+<path class="flow" d="M270 260 H320" marker-end="url(#m1)"/>
+<path class="flow" d="M500 260 H550" marker-end="url(#m1)"/>
+<path class="flow" d="M740 260 H790" marker-end="url(#m1)"/>
+<path class="flow" d="M980 260 H1030" marker-end="url(#m1)"/>
+<path class="flow" d="M410 330 V400" marker-end="url(#m1)"/>
+<path class="flow" d="M500 455 H550" marker-end="url(#m1)"/>
+<path class="flow" d="M690 330 V365 H885 V400" stroke="#EF4444" marker-end="url(#m1)"/>
+<path class="flow" d="M165 330 V545 H1030" stroke="#16A34A" marker-end="url(#m1)"/>
+<path class="flow" d="M1240 560 V600" stroke="#F08A1C" marker-end="url(#m1)"/>
+<path class="flow" d="M1400 600 V560" stroke="#0EA5B7" marker-end="url(#m1)"/>
+</g></svg>
+<div id="dots"></div>
+
+<div class="lbl" style="left:420px;top:352px">minor</div>
+<div class="lbl" style="left:740px;top:352px;border-color:#EF4444;color:#DC2626">poison msgs</div>
+<div class="lbl" style="left:560px;top:534px;border-color:#16A34A;color:#15803D">device back online → signal</div>
+<div class="lbl" style="left:1095px;top:569px;border-color:#F08A1C;color:#C2620A">create · update · escalate · resolve</div>
+<div class="lbl" style="left:1410px;top:569px;border-color:#0EA5B7;color:#0E7C8A">ack / status</div>
+
+<div id="b-flink" class="box violet" style="left:60px;top:190px;width:210px;height:140px">
+<div class="t"><span class="ic">🧠</span>Flink rules</div>
+<div class="s">Emits incident:<br><b>DEAD · SLOW · HOT</b><br>+ recovery events</div></div>
+<div id="b-sns" class="box orange" style="left:320px;top:190px;width:180px;height:140px">
+<div class="t"><span class="ic">📣</span>SNS</div>
+<div class="s">Alert fan-out<br>one event →<br>many consumers</div></div>
+<div id="b-sqs" class="box blue" style="left:550px;top:190px;width:190px;height:140px">
+<div class="t"><span class="ic">📥</span>SQS · tickets</div>
+<div class="s">Buffers bursts<br>at-least-once<br>delivery</div></div>
+<div id="b-start" class="box blue" style="left:790px;top:190px;width:190px;height:140px">
+<div class="t"><span class="ic">⚙️</span>Ticket starter</div>
+<div class="s">Stateless worker<br><span class="mono">signalWithStart</span><br>(workflowId)</div></div>
+
+<div class="box orange dim" style="left:320px;top:400px;width:180px;height:110px">
+<div class="t"><span class="ic">📥</span>SQS · notify</div>
+<div class="s">Minor alerts<br>batched digests</div></div>
+<div class="box cyan dim" style="left:550px;top:400px;width:190px;height:110px">
+<div class="t"><span class="ic">✉️</span>Notifiers</div>
+<div class="s">Email · Slack<br>Webhooks</div></div>
+<div class="box dim" style="left:790px;top:400px;width:190px;height:110px;border-color:#EF4444;border-top-width:4px">
+<div class="t"><span class="ic" style="background:#FEE2E2">🧯</span>DLQ</div>
+<div class="s">Malformed events only<br>alarm + replay tool</div></div>
+
+<div id="b-tmp" class="box violet" style="left:1030px;top:190px;width:510px;height:370px;border-top-width:6px">
+<div class="t"><span class="ic">⏳</span>Temporal · Incident Workflow</div>
+<div class="wid">workflowId = <b>deviceId + incidentWindow</b></div>
+<div class="step" id="st1"><div class="n">1</div><div class="x"><b>Upsert ticket</b><br>Activity with backoff retries. ServiceNow down for hours? It just waits.</div></div>
+<div class="step" id="st2"><div class="n">2</div><div class="x"><b>Wait for ack</b><br>On-call ack signal, or a durable 30-min timer.</div></div>
+<div class="step" id="st3"><div class="n">3</div><div class="x"><b>Escalate</b> 📟<br>Timer fired → page L2, raise ticket priority.</div></div>
+<div class="step" id="st4"><div class="n">4</div><div class="x"><b>Auto-resolve</b> ✅<br>"Device recovered" signal → close ticket with full timeline.</div></div>
+</div>
+
+<div id="b-sn" class="box green" style="left:1030px;top:600px;width:510px;height:82px">
+<div class="t"><span class="ic">🎫</span>ServiceNow<span class="snchip" id="snchip">no ticket</span></div>
+<div class="s" style="margin-top:4px">Incident tickets · idempotent by correlation ID</div></div>
+
+<div class="rhead">WHY TEMPORAL HERE</div>
+<div class="cards">
+<div class="card"><div class="h">🎯 One ticket per incident</div><div class="p">Duplicate alerts land on the same workflow ID, so they update the open ticket instead of creating new ones.</div></div>
+<div class="card"><div class="h">🔁 Retries that survive outages</div><div class="p">Workflow state is durable. Workers crash, ServiceNow goes down for hours — it resumes exactly where it stopped.</div></div>
+<div class="card"><div class="h">⏰ Escalation is code, not cron</div><div class="p">"No ack in 30 min → page L2" is a timer inside the workflow. No polling jobs, no scheduler tables.</div></div>
+<div class="card"><div class="h">✅ Closes its own loop</div><div class="p">Device comes back → Flink signals the workflow → ticket auto-resolves, with an audit trail of every step.</div></div>
+</div>
+
+<div class="foot">
+<div class="obs"><b>Before:</b> SQS → DLQ → handler + cron for retries and escalation &nbsp;·&nbsp; <b>After:</b> one durable workflow owns the whole incident lifecycle</div>
+<div class="logo"><img src="sdi_logo_v2_crop.png" style="height:46px"></div>
+</div>
+</div>
+<div id="pk"></div>
+<script>
+const T=15;
+const C={v:['#7C5CFA','rgba(124,92,250,.8)'],o:['#F08A1C','rgba(240,138,28,.8)'],g:['#16A34A','rgba(22,163,74,.8)']};
+const hops=[ // [start,end,points,color]
+ [0.8,1.5,[[255,260],[335,260]],'v'],
+ [2.4,3.1,[[485,260],[565,260]],'v'],
+ [4.0,4.7,[[725,260],[805,260]],'v'],
+ [5.6,6.3,[[965,260],[1045,260]],'v'],
+ [7.0,7.6,[[1240,540],[1240,620]],'o'],
+ [9.9,10.4,[[1240,540],[1240,620]],'o'],
+ [11.4,13.0,[[165,315],[165,545],[1045,545]],'g'],
+ [13.2,13.7,[[1240,540],[1240,620]],'o'],
+];
+const focus={ 'b-flink':[[0,0.9],[10.9,11.5]], 'b-sns':[[1.5,2.4]], 'b-sqs':[[3.1,4.0]], 'b-start':[[4.7,5.6]],
+ 'b-tmp':[[6.3,14.4]], 'b-sn':[[7.6,8.3],[10.4,10.9],[13.7,14.4]] };
+const steps=[[6.3,8.3],[8.3,9.5],[9.5,10.9],[13.0,14.4]];
+const narr=[[0,1.5,'1','Flink rule engine: no heartbeats for X min → <b>DEVICE DOWN</b> incident'],
+ [1.5,3.1,'2','SNS fans the alert out to every consumer'],
+ [3.1,4.7,'3','SQS buffers it · at-least-once delivery'],
+ [4.7,6.3,'4','Ticket starter: signalWithStart(deviceId + incidentWindow)'],
+ [6.3,8.3,'5','Temporal workflow upserts the ServiceNow ticket · retries if ServiceNow is down'],
+ [8.3,9.5,'6','Waiting for on-call ack · durable 30-min timer'],
+ [9.5,10.9,'7','No ack → timer fires → escalate to L2, raise priority'],
+ [10.9,13.0,'8','Device back online → Flink signals the <b>same</b> workflow'],
+ [13.0,15.1,'9','Ticket auto-resolved ✅ · one incident, one ticket, full audit trail']];
+const ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+function along(pts,f){let L=[],tot=0;for(let i=1;i<pts.length;i++){const d=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);L.push(d);tot+=d}
+ let r=f*tot;for(let i=0;i<L.length;i++){if(r<=L[i]||i==L.length-1){const k=L[i]?Math.min(r/L[i],1):0;return[pts[i][0]+(pts[i+1][0]-pts[i][0])*k,pts[i][1]+(pts[i+1][1]-pts[i][1])*k]}r-=L[i]}}
+function env(t,a,b){const r=0.25;if(t<a||t>b)return 0;return Math.min(1,(t-a)/r,(b-t)/r)}
+function setT(t){
+ const pk=document.getElementById('pk');pk.style.display='none';
+ for(const [a,b,pts,c] of hops){if(t>=a&&t<=b){const [x,y]=along(pts,ease((t-a)/(b-a)));pk.style.display='block';pk.style.left=x+'px';pk.style.top=y+'px';pk.style.background=C[c][0];pk.style.boxShadow='0 0 14px '+C[c][1];}}
+ for(const id in focus){let e=0;for(const [a,b] of focus[id])e=Math.max(e,env(t,a,b));const el=document.getElementById(id);
+  const sc=id=='b-tmp'?0.025:0.06;el.style.transform=`scale(${1+sc*e})`;el.style.zIndex=e>0?6:3;
+  el.style.boxShadow=e>0?`0 ${8+10*e}px ${24+20*e}px rgba(15,30,51,${0.08+0.14*e}), 0 0 0 ${3*e}px rgba(124,92,250,${0.25*e})`:'';}
+ steps.forEach(([a,b],i)=>{const el=document.getElementById('st'+(i+1));el.classList.toggle('on',t>=a&&t<b);el.classList.toggle('done',t>=b&&t<14.4)});
+ for(const [a,b,k,txt] of narr){if(t>=a&&t<b)document.getElementById('narr').innerHTML=`<span class="k">STEP ${k}</span>${txt}`}
+ const ch=document.getElementById('snchip');
+ if(t>=13.7&&t<14.9){ch.textContent='INC-1042 · Resolved ✅';ch.style.background='#DCFCE7';ch.style.color='#15803D'}
+ else if(t>=10.4&&t<13.7){ch.textContent='INC-1042 · Escalated · P1';ch.style.background='#FEE2E2';ch.style.color='#DC2626'}
+ else if(t>=7.6&&t<10.4){ch.textContent='INC-1042 · Open · P3';ch.style.background='#FFEDD5';ch.style.color='#C2620A'}
+ else{ch.textContent='no ticket';ch.style.background='#EEF2F7';ch.style.color='#33465C'}
+ document.getAnimations().forEach(a=>{a.pause();a.currentTime=t*1000});
+}
+setT(0);
+</script>
+</body></html>
