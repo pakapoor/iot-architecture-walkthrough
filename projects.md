@@ -89,3 +89,14 @@ Unconfirmed implementation mechanisms remain labelled as examples or design opti
 - The existing eight MP4s are earlier rendered snapshots; they were not re-rendered in this work. Current explanations and all new scenarios are available in the interactive UI.
 - Browser verification used a local HTTP server mounted at the GitHub Pages project path. It does not establish production throughput, recovery guarantees or model calibration.
 - Social platforms may retain cached link-preview images until their crawlers refresh them.
+
+
+## Follow-up — direct lists and integrated future architectures
+
+- Published `76781fa` to remove the redundant nested selection controls. Opening Flows, Infra issues, Deep dives or Future enhancements now immediately lists its items; only one sidebar section stays open. Mobile topic lists follow the same pattern.
+- Future scenarios now open full main-stage architectures, preserving the existing ingestion/Kafka/Flink/storage/dashboard/action components and adding four clearly marked proposed components with actual connectors.
+- Added architecture timelines 20–23 for predictive maintenance, security triage, root-cause assistance and the runbook copilot. Main Play/Next controls trace the integrated data, model/GenAI and human-reviewed action path. Proposed components support keyboard/mouse close-ups.
+- Problem, alternatives and trade-offs remain accessible through the scenario details button. Detail/mobile playback highlights the relevant proposed component on the full architecture preview instead of replacing it with a detached mini-pipeline.
+- Added `vid/proposal_data.py` as the component/timeline source, generated `pres/proposals.js`, and four architecture preview assets. The build now produces 23 timelines.
+- Reviewed the new content for technical correctness and clarity: made topic-cutover state/offset handling explicit, distinguished heartbeat event time from receipt time, specified consistent snapshot/replay boundaries, and clarified incident identity and Temporal versioning contracts.
+- Proposed AI paths use an independent Kafka consumer and capacity budget, identify additional evidence sources, preserve critical alerts, and explain missing-evidence/AI-outage handling. Numeric predictions remain illustrative until validated against real outcomes.

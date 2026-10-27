@@ -1,5 +1,7 @@
 import os
 import re, json, sys
+import html
+from proposal_data import PROPOSALS
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = f'{ROOT}/'
 iot = open(SRC + 'iot.html').read()
@@ -301,6 +303,36 @@ END = {19: ('Measure. Expand. Prove it.', 'Bound admission until the new envelop
        3: ('Minor issues don\'t page anyone at 3 AM. 😴', 'Batched digests + live dashboard badges.'),
        4: ('From sensor to screen in near real time. ⚡', 'Kafka → Flink → live push (SSE).')}
 
+def proposal_markup(v):
+    """Add one relevant proposal row and its actual connections to the existing diagram."""
+    d = PROPOSALS[v]
+    esc = html.escape
+    o = '<div class="proposal-band" style="position:absolute;left:48px;top:714px;width:1504px;height:228px;border:1px dashed #93B4F5;border-radius:16px;background:#F7FAFF"></div>'
+    o += f'<div class="proposal-heading" style="position:absolute;left:66px;top:727px;z-index:4;font-size:13px;font-weight:700;letter-spacing:1px;color:#2563EB">FUTURE PROPOSAL · {esc(d["name"].upper())}</div>'
+    for i, (name, desc, contract, caption) in enumerate(d['components']):
+        o += f'<div id="a-ai{i+1}" class="box proposal-box" style="left:{60+i*380}px;top:764px;width:340px;height:160px;border-color:#93B4F5;background:#fff"><div class="t" style="font-size:17px;color:#1D4ED8">{esc(name)}</div><div class="s">{esc(desc)}<br><br>{esc(contract)}</div></div>'
+    o += '<svg class="proposal-links" width="1600" height="970" style="position:absolute;left:0;top:0;z-index:1;pointer-events:none"><defs><marker id="proposal-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1 9 5 1 9" fill="none" stroke="#2563EB" stroke-width="1.5"/></marker></defs><g fill="none" stroke="#2563EB" stroke-width="1.8" marker-end="url(#proposal-arrow)">'
+    live_target = 250 + d.get('live_target', 0) * 380
+    history_target = 210 + d.get('history_target', 0) * 380
+    # Inference runs in an independent Kafka consumer, away from the critical alert job.
+    o += f'<path d="M940 670 V744 H{history_target} V764"/><path d="M1100 215 H1130 V166 H1574 V750 H{live_target} V764"/>'
+    o += '<path d="M60 699 H38 V754 H168 V764"/>'
+    for i in range(3):
+        o += f'<path d="M{400+i*380} 844 H{440+i*380}"/>'
+    o += '<path d="M1370 764 V700 H1350 V670"/></g></svg>'
+    o += f'<div class="lbl" style="left:775px;top:680px;color:#1D4ED8">{esc(d["input"])}</div>'
+    o += f'<div class="lbl" style="left:60px;top:688px;color:#1D4ED8">{esc(d["new_source"])}</div>'
+    o += '<div class="lbl" style="left:1380px;top:432px;color:#1D4ED8">AI consumer · own budget</div>'
+    o += '<div class="lbl" style="left:1165px;top:680px;color:#1D4ED8">human-reviewed action</div>'
+    o += '<div style="position:absolute;left:66px;top:950px;font-size:12px;color:#56667C">Proposed, simulated extension · independent Kafka consumer / compute budget · bounded AI backlog · critical alerts do not wait for AI</div>'
+    return o
+
+
+for v, proposal in PROPOSALS.items():
+    HOOK[v] = (proposal['name'], 'Future proposal · integrated with the existing architecture')
+    END[v] = ('Evidence. Reasoning. Human action.', proposal['output'])
+
+
 def page(v):
     scene = ''
     if v in (1, 2, 5):
@@ -321,13 +353,18 @@ def page(v):
         scene = mon_markup()
     elif 10 <= v <= 15:
         scene = cicd_markup(v)
-    else:
+    elif v not in PROPOSALS:
         scene = f'<div id="sceneD" class="layer" style="width:1920px;height:1080px;opacity:0;background:radial-gradient(1200px 700px at 60% 30%,#fff 0%,#EEF3F9 70%)">{dash_markup(v)}</div>'
     h, e = HOOK[v], END[v]
-    STAGECLS = 'obs' if v in (6, 16, 17, 18, 19) else ''
+    STAGECLS = 'proposal nowhy' if v in PROPOSALS else 'obs' if v in (6, 16, 17, 18, 19) else ''
+    architecture = arch
+    if v in PROPOSALS:
+        architecture = architecture.replace('REAL-WORLD ARCHITECTURE · PRODUCTION SYSTEM I LED', 'FUTURE PROPOSAL · SIMULATED EXTENSION OF THE EXISTING PLATFORM')
+        architecture += proposal_markup(v)
+    proposal_script = '<script>window.PROPOSAL = ' + json.dumps(PROPOSALS[v], ensure_ascii=False) + ';</script>' if v in PROPOSALS else ''
     return f'''<!doctype html><html><head><meta charset="utf-8"><style>{css}</style></head><body>
 <div id="stage" class="{STAGECLS}">
-<div id="arch" class="layer cv" style="width:1600px;height:1000px">{arch}</div>
+<div id="arch" class="layer cv" style="width:1600px;height:1000px">{architecture}</div>
 {scene}
 <div id="veil" style="position:absolute;inset:0;z-index:59;background:radial-gradient(1100px 650px at 50% 45%,rgba(255,255,255,.88),rgba(238,243,249,.72))"></div>
 <div id="hook" class="full" style="background:transparent"><img src="../sdi_logo_v2_crop.png" style="mix-blend-mode:multiply;height:96px;margin-bottom:34px"><div class="kk">COMMERCIAL IOT MONITORING SYSTEM · 100M+ DEVICES</div><h1>{h[0]}</h1><p>{h[1]}</p><div style="position:absolute;bottom:52px;font-size:19px;letter-spacing:3px;color:#7A8BA0;font-weight:700">SYSTEM-DESIGN.IN · REAL-WORLD ARCHITECTURE SERIES</div></div>
@@ -336,6 +373,7 @@ def page(v):
 <div id="cap"></div>
 </div>
 <script>const VID={v};</script>
+{proposal_script}
 <script src="timeline2.js"></script>
 </body></html>'''
 
@@ -354,6 +392,8 @@ engine = open(f'{ROOT}/pres/timeline2p.js').read().split('// ================= p
 engine = engine.replace("const VER = 'pres';", "const VER = QS.get('ver') || 'int';")
 open(f'{ROOT}/vid/timeline2.js', 'w').write('// Generated from pres/timeline2p.js by vid/build.py.\n' + engine.rstrip() + '\n')
 
-for v in range(1, 20):
+_proposal_frontend = {v: dict(page=v, slug=p['slug'], name=p['name'], components=p['components']) for v, p in PROPOSALS.items()}
+open(f'{ROOT}/pres/proposals.js', 'w').write('// Generated from vid/proposal_data.py by tools/build.sh.\nconst PROPOSALS = ' + json.dumps(_proposal_frontend, ensure_ascii=False, indent=2) + ';\n')
+for v in range(1, 24):
     open(f'{ROOT}/vid/v{v}.html', 'w').write(page(v))
 print('built')

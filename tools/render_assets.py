@@ -34,7 +34,18 @@ def render():
         page.add_script_tag(url=base + '/pres/icons.js')
         page.evaluate('document.getAnimations().forEach(a => {a.pause(); a.currentTime=0})')
         page.screenshot(path=str(ROOT / 'pres/actions_detail.png'), clip={'x': 0, 'y': 0, 'width': 1600, 'height': 960})
-        print('Updated overview, vector/social previews and action close-up')
+        page.set_viewport_size({'width': 1600, 'height': 970})
+        sys.path.insert(0, str(ROOT / 'vid'))
+        from proposal_data import PROPOSALS
+        for number, proposal in PROPOSALS.items():
+            source = page.request.get(f'{base}/pres/flow{number}.html').text()
+            source = source.split('<div id="veil"')[0] + '</div></body></html>'
+            source = source.replace('<head>', f'<head><base href="{base}/pres/">', 1)
+            page.set_content(source)
+            page.add_style_tag(content='.rhead,.cards,#a-obsp,.foot{display:none!important} body{overflow:hidden}')
+            page.add_script_tag(url=base + '/pres/icons.js')
+            page.screenshot(path=str(ROOT / f'pres/future-{proposal["slug"]}.png'), clip={'x': 0, 'y': 0, 'width': 1600, 'height': 970})
+        print('Updated overview, vector/social previews, action close-up and four future architectures')
 
 
 if __name__ == '__main__':

@@ -60,7 +60,7 @@ def run(output, playback=None):
             page.wait_for_timeout(100)
             return page.frames[-1]
 
-        for v in range(1, 20):
+        for v in range(1, 24):
             page.goto(f'{base}/pres/flow{v}.html?embed=1&obs=1&why=1&caps=1')
             page.wait_for_function('window.PRESENTER')
             result = page.evaluate('''() => {
@@ -68,7 +68,7 @@ def run(output, playback=None):
               return {pauses:PRESENTER.PAUSES.length, finite:Number.isFinite(window.TOTAL)};
             }''')
             assert result['finite'] and result['pauses'] > 5, (v, result)
-        passed('all 19 timelines render every pause without runtime errors')
+        passed('all 23 timelines render every pause without runtime errors')
 
         frame = shell()
         assert page.locator('#flows button[data-flow]').count() == 14
@@ -129,14 +129,25 @@ def run(output, playback=None):
           let clock = performance.now();
           window.requestAnimationFrame = fn => setTimeout(() => { clock += 100; fn(clock); }, 0);
         })()''')
-        for slug in (playback if playback is not None else ['cicd-svc', 'cicd-dash', 'telemetry', 'storm', 'red-snow', 'growth']):
-            auto.goto(f'{base}/pres/?flow={slug}')
+        for slug in (playback if playback is not None else ['cicd-svc', 'cicd-dash', 'telemetry', 'storm', 'red-snow', 'growth', 'predictive', 'security', 'root-cause', 'runbook']):
+            proposal = slug in ['predictive', 'security', 'root-cause', 'runbook']
+            route = ('?future=' if proposal else '?flow=') + slug
+            auto.goto(f'{base}/pres/{route}')
             auto.wait_for_function("document.querySelector('#stage iframe')?.contentWindow.PRESENTER")
             fr = auto.frames[-1]
+            before = auto.evaluate('location.search')
+            if proposal:
+                assert fr.locator('.proposal-box').count() == 4
+                assert fr.locator('#a-edge').is_visible() and fr.locator('#a-stor').is_visible()
+                assert 'GenAI' in fr.locator('#a-ai3').inner_text()
+                auto.locator('#proposalInfo').click()
+                auto.locator('#dmodal').wait_for(state='visible')
+                assert 'future-' + slug + '.png' in auto.locator('#dsnap img').get_attribute('src')
+                auto.keyboard.press('Escape')
             fr.locator('#bPlay').click()
             auto.locator('#upnext').wait_for(state='visible', timeout=60000)
-            assert slug in auto.evaluate("JSON.parse(localStorage.getItem('explored'))")
-            auto.wait_for_function('s => !location.search.includes("flow=" + s)', arg=slug, timeout=8000)
+            assert ('future-' + slug if proposal else slug) in auto.evaluate("JSON.parse(localStorage.getItem('explored'))")
+            auto.wait_for_function('s => location.search !== s', arg=before, timeout=8000)
             passed(f'automatic playback: {slug}, completed end card, countdown and advance')
         auto.close()
 
@@ -178,7 +189,7 @@ def run(output, playback=None):
             assert lessons.locator('#lessonCount').inner_text() == f"{topic['count']} / {topic['count']}"
             assert lessons.locator('#lessonPlay').inner_text() == 'Play'
             if topic['section'] == 'future':
-                assert 'GenAI' in lessons.locator('#dsnap').inner_text()
+                assert 'future-' + topic['slug'] + '.png' in lessons.locator('#dsnap img').get_attribute('src')
             lessons.keyboard.press('Escape')
             assert lessons.locator('#mobile-topic-' + topic['slug']).evaluate('e => e === document.activeElement')
         lessons.close()
@@ -186,6 +197,9 @@ def run(output, playback=None):
 
         page.set_viewport_size({'width': 1440, 'height': 900})
         page.goto(f'{base}/pres/?future=security')
+        page.wait_for_function("document.querySelector('iframe')?.contentWindow.PRESENTER")
+        page.screenshot(path=str(output / 'future-architecture.png'))
+        page.locator('#proposalInfo').click()
         page.locator('#dmodal').wait_for(state='visible')
         page.screenshot(path=str(output / 'security-proposal.png'))
         page.keyboard.press('Escape')
@@ -211,6 +225,8 @@ def run(output, playback=None):
         page.evaluate("select(ALL.find(f => f.slug === 'telemetry'), true, true)")
         page.locator('#futureToggle').click()
         page.locator('#topic-predictive').click()
+        page.wait_for_function("document.querySelector('#stage iframe:last-of-type')?.contentWindow.PRESENTER")
+        page.locator('#proposalInfo').click()
         page.wait_for_timeout(1300)
         assert page.evaluate("!document.querySelector('iframe').contentDocument.getElementById('bPlay').classList.contains('on')")
         page.keyboard.press('Escape')

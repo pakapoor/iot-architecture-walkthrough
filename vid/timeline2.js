@@ -6,6 +6,7 @@ const lerp = (a, b, f) => a + (b - a) * f;
 const prog = (t, a, b) => b <= a ? (t >= b ? 1 : 0) : Math.max(0, Math.min(1, (t - a) / (b - a)));
 function env(t, a, b, r = 0.3) { if (t < a || t > b) return 0; return Math.min(1, (t - a) / r, (b - t) / r); }
 const QS = new URLSearchParams(location.search);
+const PROPOSAL = window.PROPOSAL || null;
 const VER = QS.get('ver') || 'int';
 const P = VER === 'pres'
   ? { hold: { pass: 0.45, core: 0.55, deep: 1.4 }, hop: 1.3, hopPx: 1100, zoom: 2.4, intro: 0.6, recap: 1.2, endHold: 1.0 }
@@ -278,16 +279,30 @@ if (VID === 18) {   // hot partition
 if (VID === 19) {
   st('a', 'a-edge', 'br', 'deep', 'v', 'Design scenario: legitimate fleet traffic stays 10× higher · 200K → an illustrative 2M batched envelopes/sec', S => { S.aBadge = ['10× sustained load · capacity exercise', ...org]; });
   st('a', 'a-obsp', 'tl', 'deep', 'y', 'Measure envelopes, bytes, readings and distinct devices separately · verify p99 freshness, backlog slope and completed-checkpoint age', S => { S.obsT = { 0: ['▲ growing steadily', 1], 1: ['▲ freshness slipping', 1], 3: ['10× sustained (example)', 1] }; });
-  st('a', 'a-gw', 'br', 'deep', 'v', 'Reserve heartbeats · distributed tenant/device budgets bound bytes and readings; backlog is bounded, not infinite');
+  st('a', 'a-gw', 'br', 'deep', 'v', 'Reserve heartbeat capacity end to end · tenant/device budgets bound bytes and readings; queues buy time, not permanent capacity');
   st('a', 'a-ing', 'br', 'deep', 'v', 'Scale ingestion against measured CPU/network and Kafka produce latency · batch envelopes unpack before device-keyed routing');
-  st('a', 'a-kafka', 'br', 'deep', 'v', 'Provision broker disk/network and retention headroom · more partitions require a planned ordered migration, not live hash remapping');
-  st('a', 'a-kafka', 'br', 'deep', 'v', 'Example cutover: fence producers → drain old topic to a recorded boundary → checkpoint → switch to the larger topic', null, { stay: true });
+  st('a', 'a-kafka', 'br', 'deep', 'v', 'Add broker disk/network and recovery headroom · adding partitions can move device keys, so protect ordering during the change');
+  st('a', 'a-kafka', 'br', 'deep', 'v', 'Example bulk-topic cutover: fence old producers/retries → buffer arrivals durably → drain every old partition to its recorded boundary', null, { stay: true });
+  st('a', 'a-flink', 'br', 'deep', 'v', 'Take a savepoint; preserve compatible keyed state and operator IDs. Start the new-topic source at explicit offsets; old-topic offsets do not transfer');
   st('a', 'a-flink', 'br', 'deep', 'v', 'Scale source readers and keyed operators separately · add slots/nodes, tune state/checkpoints, and isolate liveness from telemetry');
   st('a', 'a-stor', 'tr', 'deep', 'v', 'Scale ClickHouse writers/shards and retention budget · verify merge pressure and disk growth; reconcile versioned replayed writes', null, { via: [[1514, 425], [1082, 425]] });
   st('a', 'a-dash', 'tr', 'deep', 'v', 'Bound query concurrency and SSE fan-out · coalesce slow-viewer updates; reconnect through shared replay or a snapshot');
   st('a', 'a-gw', 'br', 'deep', 'y', 'Capacity still insufficient? Throttle bulk traffic with retry/backoff; sample only eligible telemetry, count drops, and keep heartbeat admission reserved');
-  st('a', 'a-obsp', 'tl', 'deep', 'g', 'Soak-test the proposed envelope, failure recovery and per-tenant SLOs · raise quotas only after measured gates pass', S => { S.obsT = { 0: ['✓ capacity gate', 0], 1: ['✓ freshness gate', 0], 3: ['2M/s scenario · verify', 0] }; });
+  st('a', 'a-obsp', 'tl', 'deep', 'g', 'Soak-test sustained load and node-loss recovery · prove per-tenant freshness and catch-up within retention before raising quotas', S => { S.obsT = { 0: ['✓ capacity gate', 0], 1: ['✓ freshness gate', 0], 3: ['2M/s scenario · verify', 0] }; });
   RECAP = { cap: 'Sustained 10× growth → measure → provision each bottleneck → ordered migration → bounded admission → prove recovery', badge: ['Capacity scales by measured gates', ...grn], boxes: ['a-gw', 'a-ing', 'a-kafka', 'a-flink', 'a-stor', 'a-dash', 'a-obsp'] };
+  TRS = [];
+}
+
+if (PROPOSAL) {
+  st('a', 'a-edge', 'br', 'core', 'b', 'Future proposal: ' + PROPOSAL.name + ' · follow one example from existing telemetry to an operator decision');
+  st('a', 'a-ing', 'br', 'core', 'b', 'Existing ingestion checks gateway identity and device/tenant scope. Authentication identifies the sender; it does not prove that every reading is true.');
+  st('a', 'a-kafka', 'br', 'core', 'b', 'A proposed independent Kafka consumer feeds the AI job with its own compute and read budgets. Bound its backlog; replay fresh work or mark recommendations unavailable if it falls behind.');
+  st('a', 'a-flink', 'br', 'deep', 'b', 'The existing Flink alert job keeps running independently. Heartbeats, critical rules and paging never wait for model inference or an LLM response.');
+  st('a', 'a-stor', 'tr', 'deep', 'b', 'Reuse authorized ' + PROPOSAL.input.toLowerCase() + '. ' + PROPOSAL.new_source + ' must be integrated separately; these records are not assumed to exist in the current stores.', null, { via: [[1514, 425], [1082, 425]] });
+  PROPOSAL.components.forEach((c, i) => st('a', 'a-ai' + (i + 1), 'br', 'deep', 'b', c[3]));
+  st('a', 'a-act', 'br', 'deep', 'b', PROPOSAL.output + '. Use existing integrations after that decision; persist a case/action ID so retries cannot create duplicate work.', null, { via: [[1570, 932], [1570, 700], [1350, 700]] });
+  st('a', 'a-dash', 'br', 'core', 'g', 'Show authorized evidence, its age, the recommendation and review outcome. Expire stale suggestions; never display an unavailable AI assessment as a healthy device.');
+  RECAP = { cap: 'Existing platform → proposed evidence/model/GenAI components → reviewed action · simulated future design', badge: null, boxes: ['a-flink', 'a-stor', 'a-ai1', 'a-ai2', 'a-ai3', 'a-ai4', 'a-act', 'a-dash'] };
   TRS = [];
 }
 

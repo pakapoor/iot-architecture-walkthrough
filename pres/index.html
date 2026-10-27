@@ -318,6 +318,7 @@ aside{transition:visibility 0s .25s}
   <div id="vids"></div>
 </div>
 
+<script src="proposals.js"></script>
 <script src="deep-dives.js"></script>
 <script>
 const FLOWS = [
@@ -366,7 +367,7 @@ const DECISIONS = {
   "storm": [["Correlate before you page", "A bounded site correlation window handles device and gateway failures arriving in different orders."], ["One ticket per root cause", "The site gets a ticket; device tickets are held."], ["Auto-resolve on recovery", "When the site comes back, so does the incident."], ["Rate-limit pages", "An on-call person gets at most a few pages per window."]],
   "crash": [["Checkpoint often", "Track last completed checkpoint age, not just the configured interval."], ["Kafka is the replay log", "Retention must cover outage, backlog and catch-up. Sampled archives cannot reconstruct every raw event."], ["Exactly-once state, idempotent effects", "Replays can't double-count or double-page."], ["Restart is automatic", "Kubernetes and Flink's restart strategy recover without a human."]],
   "hot": [["Fine-grained keys", "Partitioning by deviceId spreads load across 100M keys."], ["Per-device rate limits", "Tenant quotas aren't enough — one device can still flood a partition."], ["Watch lag per partition", "Total lag hides one hot partition."], ["Scaling won't fix a hot key", "One hot key stays with one keyed owner; source readers and downstream operators scale differently."]],
-  "growth": [["Measure before scaling", "A sustained 10× rise is a capacity change: identify envelope, reading, byte and state growth separately."], ["Scale the bottleneck", "Ingestion, source readers, keyed operators, sinks and dashboard fan-out have different limits."], ["Plan partition growth", "Use a fenced, ordered topic migration; do not remap active device keys mid-stream."], ["Bound overload", "Reserve heartbeats; throttle bulk work at admission while measured capacity catches up."], ["Prove the new envelope", "Soak-test freshness, checkpoint recovery, disk/retention and cost at the proposed sustained rate."]]
+  "growth": [["Measure before scaling", "A sustained 10× rise is a capacity change: measure envelopes, readings, bytes, devices and state separately."], ["Scale the bottleneck", "Ingestion, source readers, keyed operators, sinks and dashboard fan-out have different limits."], ["Plan partition growth", "Fence and drain the old route; preserve keyed state and explicitly initialize the new source."], ["Bound overload", "Reserve heartbeat capacity end to end; throttle bulk work while measured capacity catches up."], ["Prove the new envelope", "Soak-test per-tenant freshness, node-loss recovery, retention headroom and cost at the proposed rate."]]
 };
 const ARCHBOX = {"edge": [60, 190, 230, 215], "gw": [350, 190, 210, 215], "ing": [620, 190, 210, 215], "kafka": [890, 190, 210, 215], "flink": [1160, 190, 380, 215], "ctrl": [60, 448, 310, 222], "dash": [420, 448, 300, 222], "stor": [770, 448, 340, 222], "act": [1160, 448, 380, 222]};
 const ACT = 'actions_detail.png', DD = 'datadog_detail.png';
@@ -456,15 +457,23 @@ const DETAIL = {
   "Per-device rate limits": {"p": "A big tenant's quota is large enough to hide one runaway device.", "d": "The gateway also limits each device; the excess is dropped and counted.", "alt": "Tenant-level quotas only.", "tr": "Limits must allow legitimate bursts.", "line": "Fairness at every level: tenant and device.", "boxes": ["gw"]},
   "Watch lag per partition": {"p": "Aggregate lag looks fine while one partition burns.", "d": "Datadog shows consumer lag per partition; one outlier points to a hot key, not a capacity problem.", "alt": "Alert on total lag only.", "tr": "More metrics to store.", "line": "Averages hide the outlier you care about.", "boxes": ["kafka", "flink"]},
   "Scaling won't fix a hot key": {"p": "The instinct is to add Flink workers.", "d": "A Kafka partition has one source reader in a consumer group; after keyBy, device keys can spread across downstream subtasks. One chatty device still has a single keyed-state owner, so diagnose the stage before scaling.", "alt": "Autoscale and hope.", "tr": "Limit the device at admission and preserve heartbeat capacity. Other devices sharing its partition may be delayed too.", "line": "Find the hot key before you buy more hardware.", "boxes": ["flink"]},
-  "Measure before scaling": {"p": "Traffic stays 10× above the previous envelope; waiting for a burst to drain is insufficient.", "d": "Design example: A broad sustained increase from 200K to an illustrative 2M batched envelopes/sec is different from a short replay burst. Measure payload sizes, readings per envelope, per-device rates, distinct keys and projected state.", "alt": "Treat sustained growth as a temporary burst and keep adding workers.", "tr": "The 10× figure is a design exercise, not a verified fleet benchmark. More readings and more devices have different timer/state costs.", "line": "Sustained growth needs measured capacity and bounded admission.", "boxes": ["ing", "kafka", "flink", "stor"]},
-  "Scale the bottleneck": {"p": "Traffic stays 10× above the previous envelope; waiting for a burst to drain is insufficient.", "d": "Design example: add ingestion capacity and Kafka broker disk/network first where measured; tune source readers, keyed parallelism and checkpoint capacity; scale ClickHouse shards/writers and bound SSE/query fan-out independently.", "alt": "Treat sustained growth as a temporary burst and keep adding workers.", "tr": "Maintain N+1/headroom and measure service demand. Extra pods cannot compensate for one saturated sink, broker disk or hot key.", "line": "Sustained growth needs measured capacity and bounded admission.", "boxes": ["ing", "kafka", "flink", "stor"]},
-  "Plan partition growth": {"p": "Traffic stays 10× above the previous envelope; waiting for a burst to drain is insufficient.", "d": "Design example: ordered migration: prepare a versioned topic with more partitions, fence producers, drain the old route to a recorded boundary, checkpoint consumers, then switch routes. Preserve device sequence IDs and deduplicate retries; advance only after boundary verification.", "alt": "Treat sustained growth as a temporary burst and keep adding workers.", "tr": "A controlled cutover may briefly buffer ingress. Do not concurrently hash one device into old and new partitions without an ordering/fencing contract.", "line": "Sustained growth needs measured capacity and bounded admission.", "boxes": ["ing", "kafka", "flink", "stor"]},
-  "Bound overload": {"p": "Traffic stays 10× above the previous envelope; waiting for a burst to drain is insufficient.", "d": "Design example: distributed byte/reading budgets reserve heartbeat admission. Backpressure bulk telemetry into bounded edge/Kafka buffers; at a declared limit, sample eligible telemetry or reject with retry/backoff and report what was dropped.", "alt": "Treat sustained growth as a temporary burst and keep adding workers.", "tr": "Keep critical liveness and action capacity available. Queues buy bounded time; sustained arrival above service capacity never drains by itself.", "line": "Sustained growth needs measured capacity and bounded admission.", "boxes": ["ing", "kafka", "flink", "stor"]},
-  "Prove the new envelope": {"p": "Traffic stays 10× above the previous envelope; waiting for a burst to drain is insufficient.", "d": "Design example: acceptance: sustained-load soak, reconnect bursts, completed-checkpoint age, p99 freshness, sink latency, disk/retention headroom, failure recovery and per-tenant SLOs. Raise quotas only after gates pass, then roll capacity/cell expansion in stages.", "alt": "Treat sustained growth as a temporary burst and keep adding workers.", "tr": "Budget storage, network and operational cost. A short throughput test does not establish long-run recovery or 99.9% availability at the new load.", "line": "Sustained growth needs measured capacity and bounded admission.", "boxes": ["ing", "kafka", "flink", "stor"]}
+  "Measure before scaling": {"p": "Legitimate traffic remains 10× higher. A queue that grows every hour will eventually fill.", "d": "Design example: 200K becomes an illustrative 2M batched envelopes/sec. Measure bytes and readings per envelope, per-device rates, distinct active devices and projected state before sizing capacity. Ten times as many readings is different from ten times as many devices and timers.", "alt": "Admit new fleet cohorts in stages, or reduce eligible sampling frequency while capacity is provisioned.", "tr": "2M envelopes/sec is an exercise, not a fleet benchmark. Neither the original hardware nor ten times as many workers is assumed to support it.", "line": "Measure the work inside each envelope.", "boxes": ["ing", "kafka", "flink", "stor"]},
+  "Scale the bottleneck": {"p": "Adding ingestion pods helps little if Kafka disk, one device key or ClickHouse is already saturated.", "d": "Use measured service demand to expand the limiting layer: ingestion CPU/network, Kafka disk/network, source readers, keyed operators, state/checkpoints, ClickHouse writers/shards, or dashboard query/SSE budgets. Scale and measure again; each layer can become the next bottleneck.", "alt": "Split exceptional tenants into separately budgeted capacity cells when a shared deployment cannot meet their service targets.", "tr": "Keep enough spare capacity for a node failure and backlog recovery. Extra workers cannot split one hot keyed owner or remove a saturated downstream dependency.", "line": "Scale the limiting layer, then measure again.", "boxes": ["ing", "kafka", "flink", "stor"]},
+  "Plan partition growth": {"p": "Adding Kafka partitions can send later events for one device to a different partition while earlier events remain unread.", "d": "Example bulk-topic migration: prepare a larger versioned topic; fence old producers and their retries; durably buffer arrivals; record and drain every old partition boundary; then take a savepoint. Restore compatible keyed state with stable operator IDs, replace the old source state deliberately, and initialize the new source at explicit new-topic offsets. Verify the route, resume buffered writes with stable event IDs, and deduplicate retries.", "alt": "Pause/fence and drain before expanding the same topic, or use a stable routing scheme; each still needs a tested ordering contract.", "tr": "Old-topic offsets do not identify positions in the new topic. Source-state replacement must be tested with the exact connector/version; do not discard unrelated state. Cutover consumes bounded durable-buffer capacity and may interrupt bulk freshness. Keep the separate heartbeat path available, and re-plan recovery once the new route has accepted events.", "line": "Preserve business state; initialize the new input explicitly.", "boxes": ["ing", "kafka", "flink", "stor"]},
+  "Bound overload": {"p": "The proposed capacity is not ready, but arrival rate already exceeds processing rate.", "d": "Reserve heartbeat capacity through admission, Kafka, Flink and the action lane. Enforce distributed tenant/device byte and reading budgets. Buffer bulk traffic only within declared edge/Kafka limits; then reject with retry/backoff, or sample only telemetry explicitly eligible for loss. Count rejected and dropped work and show its effect on data completeness.", "alt": "Stage new-device onboarding or reduce optional telemetry at its source.", "tr": "A heartbeat topic alone provides no reservation on shared CPU, network or storage. Queues buy time; sustained arrival above service capacity never drains by itself.", "line": "Protect liveness and make overload visible.", "boxes": ["ing", "kafka", "flink", "stor"]},
+  "Prove the new envelope": {"p": "A short peak-throughput test can pass while retention, recovery or one tenant's freshness fails later.", "d": "Run a sustained-load soak, reconnect bursts and node-loss recovery at the proposed rate. Gate on per-tenant p99 freshness, backlog slope, completed-checkpoint age, sink latency, storage/merge pressure and catch-up before retained input expires. Raise quotas in stages only after these gates pass.", "alt": "Keep admission at the last verified limit and add capacity or another cell before accepting the next fleet cohort.", "tr": "Include storage, network and operational cost. A soak and recovery test establish evidence for the tested conditions; they do not by themselves prove 99.9% availability.", "line": "Capacity includes recovery while new traffic keeps arriving.", "boxes": ["ing", "kafka", "flink", "stor"]}
 };
 
-KNOWLEDGE.forEach(topic => { DETAIL[topic.title] = topic; });
+const FUTURE_FLOWS = Object.values(PROPOSALS).map(p => ({ slug: 'future-' + p.slug, proposal: p.slug, page: p.page, name: p.name, color: 'var(--accent)', video: null, sub: 'Future proposal · integrated architecture with simulated AI components' }));
+KNOWLEDGE.forEach(topic => {
+  if (topic.section === 'future') topic.archImage = 'future-' + topic.slug + '.png';
+  DETAIL[topic.title] = topic;
+});
 function knowledgeVisual(topic, active = 0) {
+  if (topic.archImage) {
+    const left = (60 + active * 380) / 16, top = 764 / 9.7;
+    return `<a href="${topic.archImage}" target="_blank" rel="noopener" aria-label="Open full-size proposed architecture"><img src="${topic.archImage}" alt="Existing IoT architecture with proposed ${topic.title} components and connections"></a><div class="hl" aria-hidden="true" style="pointer-events:none;left:${left}%;top:${top}%;width:${340 / 16}%;height:${160 / 9.7}%"></div>`;
+  }
   const esc = v => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   return `<svg viewBox="0 0 520 ${topic.steps.length * 94 + 24}" role="img" aria-label="${esc(topic.title)}: step ${active + 1} of ${topic.steps.length}"><defs><marker id="deepArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1 8 5 1 9" fill="none" stroke="var(--muted)" stroke-width="1.5"/></marker></defs>` + topic.steps.map(([title, desc], i) => {
     const y = 20 + i * 94;
@@ -510,8 +519,8 @@ function openDetail(t, from) {
 }
 function closeDetail() {
   if ($('dmodal').hidden) return; $('dmodal').hidden = true;
-  stopLesson(); document.querySelectorAll('.navitem[data-topic]').forEach(b => { b.classList.remove('on'); b.setAttribute('aria-pressed', 'false'); });
-  if (activeKnowledge) { activeKnowledge = null; const u = new URL(location.href); u.searchParams.delete('deep'); u.searchParams.delete('future'); history.replaceState(null, '', u); }
+  stopLesson(); document.querySelectorAll('.navitem[data-topic]').forEach(b => { const on = !!current && current.proposal === b.dataset.topic; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
+  if (activeKnowledge) { activeKnowledge = null; const u = new URL(location.href); u.searchParams.delete('deep'); if (!current?.proposal) u.searchParams.delete('future'); history.replaceState(null, '', u); }
   $('panel').inert = false; $('paneltoggle').inert = false; if (frame) frame.inert = false;
   if (lastFocus && lastFocus.frame === frame) {
     try { const el = frame.contentDocument.getElementById(lastFocus.id); if (el) el.focus({ preventScroll: true }); else frame.focus(); } catch (_) { frame.focus(); }
@@ -534,8 +543,10 @@ function renderDD() {
   box.innerHTML = `<h2>Design decisions · ${current ? current.name : 'Why it\'s built this way'}</h2>` + list.map(([t, d]) => `<button type="button" class="d" data-t="${t.replace(/"/g, '&quot;')}"><b>${t}</b>${d}<span class="more">Open details →</span></button>`).join('');
   box.querySelectorAll('.d').forEach(b => b.addEventListener('click', () => openDetail(b.dataset.t, b)));
 }
-const ALL = FLOWS.flatMap(f => f.items || [f]).concat(ISSUES);
+const ALL = FLOWS.flatMap(f => f.items || [f]).concat(ISSUES, FUTURE_FLOWS);
 const $ = id => document.getElementById(id);
+const proposalInfo = document.createElement('button'); proposalInfo.id = 'proposalInfo'; proposalInfo.type = 'button'; proposalInfo.className = 'home'; proposalInfo.hidden = true; proposalInfo.textContent = 'Problem & trade-offs'; document.querySelector('.brand').appendChild(proposalInfo);
+proposalInfo.addEventListener('click', () => { const topic = KNOWLEDGE.find(t => t.slug === current?.proposal); if (topic) openKnowledge(topic, proposalInfo, true); });
 let current = null, frame = null;
 
 function opts() { const k = current ? current.slug : 'main';
@@ -556,12 +567,13 @@ function select(f, push = true, autoplay = false) {
   closeDetail();
   current = f || null; hideUpNext();
   document.querySelectorAll('.navitem[data-flow]').forEach(b => { const on = !!f && b.dataset.flow === f.slug; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
-  if (f) setSection(f.infra ? 'issueToggle' : 'flowToggle', true);
-  $('flowToggle').classList.toggle('has-active', !!f && !f.infra); $('issueToggle').classList.toggle('has-active', !!f && !!f.infra);
+  if (f) setSection(f.proposal ? 'futureToggle' : f.infra ? 'issueToggle' : 'flowToggle', true);
+  proposalInfo.hidden = !f?.proposal;
+  $('flowToggle').classList.toggle('has-active', !!f && !f.infra && !f.proposal); $('issueToggle').classList.toggle('has-active', !!f && !!f.infra); $('futureToggle').classList.toggle('has-active', !!f?.proposal);
   $('home').hidden = $('share').hidden = !f; $('starthint').hidden = !!f; $('copied').textContent = '';
   $('tObs').disabled = !!(f && f.infra); if (f && f.infra) $('tObs').checked = true;
   renderDD();
-  if (push) { const u = new URL(location.href); if (f) u.searchParams.set('flow', f.slug); else u.searchParams.delete('flow'); try { history.replaceState(null, '', u); } catch (_) {} }
+  if (push) { const u = new URL(location.href); u.searchParams.delete('deep'); u.searchParams.delete('future'); u.searchParams.delete('flow'); if (f?.proposal) u.searchParams.set('future', f.proposal); else if (f) u.searchParams.set('flow', f.slug); try { history.replaceState(null, '', u); } catch (_) {} }
   load(f, autoplay);
 }
 function navButton(label, action) {
@@ -584,14 +596,17 @@ function setSection(id, open) {
   const btn = $(id); btn.setAttribute('aria-expanded', String(open)); $(btn.getAttribute('aria-controls')).hidden = !open;
 }
 ['flowToggle', 'issueToggle', 'deepToggle', 'futureToggle'].forEach(id => $(id).addEventListener('click', () => setSection(id, $(id).getAttribute('aria-expanded') !== 'true')));
-function openKnowledge(topic, trigger) {
+function openKnowledge(topic, trigger, detailsOnly = false) {
+  if (topic.section === 'future' && !detailsOnly && !MQ.matches) { teaser = 'off'; clearTimeout(teaserT); select(FUTURE_FLOWS.find(f => f.proposal === topic.slug)); return; }
   stopLesson(); teaser = 'off'; clearTimeout(teaserT); setSection(topic.section === 'deep' ? 'deepToggle' : 'futureToggle', true);
   openDetail(topic.title, trigger); activeKnowledge = topic; setLessonStep(0);
   document.querySelectorAll('.navitem[data-topic]').forEach(b => { const on = b.dataset.topic === topic.slug; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
   const u = new URL(location.href); u.searchParams.delete('deep'); u.searchParams.delete('future'); u.searchParams.set(topic.section, topic.slug); history.replaceState(null, '', u);
 }
 function topicButton(topic, target, prefix) {
-  const b = navButton(topic.title, button => openKnowledge(topic, button)); b.id = prefix + topic.slug; b.dataset.topic = topic.slug; target.appendChild(b);
+  const b = navButton(topic.title, button => openKnowledge(topic, button)); b.id = prefix + topic.slug; b.dataset.topic = topic.slug;
+  if (topic.section === 'future') { b.dataset.flow = 'future-' + topic.slug; const ex = document.createElement('span'); ex.className = 'ex'; ex.hidden = true; ex.textContent = '✓'; ex.title = 'Explored'; ex.setAttribute('aria-label', 'Explored'); b.appendChild(ex); }
+  target.appendChild(b);
 }
 KNOWLEDGE.forEach(topic => topicButton(topic, $(topic.section === 'deep' ? 'deepTopics' : 'futureTopics'), 'topic-'));
 const mobileLearning = document.createElement('details'); mobileLearning.className = 'mobile-learning';
@@ -614,7 +629,7 @@ addEventListener('message', e => {
   if (d.type === 'key' && /^[0-9]$/.test(d.key)) jump(d.key);
   if (d.type === 'dd' && typeof d.t === 'string' && Object.hasOwn(DETAIL, d.t)) openDetail(d.t, { frame, id: /^ddc-\d+$/.test(d.trigger) ? d.trigger : '' });
   if (d.type === 'view' && ['idle', 'arch', 'zoom', 'end'].includes(d.view)) { setView(d.view); onView(d.view, d.auto === true); } });
-function setView(v) { const arch = v === 'idle' || v === 'arch';
+function setView(v) { const arch = (v === 'idle' || v === 'arch') && !current?.proposal;
   $('tObs').closest('.sw').hidden = !arch; $('tWhy').closest('.sw').hidden = !arch; $('tCap').closest('.sw').hidden = !(v === 'arch' || v === 'zoom');
   document.querySelector('.toggles').hidden = !arch && !(v === 'arch' || v === 'zoom'); }
 function jump(k) { const f = ALL.find(x => x.key === k); if (f) { select(f); return; } const g = FLOWS.find(x => x.items && x.key === k); if (g) select(g.items[0]); }
@@ -682,7 +697,7 @@ function onView(v, auto) { if (v === 'end' && current) { markExplored(current); 
 // share: copy a deep link to the current flow
 let copiedT = null;
 $('share').addEventListener('click', async () => {
-  if (!current) return; const url = location.origin + location.pathname + '?flow=' + current.slug; let ok = false;
+  if (!current) return; const url = location.origin + location.pathname + (current.proposal ? '?future=' + current.proposal : '?flow=' + current.slug); let ok = false;
   try { await navigator.clipboard.writeText(url); ok = true; } catch (e) {
     const inp = document.createElement('input'); inp.value = url; inp.setAttribute('readonly', ''); inp.style.cssText = 'position:fixed;left:-9999px;opacity:0';
     document.body.appendChild(inp); inp.select(); try { ok = document.execCommand('copy'); } catch (_) {} inp.remove(); }
@@ -714,12 +729,13 @@ function showPhoneFlow(f) {
 initDetail(); renderDD();
 const start = ALL.find(f => f.slug === new URLSearchParams(location.search).get('flow'));
 const knowledgeStart = KNOWLEDGE.find(t => new URLSearchParams(location.search).get(t.section) === t.slug);
-if (MQ.matches) showPhoneFlow(start); else select(start || null, false);
-if (knowledgeStart) { if (MQ.matches) mobileLearning.open = true; openKnowledge(knowledgeStart, $((MQ.matches ? 'mobile-topic-' : 'topic-') + knowledgeStart.slug)); }
+const requestedStart = knowledgeStart?.section === 'future' ? FUTURE_FLOWS.find(f => f.proposal === knowledgeStart.slug) : start;
+if (MQ.matches) showPhoneFlow(requestedStart); else select(requestedStart || null, false);
+if (knowledgeStart && (MQ.matches || knowledgeStart.section === 'deep')) { if (MQ.matches) mobileLearning.open = true; openKnowledge(knowledgeStart, $((MQ.matches ? 'mobile-topic-' : 'topic-') + knowledgeStart.slug)); }
 // 13. layout switches: build the stage when entering desktop, pause it when entering phone
 MQ.addEventListener('change', e => {
   if (e.matches) { if (frame) pauseFrame(frame); hideUpNext(); clearTimeout(teaserT); teaser = 'off'; showPhoneFlow(current || start); }
-  else { document.querySelectorAll('video').forEach(v => v.pause()); if (!frame) select(current || start || null, false); }
+  else { document.querySelectorAll('video').forEach(v => v.pause()); if (!frame) select(current || requestedStart || null); }
 });
 if (!MQ.matches && !start && !knowledgeStart) { teaser = 'waiting'; teaserT = setTimeout(() => { if (teaser !== 'waiting' || current) return; teaser = 'playing'; select(ALL.find(f => f.slug === 'health'), true, true); }, 8000); }
 </script>
