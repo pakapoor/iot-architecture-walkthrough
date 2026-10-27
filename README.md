@@ -1,4 +1,8 @@
+<a href="https://system-design.in"><img src="docs/sdi_logo_v2_crop.png" alt="System-Design.in" height="40"></a>
+
 # IoT Architecture Walkthrough
+
+By Pankaj Kapoor · [System-Design.in](https://system-design.in) · 1:1 system design mentoring
 
 An interactive, click-to-advance walkthrough of a commercial IoT monitoring platform: **100M+ devices, 200K msgs/sec at peak, 99.9% uptime**. By System-Design.in.
 
