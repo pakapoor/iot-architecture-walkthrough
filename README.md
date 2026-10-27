@@ -4,7 +4,7 @@
 
 By Pankaj Kapoor · [System-Design.in](https://system-design.in) · 1:1 system design mentoring
 
-An interactive, click-to-advance walkthrough of a commercial IoT monitoring platform: **100M+ devices, 200K batched msgs/sec normal peak, 99.9% uptime**. By System-Design.in.
+An interactive, click-to-advance walkthrough of a commercial IoT monitoring platform: **100M+ devices, 200K gateway envelopes/sec normal peak, 99.9% uptime**. By System-Design.in. Ingestion unpacks those envelopes; Kafka, Flink and storage handle device readings and bytes.
 
 ### ▶ [Open the interactive walkthrough](https://pakapoor.github.io/iot-architecture-walkthrough/)
 
@@ -41,7 +41,7 @@ Expand **Flows** or **Infra issues** and click a walkthrough directly, then pres
 | Hot partition | contained at the door: per-device limits · lag by partition |
 | Sustained 10× traffic | measure the bottleneck → scale each layer → ordered Kafka migration → bounded admission → recovery/soak gates |
 
-**Deep dives** contains six runnable visual answers: delivery/replay, device versus pipeline health, incident races, tenant isolation, live/history consistency, and safe rollback. **Future enhancements** opens four updated architecture walkthroughs: predictive maintenance, fleet security triage, cross-site root-cause analysis, and a runbook copilot. Choose a future scenario to see its proposed components connected to the existing architecture, then use the main Play/Next controls. Click a new component for a close-up, or open Problem & trade-offs for supporting details. Deep dives retain their focused dialog playback. Every AI proposal identifies its model/GenAI step, evidence and human decision boundary. These are browser simulations, with no AI service or infrastructure commands connected.
+**Deep dives** contains six runnable visual answers: delivery/replay, device versus pipeline health, incident races, tenant isolation, live/history consistency, and safe rollback. **Future enhancements** opens four updated architecture walkthroughs: predictive maintenance, fleet security triage, cross-site root-cause analysis, and a runbook copilot. Choose a future scenario to see its proposed components connected to the existing architecture, then use the main Play/Next controls. Click a new component for a close-up, or open Problem & trade-offs for supporting details. Each proposal follows Flink candidates → internal decision service / official Jev API → grounded GenAI → human review or a restricted diagnostic gate. The UI explains rule fallback, API/data boundaries and validation. Deep dives retain their focused dialog playback. These are browser simulations, with no AI service or infrastructure commands connected.
 
 Flows use keys 1–4 for their groups; infra issues use 5–9. Automatic playback offers a five-second Up next countdown after the final card. Manual stepping records explored progress without advancing. Phones highlight linked videos or show a desktop note for interactive-only flows; deep dives and future proposal details also run on phones, using the full updated architecture preview with the active component highlighted.
 

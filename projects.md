@@ -8,6 +8,10 @@ Implementation commits, committed and pushed to `main`:
 
 - [`b674429`](https://github.com/pakapoor/iot-architecture-walkthrough/commit/b674429) — Complete walkthrough review, navigation and AI scenarios.
 - [`6cc26b5`](https://github.com/pakapoor/iot-architecture-walkthrough/commit/6cc26b5) — Keep queued autoplay paused on mobile and behind dialogs.
+- [`76781fa`](https://github.com/pakapoor/iot-architecture-walkthrough/commit/76781fa) — Reveal navigation items directly when a section opens.
+- [`bfbf1ac`](https://github.com/pakapoor/iot-architecture-walkthrough/commit/bfbf1ac) — Integrate future components into the existing architecture and tighten recovery explanations.
+- [`b44611f`](https://github.com/pakapoor/iot-architecture-walkthrough/commit/b44611f) — Correct throughput layers, Redis slots and tenant/device naming.
+- [`cdffdc5`](https://github.com/pakapoor/iot-architecture-walkthrough/commit/cdffdc5) — Add Jev behind the proposed decision service in all four future scenarios.
 
 Presentation: [GitHub Pages walkthrough](https://pakapoor.github.io/iot-architecture-walkthrough/pres/).
 
@@ -42,10 +46,10 @@ These answers are available in the UI, including on phones.
 
 Added four explicitly labelled proposals, each with a runnable visual sequence, an identified GenAI component, example inputs, evidence, limitations and a human decision boundary:
 
-1. **Predictive maintenance:** historical failure labels and rolling telemetry features feed a risk model; GenAI explains the evidence for daytime preventive review. The 80°C/24-hour/90% example is illustrative and unvalidated; critical alerts retain their immediate path.
-2. **Fleet security triage:** anomaly detection flags router/cohort deviations; grounded GenAI evaluates evidence and competing explanations before a human investigation or quarantine decision.
-3. **Cross-site root-cause assistant:** topology, telemetry cohorts and deployment history support cited hypotheses that an operator verifies.
-4. **Runbook copilot:** retrieval of approved procedures supports a cited investigation plan and restricted read-only diagnostics; production changes remain a human decision.
+1. **Predictive maintenance:** rolling features produce candidates; Jev Noul supplies an unvalidated failure-risk estimate that must be calibrated against confirmed outcomes. GenAI summarizes evidence for daytime review. E.g. 80°C/24 hours/90% remains illustrative; critical alerts retain their immediate path.
+2. **Fleet security triage:** statistical anomaly detection flags router/cohort deviations; Jev Choice compares explanations, and GenAI cites evidence before a human investigation or quarantine decision.
+3. **Cross-site root-cause assistant:** topology, telemetry cohorts and deployment history supply Jev Choice hypotheses; GenAI presents supporting/contrary evidence for an operator to verify.
+4. **Runbook copilot:** Jev Choice selects an approved procedure or abstains; GenAI drafts a cited plan and restricted read-only diagnostics collect evidence. Score is advisory; deterministic policy and humans control production changes.
 
 These are browser simulations. No AI backend, live prediction service or infrastructure execution is connected.
 
@@ -82,7 +86,7 @@ Unconfirmed implementation mechanisms remain labelled as examples or design opti
 - Regenerated `pres/arch_snapshot.png`, `pres/actions_detail.png`, `docs/og.png` and the vector `docs/architecture.svg` from HTML.
 - Updated [README.md](README.md) with navigation, scenarios, build/check commands and scope qualifications.
 - Browser-checked every pause in all 23 timelines, automatic completion for six representative scenarios, manual stepping, navigation lists, dialogs, light/dark layouts, mobile links/resizing, all ten visual lessons, message handling and the delayed-autoplay guard.
-- Checked 57 JavaScript blocks/files, Python syntax, local asset references, duplicate HTML IDs, vector XML, storage SVG text bounds and deterministic regeneration. `git diff --check` passed.
+- Checked JavaScript/Python syntax, local asset references, duplicate HTML IDs, vector XML, storage SVG text bounds and deterministic regeneration. `git diff --check` passed.
 
 ### Remaining limitations
 
@@ -108,6 +112,7 @@ Unconfirmed implementation mechanisms remain labelled as examples or design opti
 - Preserved the liveness explanation that validates heartbeat event age and clock bounds: late spooled heartbeats are history, not renewed health.
 - Scoped Redis atomic device/site-count transitions to a site hash tag, with asynchronous, reconciled tenant totals; explained the hot-slot risk of a tenant-wide tag.
 - Aligned partition/key titles to tenant + device identity and corrected current build/validation descriptions to 23 timelines.
+
 ## Jev decision service — future proposals
 
 - All four future architectures retain four components: a separately budgeted Flink candidate job, an internal decision service calling the official Jev API, cited GenAI assistance, and human review or a restricted diagnostic gate.
@@ -115,3 +120,10 @@ Unconfirmed implementation mechanisms remain labelled as examples or design opti
 - Added question types/options, candidate-only Temporal activities, bounded retries/timeouts, circuit breaking and rule fallback to the UI and component close-ups. Critical alerts stay independent.
 - UI trade-offs explain DPA/redaction, regional disablement, shadow evaluation, calibration, drift/bias and scoped audit retention, with primary documentation links. Runbook scores never authorize production writes.
 - These remain simulations; no external model API or infrastructure tool is connected.
+
+## Final integration checks
+
+- Played sustained growth and all four Jev scenarios through the final card, countdown and next-flow transition. Checked every pause in all 23 timelines.
+- Opened all four Jev close-ups and supporting dialogs in light/dark themes; verified text/viewport fit after animation, Escape and focus restoration. All six deep dives and four future lessons also complete on phone layout.
+- Regenerated architecture/social previews, checked Python/JavaScript syntax, local references and unique HTML IDs, and confirmed a deterministic rebuild. Browser console and `git diff --check` are clean.
+- Content review clarified trigger, evidence, typed decision, uncertainty, action owner and fallback in the UI. Proposed throughput and risk numbers remain explicitly illustrative or designed-for.

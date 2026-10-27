@@ -165,11 +165,42 @@ def run(output, playback=None):
             page.screenshot(path=str(output / f'phone-{theme}.png'))
             page.set_viewport_size({'width': 1440, 'height': 900})
             page.wait_for_function("document.querySelector('#stage iframe')?.src.includes('flow16.html')")
+            for slug in ['predictive', 'security', 'root-cause', 'runbook']:
+                page.goto(f'{base}/pres/?future={slug}')
+                page.wait_for_function("document.querySelector('#stage iframe')?.contentWindow.PRESENTER")
+                proposal_frame = page.frames[-1]
+                assert 'Jev' in proposal_frame.locator('#a-ai2').inner_text()
+                # Fit checks use rendered bounds, including the stage's transform.
+                clipped = proposal_frame.locator('.proposal-box').evaluate_all('''boxes => boxes.flatMap(box => {
+                  const b = box.getBoundingClientRect();
+                  return [...box.children].filter(child => {
+                    const r = child.getBoundingClientRect();
+                    return r.right > b.right + 1 || r.bottom > b.bottom + 1;
+                  }).map(child => ({box:box.id, text:child.textContent}));
+                })''')
+                assert not clipped, (theme, slug, clipped)
+                proposal_frame.evaluate('setT(PRESENTER.PAUSES[2].t)')
+                proposal_frame.locator('#a-ai2').focus()
+                page.keyboard.press('Enter')
+                proposal_frame.locator('#cucard').wait_for(state='visible')
+                proposal_frame.wait_for_function("new DOMMatrix(getComputedStyle(document.getElementById('cucard')).transform).isIdentity")
+                assert 'Jev' in proposal_frame.locator('#cucard').inner_text()
+                assert proposal_frame.locator('#cucard').evaluate('e => e.scrollHeight <= e.clientHeight + 1')
+                page.screenshot(path=str(output / f'{slug}-decision-{theme}.png'))
+                page.keyboard.press('Escape')
+                proposal_frame.locator('#cucard').wait_for(state='hidden')
+                assert proposal_frame.locator('#a-ai2').evaluate('e => e === document.activeElement')
+                page.locator('#proposalInfo').click()
+                page.locator('#dmodal').wait_for(state='visible')
+                page.locator('.reasoning summary').click()
+                assert 'Jev' in page.locator('#dtext').inner_text()
+                assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+                page.keyboard.press('Escape')
             page.set_viewport_size({'width': 390, 'height': 844})
             page.goto(f'{base}/pres/?flow=telemetry')
             assert page.locator('#v-telemetry').evaluate("e => e.classList.contains('hl')")
             assert page.locator('#v-telemetry').evaluate('e => e.getBoundingClientRect().top < innerHeight')
-        passed('light/dark layouts, narrow desktop, phone deep links and desktop initialization')
+        passed('light/dark layouts, four Jev close-ups/details and box fit, narrow desktop, phone links/resizing')
 
         # Lesson playback on mobile has no hidden iframe and can use a virtual clock.
         lessons = context.new_page()

@@ -20,7 +20,7 @@ PROPOSALS = {
         question='Noul: will this device fail within the next 7 days?',
         options='Binary outcome, defined by confirmed failure labels. E.g. 0.90 is an illustrative, unvalidated probability; Score is an ordered rubric, not P(failure).',
         components=[
-            ('Feature windows', 'Flink candidate job · heat / resets / gaps', 'Check coverage · add confirmed failure labels',
+            ('Feature windows', 'Flink candidate job · heat / resets / gaps', 'Check coverage · failure labels for offline evaluation',
              'E.g. CAM-14 has well-covered readings above 80°C for 24 h. Flink builds rolling features and emits a candidate; confirmed failure/repair outcomes support offline evaluation, not future-data leakage.'),
             ('Decision service · Jev', 'Temporal activity → official Jev API', 'Noul: failure in 7 days? · shadow mode first',
              'Decision service calls the Jev API (candidates only, fallback to rules). Noul asks about failure within 7 days; e.g. 0.90 is illustrative and unvalidated. Validate on our outcomes before treating it as fleet risk.'),

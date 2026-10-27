@@ -8,7 +8,7 @@ const PROPOSALS = {
       [
         "Feature windows",
         "Flink candidate job · heat / resets / gaps",
-        "Check coverage · add confirmed failure labels",
+        "Check coverage · failure labels for offline evaluation",
         "E.g. CAM-14 has well-covered readings above 80°C for 24 h. Flink builds rolling features and emits a candidate; confirmed failure/repair outcomes support offline evaluation, not future-data leakage."
       ],
       [
