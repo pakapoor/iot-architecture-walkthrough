@@ -22,7 +22,7 @@ def cyl(x,y,w,h,c,title,sub,attrs=''):
 OUT={}
 # ---------- KAFKA (shared topics) ----------
 b=[]
-b.append(box(20,130,170,100,'n','Ingestion',['key = deviceId']))
+b.append(box(20,130,170,100,'n','Ingestion',['key = tenant + device']))
 b.append(arr('M190 180 H232'))
 b.append(box(20,290,170,70,'o','Schema registry',['Avro contracts'],fs=13,tfs=15))
 b.append(f'<rect x="240" y="14" width="820" height="306" rx="14" fill="#F6F8FB" stroke="#B9C6D8" stroke-width="1.6"/>'+hd(258,40,'SHARED TOPICS · ALL TENANTS','n'))
@@ -37,12 +37,12 @@ def topic(y,name,t,tc):
 b.append(topic(70,'heartbeats','⚡ PRIORITY TOPIC','#B45309')); b.append(topic(190,'telemetry','BULK','#56667C'))
 for k,c in enumerate([3,7,10]): x=446+c*30; b.append(f'<rect x="{x}" y="116" width="26" height="20" rx="4" fill="#2563EB"/><text x="{x+13}" y="131" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">{k+1}</text>')
 for k,c in enumerate([2,5,9]): x=446+c*30; b.append(f'<rect x="{x}" y="56" width="26" height="20" rx="4" fill="#F08A1C"/><text x="{x+13}" y="71" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">{k+1}</text>')
-b.append(lab(446,160,'hash(deviceId): Acme CAM-14 → P2 · Beta SNS-07 → P0 · each device stays in order','#1D4ED8',13.5))
+b.append(lab(446,160,'hash(tenant + device): Acme CAM-14 → P2 · Beta SNS-07 → P0','#1D4ED8',13.5))
 b.append(lab(446,296,'offsets grow left → right · retention keeps days of history',fs=13.5,wgt=400))
 b.append(box(240,334,820,58,'o',None,[]) + hd(258,358,'FAIRNESS IS ENFORCED BEFORE KAFKA','o')+lab(258,380,'per-tenant quotas at the gateway · tenant_id on every message · no topic per tenant','#9A4A0C',13.5,400))
 b.append(f'<rect x="1110" y="14" width="370" height="306" rx="14" fill="#F6F3FF" stroke="#C4B5FD" stroke-width="1.6"/>'+hd(1128,40,'FLINK · CONSUMER GROUP','v'))
-for yy,l in [(66,'Worker 1 ← P0'),(126,'Worker 2 ← P1'),(186,'Worker 3 ← P2')]: b.append(f'<rect x="1128" y="{yy}" width="334" height="46" rx="10" fill="#fff" stroke="#C4B5FD"/>'+lab(1146,yy+29,l,'#3B2A8C',15,700))
-b.append(lab(1128,262,'parallelism ≤ partitions','#5B3FD9',13.5)+lab(1128,284,'one partition → one worker → keyed state per device',fs=13.5,wgt=400))
+for yy,l in [(66,'Reader 1 ← P0'),(126,'Reader 2 ← P1'),(186,'Reader 3 ← P2')]: b.append(f'<rect x="1128" y="{yy}" width="334" height="46" rx="10" fill="#fff" stroke="#C4B5FD"/>'+lab(1146,yy+29,l,'#3B2A8C',15,700))
+b.append(lab(1128,262,'source readers ≤ partitions','#5B3FD9',13.5)+lab(1128,284,'downstream keyed parallelism is separate',fs=13.5,wgt=400))
 b.append(box(1110,334,370,58,'g',None,[])+hd(1128,358,'REPLAY','g')+lab(1128,380,'bug or outage → rewind the offset → reprocess','#166534',13.5,400))
 OUT['KAFKA']=svg(1500,400,''.join(b))
 # ---------- EDGE ----------
@@ -53,21 +53,21 @@ for i,(ic,n) in enumerate([('📷','Cameras'),('🌡','Thermostats'),('👣','Fo
     b.append(arr(f'M250 {y+30} H338'))
 b.append(lab(262,52,'MQTT / CoAP','#0F766E',13,800))
 b.append(box(345,64,280,170,'t','Gateway A · ACTIVE',['Batches per site','(1 heartbeat / device / min)','Local spool on disk + retry','Firmware agent: apply / rollback'],fs=14))
-b.append(box(345,250,280,120,'n','Gateway B · STANDBY',['Takes over if A fails','Same spool + identity'],fs=14))
+b.append(box(345,250,280,120,'n','Gateway B · STANDBY',['Takes over if A fails','Recoverable spool (e.g.)'],fs=14))
 b.append(arr('M485 234 V248','#7A8BA0')+lab(495,246,'failover',fs=12))
-b.append(box(650,64,250,150,'o','When the cloud is down',['Spool fills on disk','Nothing is dropped','Flush on reconnect →','a burst (see queue depth)'],fs=13.5,tfs=15))
+b.append(box(650,64,250,150,'o','When the cloud is down',['Spool fills on disk','Bounded capacity + alarms','Flush on reconnect →','a burst (see queue depth)'],fs=13.5,tfs=15))
 b.append(box(650,230,250,140,'p','Firmware',['Canary % first','Status back via telemetry','Auto-rollback on failure'],fs=13.5,tfs=15))
 b.append(arr('M625 150 H640 V150','#7A8BA0'))
 b.append(arr('M920 200 H1010','#1D4ED8')+lab(930,190,'mTLS · batches','#1D4ED8',13,800))
 b.append(box(1015,120,240,160,'b','Cloud Gateway',['Device identity check','Per-tenant quotas'],fs=14))
-b.append(box(1280,14,220,380,'n','Why batch here',['100M devices × 1/min','≈ 1.7M msgs/sec','per-site batching →','200K msgs/sec','normal peak (batched)','','Spool = no data loss','in site outages'],fs=14))
+b.append(box(1280,14,220,380,'n','Why batch here',['100M devices × 1/min','≈ 1.7M msgs/sec','per-site batching →','200K msgs/sec','normal peak (batched)','','Durability is bounded','by spool + failover'],fs=14))
 OUT['EDGE']=svg(1520,410,''.join(b))
 # ---------- GATEWAY ----------
 b=[]
 b.append(hd(20,30,'MANY SITES · MANY TENANTS','n'))
 for i,(t,c) in enumerate([('Acme · Site-07','b'),('Acme · Site-12','b'),('Beta · Site-03 (buggy firmware)','o')]):
     y=46+i*70; b.append(box(20,y,250,54,c,None,[])+lab(36,y+33,t,P[c][0],14.5,700)); b.append(arr(f'M270 {y+27} H318'))
-b.append(box(325,46,200,194,'b','1 · mTLS',['Terminate TLS','Cert → device','identity'],fs=14))
+b.append(box(325,46,200,194,'b','1 · mTLS',['Terminate TLS','Cert → gateway','allowed devices'],fs=14))
 b.append(arr('M525 143 H563'))
 b.append(box(570,46,200,194,'b','2 · Tenant lookup',['device → tenant','(from registry)','tag tenant_id'],fs=14))
 b.append(arr('M770 143 H808'))
@@ -79,7 +79,7 @@ b.append(box(1190,46,150,194,'n','4 · Load balancer',['spread over','the pool']
 b.append(arr('M1340 143 H1372'))
 b.append(f'<rect x="1378" y="40" width="130" height="206" rx="14" fill="#F6F8FB" stroke="#B9C6D8" stroke-width="1.6"/>'+lab(1392,64,'Ingestion pool','#33465C',13,800))
 for i in range(4): b.append(f'<rect x="1394" y="{80+i*40}" width="98" height="30" rx="8" fill="#fff" stroke="#B9C6D8"/>'+lab(1406,100+i*40,f'pod {i+1}','#33465C',13,700))
-b.append(box(20,280,740,110,'r','Why quotas live here',['Beta\'s flood is rejected before it costs anything downstream —','Kafka, Flink and storage never see it, and Acme is untouched.'],fs=15))
+b.append(box(20,280,740,110,'r','Why quotas live here',['Tenant/device budgets bound bytes and readings across replicas.','Reserve heartbeats; shared capacity still needs measured headroom.'],fs=15))
 b.append(box(780,280,728,110,'n','Also at the gateway',['Auth + tenant resolution for every request','Health checks on the ingestion tier · rate limits per device'],fs=15))
 OUT['GW']=svg(1520,400,''.join(b))
 # ---------- INGESTION ----------
@@ -87,7 +87,7 @@ b=[]
 b.append(box(20,120,180,110,'b','From gateway',['tenant-tagged','batches'],fs=14))
 b.append(arr('M200 175 H248'))
 b.append(f'<rect x="255" y="20" width="560" height="300" rx="16" fill="#F6F8FB" stroke="#B9C6D8" stroke-width="1.6"/>'+hd(275,46,'STATELESS POOL · KUBERNETES · AUTOSCALED','n'))
-for i,t in enumerate(['1 · Validate (Avro schema)','2 · Tag tenant_id · deviceId key','3 · Route by type']):
+for i,t in enumerate(['1 · Validate (Avro schema)','2 · Unpack · tenant/device key','3 · Route by type']):
     y=66+i*76; b.append(f'<rect x="275" y="{y}" width="330" height="58" rx="10" fill="#fff" stroke="#B9C6D8"/>'+lab(292,y+35,t,'#0B1F3F',15.5,700))
     if i<2: b.append(arr(f'M440 {y+58} V{y+74}'))
 for i in range(3): b.append(f'<rect x="{630+i*60}" y="80" width="48" height="48" rx="10" fill="#fff" stroke="#B9C6D8"/>'+lab(654+i*60,110,'pod','#56667C',12,700,'middle'))
@@ -102,9 +102,9 @@ OUT['ING']=svg(1520,400,''.join(b))
 b=[]
 b.append(box(20,40,170,90,'o','heartbeats',['Kafka topic'],fs=13,tfs=15)); b.append(box(20,150,170,90,'n','telemetry',['Kafka topic'],fs=13,tfs=15))
 b.append(arr('M190 85 H226')+arr('M190 195 H226'))
-b.append(box(232,40,170,200,'v','keyBy(deviceId)',['all events of a','device go to the','same worker','→ in order'],fs=13.5,tfs=15))
+b.append(box(232,40,170,200,'v','keyBy(identity)',['tenant + device','keys own state','event time handles','late telemetry'],fs=13.5,tfs=15))
 b.append(arr('M402 140 H438'))
-b.append(box(444,30,250,220,'v','Dedup + enrich',['keyed state per device:','last sequence seen','→ drop duplicates','join device metadata','(type, tenant, site)'],fs=13.5,tfs=15))
+b.append(box(444,30,250,220,'v','Dedup + enrich',['keyed state per device:','boot/session + stream + seq','bounded seen-event window','join device metadata','(type, tenant, site)'],fs=13.5,tfs=15))
 b.append(arr('M694 140 H730'))
 b.append(box(736,20,300,240,'v','Rule engine (CEP)',['per-device TIMER:','reset on every heartbeat','fires after 5 min → DEAD','SLOW: below threshold N min','OVERHEATING: temp rising fast','tenant overrides applied'],fs=13.5,tfs=15))
 b.append(box(444,268,250,74,'p',None,[])+lab(458,294,'Control plane → rules','#BE185D',14,800)+lab(458,316,'broadcast live, no redeploy','#33465C',13,400))
@@ -137,7 +137,7 @@ OUT['DASH']=svg(1520,400,''.join(b))
 # ---------- STORAGE level 1 ----------
 b=[]
 b.append(box(20,150,170,100,'v','Flink',['writes in parallel'],fs=13,tfs=16))
-st=[('redis','Redis','g','LIVE · now','latest state · counts · pub/sub',20),('chhot','ClickHouse hot','b','7 DAYS','raw telemetry',112),('chwarm','ClickHouse warm','b','6 MONTHS','1-hour rollups',204),('s3','S3 cold','n','ARCHIVE','sampled, after TTL',296)]
+st=[('redis','Redis','g','LIVE · now','latest state · counts · pub/sub',20),('chhot','ClickHouse hot','b','7 DAYS','raw telemetry',112),('chwarm','ClickHouse warm','b','6 MONTHS','1-hour rollups',204),('s3','S3 cold','n','ARCHIVE','export verified before expiry',296)]
 for k,n,c,t,s,y in st:
     b.append(arr(f'M190 200 H230 V{y+40} H268', '#16A34A' if k=='redis' else '#7A8BA0','qg' if k=='redis' else 'qa'))
     b.append(f'<g data-store="{k}" style="cursor:pointer">'+cyl(272,y,250,82,c,n,s)+tag(536,y+28,t,c)+lab(700,y+46,'tables →','#2563EB',13,800)+'</g>')
@@ -187,32 +187,32 @@ import math
 raw=[22.4+0.5*math.sin(i/2.3)+0.2*math.sin(i*1.7) for i in range(40)]
 hourly=[(21.2+0.8*math.sin(i/3),23.6+0.6*math.sin(i/3+1)) for i in range(24)]; avg=[(a+b_)/2 for a,b_ in hourly]
 D={}
-b=[code(20,10,700,["CREATE TABLE telemetry_raw (","  tenant_id  LowCardinality(String),","  device_id  String,","  event_id   String,   -- device + boot ID + sequence","  metric     LowCardinality(String),","  ts         DateTime64(3),","  value      Float64",") ENGINE = ReplacingMergeTree","PARTITION BY toYYYYMMDD(ts)","ORDER BY (tenant_id, device_id, metric, ts, event_id)","TTL ts + INTERVAL 7 DAY      -- then rolled off"],'EXAMPLE SCHEMA · CLICKHOUSE HOT'),
-   table(20,300,['tenant_id','device_id','metric','ts','value'],[['acme','TH-05','temp_c','10:42:00','22.4'],['acme','TH-05','temp_c','10:43:00','22.6'],['acme','TH-05','temp_c','10:44:00','22.5'],['beta','SNS-07','lat_ms','10:42:00','160']],700,hl={0,1,2}),
+b=[code(20,10,700,["CREATE TABLE telemetry_raw (","  tenant_id  LowCardinality(String),","  device_id  String,","  event_id   String,   -- device + boot ID + sequence","  metric     LowCardinality(String),","  ts         DateTime64(3),","  value      Float64",") ENGINE = ReplacingMergeTree","PARTITION BY toYYYYMMDD(ts)","ORDER BY (tenant_id, device_id, metric, ts, event_id)","TTL ts + INTERVAL 7 DAY      -- export before expiry"],'EXAMPLE SCHEMA · CLICKHOUSE HOT'),
+   table(20,350,['tenant_id','device_id','metric','ts','value'],[['acme','TH-05','temp_c','10:42:00','22.4'],['acme','TH-05','temp_c','10:43:00','22.6'],['acme','TH-05','temp_c','10:44:00','22.5'],['beta','SNS-07','lat_ms','10:42:00','160']],700,hl={0,1,2}),
    f'<rect x="750" y="10" width="760" height="196" rx="12" fill="#F4F8FF" stroke="#93B4F5"/>'+hd(768,38,'HOW THE INDEX WORKS','b'),
    lab(768,64,'Sorted on disk by (tenant, device, metric, time).',fs=14.5,c='#24364E',wgt=400),lab(768,88,'A sparse primary index keeps one entry per 8,192 rows.',fs=14.5,c='#24364E',wgt=400),
    lab(768,112,'"TH-05, last hour" → jumps straight to a few blocks;',fs=14.5,c='#24364E',wgt=400),lab(768,136,'no full scan, even with billions of rows.',fs=14.5,c='#24364E',wgt=400),
-   lab(768,160,'A replayed event keeps its event_id, so it collapses at merge.',fs=14.5,c='#24364E',wgt=400),
+   lab(768,160,'Stable event_id: use FINAL (or dedup on read) before merge.',fs=14.5,c='#24364E',wgt=400),
    lab(768,186,'Daily partitions make the 7-day TTL a cheap drop.',fs=14.5,c='#1D4ED8',wgt=700),
    chart(750,214,760,236,raw,21.5,23.3,'#F08A1C',title='TH-05 · temp_c · last 40 min (raw points)')]
-D['chhot']=('ClickHouse hot · raw telemetry, 7 days',svg(1520,460,''.join(b)))
-b=[code(20,10,700,["CREATE TABLE telemetry_1h (","  tenant_id  LowCardinality(String),","  device_id  String,","  metric     LowCardinality(String),","  hour       DateTime,","  min Float64, max Float64,","  avg Float64, cnt UInt32,","  version    UInt64",") ENGINE = ReplacingMergeTree(version)","ORDER BY (tenant_id, device_id, metric, hour)","TTL hour + INTERVAL 6 MONTH  -- then archived"],'EXAMPLE SCHEMA · CLICKHOUSE WARM'),
-   table(20,320,['device_id','hour','min','max','avg'],[['TH-05','09:00','21.9','23.1','22.4'],['TH-05','10:00','22.0','23.4','22.6'],['TH-05','11:00','21.8','23.0','22.3']],700),
+D['chhot']=('ClickHouse hot · raw telemetry, 7 days',svg(1520,510,''.join(b)))
+b=[code(20,10,700,["CREATE TABLE telemetry_1h (","  tenant_id  LowCardinality(String),","  device_id  String,","  metric     LowCardinality(String),","  hour       DateTime,","  min Float64, max Float64,","  avg Float64, cnt UInt32,","  version    UInt64",") ENGINE = ReplacingMergeTree(version)","ORDER BY (tenant_id, device_id, metric, hour)","TTL hour + INTERVAL 6 MONTH  -- export before expiry"],'EXAMPLE SCHEMA · CLICKHOUSE WARM'),
+   table(20,370,['device_id','hour','min','max','avg'],[['TH-05','09:00','21.9','23.1','22.4'],['TH-05','10:00','22.0','23.4','22.6'],['TH-05','11:00','21.8','23.0','22.3']],700),
    f'<rect x="750" y="10" width="760" height="190" rx="12" fill="#F4F8FF" stroke="#93B4F5"/>'+hd(768,38,'WHY THIS SHAPE','b'),
    lab(768,64,'Flink computes each hour once and writes it here.',fs=14.5,c='#24364E',wgt=400),lab(768,88,'Duplicates collapse at background merge; dashboard queries',fs=14.5,c='#24364E',wgt=400),
    lab(768,112,'use FINAL (or argMax by version), so a delayed older',fs=14.5,c='#24364E',wgt=400),lab(768,136,'aggregate never overrides a newer one.',fs=14.5,c='#24364E',wgt=400),lab(768,172,'6 months × 24 rows/day per metric — tiny vs raw.',fs=14.5,c='#1D4ED8',wgt=700),
    chart(750,214,760,236,avg,20.5,24.5,'#2563EB',band=hourly,title='TH-05 · temp_c · last 24 h (avg with min–max band)')]
-D['chwarm']=('ClickHouse warm · hourly rollups, 6 months',svg(1520,460,''.join(b)))
+D['chwarm']=('ClickHouse warm · hourly rollups, 6 months',svg(1520,510,''.join(b)))
 b=[hd(20,30,'EXAMPLE KEYS · REDIS','g'),
    table(20,44,['key','type','value'],[['dev:acme:CAM-14','HASH','status=ONLINE  last_seen=10:42:07'],['dev:acme:TH-05','HASH','status=ONLINE  temp=22.4'],['cnt:acme:site-07','HASH','online=47  degraded=1  down=0'],['cnt:acme','HASH','online=10,212  down=14'],['live:acme','PUB/SUB','channel → dashboard service']],900,hl={4}),
    f'<rect x="950" y="30" width="560" height="200" rx="12" fill="#ECFDF3" stroke="#86EFAC"/>'+hd(968,58,'HOW IT IS USED','g'),
-   lab(968,86,'Flink writes on every state change.',fs=14.5,c='#24364E',wgt=400),lab(968,110,'Dashboard tiles read cnt:* — one call, instant.',fs=14.5,c='#24364E',wgt=400),
-   lab(968,134,'live:<tenant> fans out to every open page.',fs=14.5,c='#24364E',wgt=400),lab(968,170,'A cache, not the source of truth:',fs=14.5,c='#15803D',wgt=700),lab(968,194,'rebuildable from Flink state if lost.',fs=14.5,c='#15803D',wgt=700),
+   lab(968,86,'Versioned transitions + freshness updates.',fs=14.5,c='#24364E',wgt=400),lab(968,110,'Dashboard tiles read cnt:* — one call, instant.',fs=14.5,c='#24364E',wgt=400),
+   lab(968,134,'live:<tenant> fans out to every open page.',fs=14.5,c='#24364E',wgt=400),lab(968,170,'A cache, not the source of truth:',fs=14.5,c='#15803D',wgt=700),lab(968,194,'snapshot + newer updates rebuild a generation.',fs=14.5,c='#15803D',wgt=700),
    f'<rect x="20" y="250" width="1490" height="150" rx="12" fill="#fff" stroke="#C9D5E5"/>'+hd(38,278,'ONE UPDATE, MANY VIEWERS','t')]
-for i,t in enumerate(['Flink: CAM-14 → DEAD','Lua: HINCRBY only if changed','PUBLISH live:acme','dashboard service','30 open pages update']):
+for i,t in enumerate(['Flink: CAM-14 → DEAD','Lua: accept newer version','PUBLISH live:acme','dashboard service','30 open pages update']):
     x=38+i*296; b.append(f'<rect x="{x}" y="290" width="270" height="68" rx="10" fill="#F0FDFA" stroke="#99F6E4"/>'+lab(x+14,329,t,'#0F766E',13.5,700))
     if i<4: b.append(arr(f'M{x+270} 324 H{x+294}','#16A34A','qg'))
-b.append(lab(38,384,"One atomic Lua script: HINCRBY the counts only if the status actually changed. A replayed DEAD doesn't double-count.",fs=14,c='#0F766E',wgt=600))
+b.append(lab(38,384,"Example: version-check state + counters atomically; co-locate Redis Cluster keys or reconcile aggregates separately.",fs=14,c='#0F766E',wgt=600))
 D['redis']=('Redis · live state and counts',svg(1520,410,''.join(b)))
 b=[code(20,10,620,['{','  "_id": "CAM-14",','  "tenant_id": "acme",','  "site_id": "site-07",','  "type": "camera",','  "firmware": "4.2.1",','  "location": "Aisle 4",','  "created": "2025-03-14"','}'],'EXAMPLE DOCUMENT · devices'),
    code(20,270,620,['{ "tenant_id": "acme",','  "device_type": "camera",','  "rule": "DEAD", "after_min": 10 }'],'EXAMPLE DOCUMENT · rule_overrides'),
@@ -224,9 +224,9 @@ for i,t in enumerate(['Low-volume, config-shaped data that changes rarely.','Dev
 D['mongo']=('MongoDB · registry, configs, rules',svg(1520,400,''.join(b)))
 b=[hd(20,30,'EXAMPLE LAYOUT · S3 COLD ARCHIVE','n'),
    code(20,44,760,['s3://iot-archive/','  dt=2026-10-26/','    tenant=acme/  part-0001.parquet','    tenant=beta/  part-0001.parquet','  dt=2026-10-27/ …'],None),
-   f'<rect x="820" y="20" width="690" height="200" rx="12" fill="#F6F8FB" stroke="#B9C6D8"/>'+hd(838,48,'WHAT GOES HERE','n')]
-for i,t in enumerate(['Sampled telemetry after the 7-day TTL','Rollups after the 6-month TTL','Columnar files, partitioned by date and tenant','Lifecycle rules move old data to cheaper storage','An export job writes Parquet to S3 and verifies it before TTL drops the partition']): b.append(lab(838,78+i*26,'• '+t,fs=14.5,c='#24364E',wgt=400))
+   f'<rect x="820" y="20" width="690" height="220" rx="12" fill="#F6F8FB" stroke="#B9C6D8"/>'+hd(838,48,'WHAT GOES HERE','n')]
+for i,t in enumerate(['Sampled telemetry exported before 7-day expiry','Rollups exported before 6-month expiry','Columnar files, partitioned by date and tenant','Lifecycle rules move old data to cheaper storage','Export Parquet and verify it before deletion','Delay expiry if export falls behind (example policy)']): b.append(lab(838,78+i*26,'• '+t,fs=14.5,c='#24364E',wgt=400))
 b.append(f'<rect x="20" y="240" width="1490" height="130" rx="12" fill="#fff" stroke="#C9D5E5"/>'+hd(38,268,'NOT ON THE READ PATH','n'))
-for i,t in enumerate(['Dashboards never read S3. It is for audits, long-term analysis and reprocessing.','Cost per device stays flat: old data lives in the cheapest tier.']): b.append(lab(38,298+i*26,t,fs=14.5,c='#24364E',wgt=400))
+for i,t in enumerate(['Dashboards never read S3. It is for audits, long-term analysis and reprocessing.','Sampled archives support bounded analysis, not full-fidelity raw replay.']): b.append(lab(38,298+i*26,t,fs=14.5,c='#24364E',wgt=400))
 D['s3']=('S3 cold · sampled archive',svg(1520,380,''.join(b)))
 OUT_D=D

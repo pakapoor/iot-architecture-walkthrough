@@ -12,7 +12,7 @@ body{background:#F5F8FC}
 .pill{border:1px solid #D3DDEA;background:#fff;border-radius:999px;padding:6px 14px;font-size:14px;font-weight:600;color:#4A5B70;box-shadow:0 2px 6px rgba(15,30,51,.05)}
 .pill b{color:#0B1F3F}
 .box{position:absolute;border-radius:14px;background:#fff;border:1.5px solid #D3DDEA;padding:14px 16px;box-shadow:0 8px 24px rgba(15,30,51,.08);z-index:3}
-.box .t{font-size:18px;font-weight:700;display:flex;align-items:center;gap:9px;color:#0B1F3F}
+.box .t{font-size:16px;font-weight:700;display:flex;align-items:center;gap:9px;color:#0B1F3F}
 .box .s{font-size:13.5px;color:#4A5B70;margin-top:7px;line-height:1.5}
 .box .s b{color:#0B1F3F;font-weight:600}
 .ic{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:15px;flex:none}
@@ -213,7 +213,7 @@ html,body{margin:0;background:#EEF3F9}
 .cb.run{border-color:#0071E3;box-shadow:0 0 0 4px rgba(0,113,227,.12)}.cb.run .cs{background:#E5F1FF;color:#0071E3}
 .cb.ok .cs{background:#E8F8EC;color:#1E8E3E}.cb.ok{border-color:#9AD9AB}
 .cb.bad .cs{background:#FFECEB;color:#D70015}.cb.bad{border-color:#FF9F99}
-.cfoot{position:absolute;height:150px;border-radius:16px;padding:16px 18px;font-size:15px;line-height:1.45}
+.cfoot{position:absolute;min-height:150px;height:auto;max-height:210px;overflow:auto;border-radius:16px;padding:16px 18px;font-size:15px;line-height:1.45}
 </style></head><body>
 <div id="stage" class="">
 <div id="arch" class="layer cv" style="width:1600px;height:1000px">
@@ -277,7 +277,7 @@ html,body{margin:0;background:#EEF3F9}
 </div>
 <div id="a-kafka" class="box green" style="left:890px;top:190px;width:210px;height:215px">
 <div class="t"><span class="ic">⇶</span>Kafka</div>
-<div class="s">Topics: <b>heartbeats</b> ⚡ · <b>telemetry</b><br>Partitioned by <b>deviceId</b><br>Ordering per device<br>Durable · <b>replay</b> on failure<br>Absorbs bursts</div>
+<div class="s">Topics: <b>heartbeats</b> ⚡ · <b>telemetry</b><br>Key: <b>tenant + device</b><br>Ordering per device<br>Durable · <b>replay</b><br>Absorbs bursts</div>
 </div>
 <div id="a-flink" class="box violet" style="left:1160px;top:190px;width:380px;height:215px">
 <div class="t"><span class="ic">🧠</span>Stream Processing · Flink on K8s</div>
@@ -320,8 +320,8 @@ html,body{margin:0;background:#EEF3F9}
 <div class="card"><div class="h">⏱ Timers, not polling</div><div class="p">"Device down &gt; X min" is a per-device timer in Flink state. No scanning 100M rows in a DB — why Flink beat Kinesis + Lambda.</div></div>
 <div class="card"><div class="h">🚨 Two alert lanes</div><div class="p">Critical pages on-call instantly. Minor issues roll into 15-min site digests. No alert storms, no 3 AM pings.</div></div>
 <div class="card"><div class="h">🔁 Idempotent actions</div><div class="p">Correlation ID = device + window. Retries upsert the same ticket; failures go to a DLQ with alarms. Zero duplicate tickets.</div></div>
-<div class="card"><div class="h">💰 Pay for what's hot</div><div class="p">7 days hot for live views, 6-month rollups, sampled cold archive. Cost per device stays flat as the fleet grows.</div></div>
-<div class="card"><div class="h">🛟 Degrade, don't die</div><div class="p">Edge buffers through outages, standby gateway takes over, Kafka replays. No single point of failure.</div></div>
+<div class="card"><div class="h">💰 Pay for what's hot</div><div class="p">7 days hot for live views, 6-month rollups, sampled cold archive. Tiered retention bounds hot-storage cost per device.</div></div>
+<div class="card"><div class="h">🛟 Degrade, don't die</div><div class="p">Edge buffers through outages, standby gateway takes over, Kafka replays. Bounded buffering + failover; recovery is monitored.</div></div>
 </div>
 
 <div class="foot">
@@ -334,18 +334,18 @@ html,body{margin:0;background:#EEF3F9}
 <h1>Self-healing ServiceNow ticketing <span>· with Temporal</span></h1></div>
 
 <svg width="1600" height="960" style="position:absolute;left:0;top:0;z-index:1">
-<defs><marker id="m1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7F95B2"/></marker></defs>
+<defs><marker id="b-m1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7F95B2"/></marker></defs>
 <g fill="none" stroke-width="2.2" stroke="#9FB2CA">
-<path class="flow" d="M270 260 H320" marker-end="url(#m1)"/>
-<path class="flow" d="M500 260 H550" marker-end="url(#m1)"/>
-<path class="flow" d="M740 260 H790" marker-end="url(#m1)"/>
-<path class="flow" d="M980 260 H1030" marker-end="url(#m1)"/>
-<path class="flow" d="M410 330 V400" marker-end="url(#m1)"/>
-<path class="flow" d="M500 455 H550" marker-end="url(#m1)"/>
-<path class="flow" d="M690 330 V365 H885 V400" stroke="#EF4444" marker-end="url(#m1)"/>
-<path class="flow" d="M165 330 V545 H1030" stroke="#16A34A" marker-end="url(#m1)"/>
-<path class="flow" d="M1240 560 V600" stroke="#F08A1C" marker-end="url(#m1)"/>
-<path class="flow" d="M1400 600 V560" stroke="#0EA5B7" marker-end="url(#m1)"/>
+<path class="flow" d="M270 260 H320" marker-end="url(#b-m1)"/>
+<path class="flow" d="M500 260 H550" marker-end="url(#b-m1)"/>
+<path class="flow" d="M740 260 H790" marker-end="url(#b-m1)"/>
+<path class="flow" d="M980 260 H1030" marker-end="url(#b-m1)"/>
+<path class="flow" d="M410 330 V400" marker-end="url(#b-m1)"/>
+<path class="flow" d="M500 455 H550" marker-end="url(#b-m1)"/>
+<path class="flow" d="M690 330 V365 H885 V400" stroke="#EF4444" marker-end="url(#b-m1)"/>
+<path class="flow" d="M165 330 V545 H1030" stroke="#16A34A" marker-end="url(#b-m1)"/>
+<path class="flow" d="M1240 560 V600" stroke="#F08A1C" marker-end="url(#b-m1)"/>
+<path class="flow" d="M1400 600 V560" stroke="#0EA5B7" marker-end="url(#b-m1)"/>
 </g></svg>
 <div id="dots"></div>
 
@@ -380,9 +380,9 @@ html,body{margin:0;background:#EEF3F9}
 
 <div id="b-tmp" class="box violet" style="left:1030px;top:190px;width:510px;height:370px;border-top-width:6px">
 <div class="t"><span class="ic">⏳</span>Temporal · Incident Workflow</div>
-<div class="wid">workflowId = <b>deviceId + incidentWindow</b></div>
-<div class="step" id="st1"><div class="n">1</div><div class="x"><b>Upsert ticket</b><br>Activity with backoff retries. ServiceNow down for hours? It just waits.</div></div>
-<div class="step" id="st2"><div class="n">2</div><div class="x"><b>Wait for ack</b><br>On-call ack signal, or a durable 30-min timer.</div></div>
+<div class="wid">workflowId = <b>tenant + device + outage generation</b></div>
+<div class="step" id="st1"><div class="n">1</div><div class="x"><b>Upsert ticket</b><br>Bounded retries; park ticketing while ack/recovery signals remain active.</div></div>
+<div class="step" id="st2"><div class="n">2</div><div class="x"><b>Wait for ack</b><br>Ack signal or 30-min deadline from the original page.</div></div>
 <div class="step" id="st3"><div class="n">3</div><div class="x"><b>Escalate</b> 📟<br>Timer fired → page L2, raise ticket priority.</div></div>
 <div class="step" id="st4"><div class="n">4</div><div class="x"><b>Auto-resolve</b> ✅<br>"Device recovered" signal → close ticket with full timeline.</div></div>
 </div>
@@ -408,7 +408,7 @@ html,body{margin:0;background:#EEF3F9}
 <div class="hd" style="position:absolute;left:100px;top:34px"><div style="font-size:16px;letter-spacing:4px;color:#E07A10;font-weight:700">ZOOM-IN · TEMPORAL WORKFLOW ↔ OUTSIDE WORLD</div>
 <h1 style="font-size:42px;font-weight:800;color:#0B1F3F;margin-top:4px">Inside the workflow <span style="color:#2563EB;font-weight:700">· durable, coordinating the outside world</span></h1></div>
 <svg width="1920" height="1080" style="position:absolute;left:0;top:0;z-index:1"><g fill="none" stroke="#B9C6D8" stroke-width="2.4" stroke-dasharray="7 6"><path d="M1150 360 H1205 V305 H1290" /><path d="M1150 672 H1230 V545 H1290" /><path d="M1150 672 H1255 V305 H1290" /><path d="M1150 828 H1270 V305 H1290" /><path d="M1150 828 H1215 V785 H1290" /></g></svg>
-<div class="wf"><div class="wh"><span style="font-size:26px">⏳</span><b>IncidentWorkflow</b><code>workflowId = "cam-14 : 03:10 window"</code><span class="wstat" id="wstat">● Running</span></div><div class="wst" id="ws1" style="top:130px"><div class="n">1</div><div class="bd"><div class="tt">Upsert ticket</div><div class="dd">Create the ServiceNow incident — idempotent by workflowId</div><div class="lv" id="wl1"></div></div><div class="tg">ACTIVITY · RETRY + BACKOFF</div></div><div class="wst" id="ws2" style="top:286px"><div class="n">2</div><div class="bd"><div class="tt">Wait for on-call ack</div><div class="dd">Durable 30-min timer, or an "ack" signal — whichever comes first</div><div class="lv" id="wl2"></div></div><div class="tg">DURABLE TIMER</div></div><div class="wst" id="ws3" style="top:442px"><div class="n">3</div><div class="bd"><div class="tt">Escalate</div><div class="dd">Page L2 on-call · raise ticket to P1</div><div class="lv" id="wl3"></div></div><div class="tg">ACTIVITY</div></div><div class="wst" id="ws4" style="top:598px"><div class="n">4</div><div class="bd"><div class="tt">Auto-resolve</div><div class="dd">"Device recovered" signal → resolve ticket · stand down on-call</div><div class="lv" id="wl4"></div></div><div class="tg">SIGNAL → ACTIVITY</div></div></div>
+<div class="wf"><div class="wh"><span style="font-size:26px">⏳</span><b>IncidentWorkflow</b><code>workflowId = "acme:cam-14:outage-42"</code><span class="wstat" id="wstat">● Running</span></div><div class="wst" id="ws1" style="top:130px"><div class="n">1</div><div class="bd"><div class="tt">Upsert ticket</div><div class="dd">Create the ServiceNow incident — idempotent by workflowId</div><div class="lv" id="wl1"></div></div><div class="tg">ACTIVITY · RETRY + BACKOFF</div></div><div class="wst" id="ws2" style="top:286px"><div class="n">2</div><div class="bd"><div class="tt">Wait for on-call ack</div><div class="dd">30-min deadline from paging; ack/recovery stays active during retries</div><div class="lv" id="wl2"></div></div><div class="tg">DURABLE TIMER</div></div><div class="wst" id="ws3" style="top:442px"><div class="n">3</div><div class="bd"><div class="tt">Escalate</div><div class="dd">Page L2 on-call · raise ticket to P1</div><div class="lv" id="wl3"></div></div><div class="tg">ACTIVITY</div></div><div class="wst" id="ws4" style="top:598px"><div class="n">4</div><div class="bd"><div class="tt">Auto-resolve</div><div class="dd">"Device recovered" signal → resolve ticket · stand down on-call</div><div class="lv" id="wl4"></div></div><div class="tg">SIGNAL → ACTIVITY</div></div></div>
 <div class="box wact" id="act-sn" style="left:1290px;top:200px;width:530px;height:210px"><div class="t" style="font-size:24px"><span class="ic" style="width:40px;height:40px;font-size:22px;background:#EEF2F7">🎫</span>ServiceNow</div><div class="s" style="font-size:17px">Incident tickets</div><div class="ast" id="s-act-sn">no ticket</div></div><div class="box wact" id="act-oc" style="left:1290px;top:440px;width:530px;height:210px"><div class="t" style="font-size:24px"><span class="ic" style="width:40px;height:40px;font-size:22px;background:#EEF2F7">📟</span>On-call (L2)</div><div class="s" style="font-size:17px">Pager rotation</div><div class="ast" id="s-act-oc">idle</div></div><div class="box wact" id="act-x" style="left:1290px;top:680px;width:530px;height:210px"><div class="t" style="font-size:24px"><span class="ic" style="width:40px;height:40px;font-size:22px;background:#EEF2F7">📷</span>Device CAM-14</div><div class="s" style="font-size:17px">Recovery seen by Flink → signal</div><div class="ast" id="s-act-x">🔴 offline</div></div>
 <img src="sdi_logo.png" style="mix-blend-mode:multiply;position:absolute;right:100px;top:46px;height:54px">
 <div id="w-pk" class="pk" style="width:18px;height:18px;margin:-9px 0 0 -9px"></div>

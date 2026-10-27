@@ -13,7 +13,7 @@ body{background:#F5F8FC}
 .pill{border:1px solid #D3DDEA;background:#fff;border-radius:999px;padding:6px 14px;font-size:14px;font-weight:600;color:#4A5B70;box-shadow:0 2px 6px rgba(15,30,51,.05)}
 .pill b{color:#0B1F3F}
 .box{position:absolute;border-radius:14px;background:#fff;border:1.5px solid #D3DDEA;padding:14px 16px;box-shadow:0 8px 24px rgba(15,30,51,.08);z-index:3}
-.box .t{font-size:18px;font-weight:700;display:flex;align-items:center;gap:9px;color:#0B1F3F}
+.box .t{font-size:16px;font-weight:700;display:flex;align-items:center;gap:9px;color:#0B1F3F}
 .box .s{font-size:13.5px;color:#4A5B70;margin-top:7px;line-height:1.5}
 .box .s b{color:#0B1F3F;font-weight:600}
 .ic{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:15px;flex:none}
@@ -125,7 +125,7 @@ svg .flow{stroke-dasharray:7 6;animation:dash 1.5s linear infinite}
 </div>
 <div class="box green" style="left:890px;top:190px;width:210px;height:215px">
 <div class="t"><span class="ic">⇶</span>Kafka</div>
-<div class="s">Topics: <b>heartbeats</b> ⚡ · <b>telemetry</b><br>Partitioned by <b>deviceId</b><br>Ordering per device<br>Durable · <b>replay</b> on failure<br>Absorbs bursts</div>
+<div class="s">Topics: <b>heartbeats</b> ⚡ · <b>telemetry</b><br>Key: <b>tenant + device</b><br>Ordering per device<br>Durable · <b>replay</b><br>Absorbs bursts</div>
 </div>
 <div class="box violet" style="left:1160px;top:190px;width:380px;height:215px">
 <div class="t"><span class="ic">🧠</span>Stream Processing · Flink on K8s</div>
@@ -168,8 +168,8 @@ svg .flow{stroke-dasharray:7 6;animation:dash 1.5s linear infinite}
 <div class="card"><div class="h">⏱ Timers, not polling</div><div class="p">"Device down &gt; X min" is a per-device timer in Flink state. No scanning 100M rows in a DB — why Flink beat Kinesis + Lambda.</div></div>
 <div class="card"><div class="h">🚨 Two alert lanes</div><div class="p">Critical pages on-call instantly. Minor issues roll into 15-min site digests. No alert storms, no 3 AM pings.</div></div>
 <div class="card"><div class="h">🔁 Idempotent actions</div><div class="p">Correlation ID = device + window. Retries upsert the same ticket; failures go to a DLQ with alarms. Zero duplicate tickets.</div></div>
-<div class="card"><div class="h">💰 Pay for what's hot</div><div class="p">7 days hot for live views, 6-month rollups, sampled cold archive. Cost per device stays flat as the fleet grows.</div></div>
-<div class="card"><div class="h">🛟 Degrade, don't die</div><div class="p">Edge buffers through outages, standby gateway takes over, Kafka replays. No single point of failure.</div></div>
+<div class="card"><div class="h">💰 Pay for what's hot</div><div class="p">7 days hot for live views, 6-month rollups, sampled cold archive. Tiered retention bounds hot-storage cost per device.</div></div>
+<div class="card"><div class="h">🛟 Degrade, don't die</div><div class="p">Edge buffers through outages, standby gateway takes over, Kafka replays. Bounded buffering + failover; recovery is monitored.</div></div>
 </div>
 
 <div class="foot">

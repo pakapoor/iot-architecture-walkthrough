@@ -13,7 +13,7 @@ body{background:#F5F8FC}
 .pill{border:1px solid #D3DDEA;background:#fff;border-radius:999px;padding:6px 14px;font-size:14px;font-weight:600;color:#4A5B70;box-shadow:0 2px 6px rgba(15,30,51,.05)}
 .pill b{color:#0B1F3F}
 .box{position:absolute;border-radius:14px;background:#fff;border:1.5px solid #D3DDEA;padding:14px 16px;box-shadow:0 8px 24px rgba(15,30,51,.08);z-index:3}
-.box .t{font-size:18px;font-weight:700;display:flex;align-items:center;gap:9px;color:#0B1F3F}
+.box .t{font-size:16px;font-weight:700;display:flex;align-items:center;gap:9px;color:#0B1F3F}
 .box .s{font-size:13.5px;color:#4A5B70;margin-top:7px;line-height:1.5}
 .box .s b{color:#0B1F3F;font-weight:600}
 .ic{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:15px;flex:none}
@@ -136,9 +136,9 @@ svg .flow{animation-duration:1.5s}
 
 <div id="b-tmp" class="box violet" style="left:1030px;top:190px;width:510px;height:370px;border-top-width:6px">
 <div class="t"><span class="ic">⏳</span>Temporal · Incident Workflow</div>
-<div class="wid">workflowId = <b>deviceId + incidentWindow</b></div>
-<div class="step" id="st1"><div class="n">1</div><div class="x"><b>Upsert ticket</b><br>Activity with backoff retries. ServiceNow down for hours? It just waits.</div></div>
-<div class="step" id="st2"><div class="n">2</div><div class="x"><b>Wait for ack</b><br>On-call ack signal, or a durable 30-min timer.</div></div>
+<div class="wid">workflowId = <b>tenant + device + outage generation</b></div>
+<div class="step" id="st1"><div class="n">1</div><div class="x"><b>Upsert ticket</b><br>Bounded retries; park ticketing while ack/recovery signals remain active.</div></div>
+<div class="step" id="st2"><div class="n">2</div><div class="x"><b>Wait for ack</b><br>Ack signal or 30-min deadline from the original page.</div></div>
 <div class="step" id="st3"><div class="n">3</div><div class="x"><b>Escalate</b> 📟<br>Timer fired → page L2, raise ticket priority.</div></div>
 <div class="step" id="st4"><div class="n">4</div><div class="x"><b>Auto-resolve</b> ✅<br>"Device recovered" signal → close ticket with full timeline.</div></div>
 </div>
@@ -180,7 +180,7 @@ const steps=[[6.3,8.3],[8.3,9.5],[9.5,10.9],[13.0,14.4]];
 const narr=[[0,1.5,'1','Flink rule engine: no heartbeats for X min → <b>DEVICE DOWN</b> incident'],
  [1.5,3.1,'2','SNS fans the alert out to every consumer'],
  [3.1,4.7,'3','SQS buffers it · at-least-once delivery'],
- [4.7,6.3,'4','Ticket starter: signalWithStart(deviceId + incidentWindow)'],
+ [4.7,6.3,'4','Ticket starter: signalWithStart(tenant + device + outage generation)'],
  [6.3,8.3,'5','Temporal workflow upserts the ServiceNow ticket · retries if ServiceNow is down'],
  [8.3,9.5,'6','Waiting for on-call ack · durable 30-min timer'],
  [9.5,10.9,'7','No ack → timer fires → escalate to L2, raise priority'],

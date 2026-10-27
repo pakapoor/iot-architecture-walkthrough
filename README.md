@@ -4,14 +4,14 @@
 
 By Pankaj Kapoor · [System-Design.in](https://system-design.in) · 1:1 system design mentoring
 
-An interactive, click-to-advance walkthrough of a commercial IoT monitoring platform: **100M+ devices, 200K msgs/sec at peak, 99.9% uptime**. By System-Design.in.
+An interactive, click-to-advance walkthrough of a commercial IoT monitoring platform: **100M+ devices, 200K batched msgs/sec normal peak, 99.9% uptime**. By System-Design.in.
 
 ### ▶ [Open the interactive walkthrough](https://pakapoor.github.io/iot-architecture-walkthrough/)
 
 ![Commercial IoT Monitoring System architecture](docs/architecture.svg)
 
 ## How to use it
-Pick a flow or an infra issue in the side panel, then press play, or step through with the arrow keys. Click any component for a graphical close-up. In Tiered Storage, click a store to drill down to its tables and indexes. Two toggles add extra layers:
+Choose a walkthrough from the grouped **Flows** or **Infra issues** dropdown, then press play or step through with the arrow keys. Each section can collapse; a direct link opens the selected section. Click or keyboard-activate a component for a close-up. In Tiered Storage, select a store to inspect its example schema. Two toggles add extra layers:
 - **Observability** overlays the Datadog view.
 - **Design decisions** adds the trade-offs behind each step.
 
@@ -24,7 +24,7 @@ Pick a flow or an infra issue in the side panel, then press play, or step throug
 | | Critical · auto-resolve | device recovers → signal → ticket closes itself |
 | | Critical · ServiceNow down | bounded retries → parked workflow → human replay → one ticket |
 | | Minor · digest | SLOW → minor lane → 15-min digest per site |
-| Multi-tenancy | Noisy neighbour | tenant throttled at its own quota, others untouched; RBAC by role |
+| Multi-tenancy | Noisy neighbour | tenant throttled at its own quota, bounded tenant budgets; scoped identities and RBAC |
 | Deployment & upgrades | Device firmware | canary 1% → health gates → waves → auto-halt + A/B rollback |
 | | Gateway + Ingestion | stateless services, canary by traffic |
 | | Flink jobs | stateful jobs upgraded via savepoints |
@@ -39,6 +39,11 @@ Pick a flow or an infra issue in the side panel, then press play, or step throug
 | Alert storm | one root cause, one page: correlate · suppress · auto-resolve |
 | Flink job crash | checkpoint restore → Kafka replay → idempotent actions |
 | Hot partition | contained at the door: per-device limits · lag by partition |
+| Sustained 10× traffic | measure the bottleneck → scale each layer → ordered Kafka migration → bounded admission → recovery/soak gates |
+
+**Deep dives** contains six runnable visual answers: delivery/replay, device versus pipeline health, incident races, tenant isolation, live/history consistency, and safe rollback. **Future enhancements** contains four runnable proposals: predictive maintenance, fleet security triage, cross-site root-cause analysis, and a runbook copilot. Select a topic, then use Play, Next or Previous in its dialog. Every AI proposal identifies its model/GenAI step, evidence and human decision boundary. These are browser simulations, with no AI service or infrastructure commands connected.
+
+Flows use keys 1–4 for their groups; infra issues use 5–9. Automatic playback offers a five-second Up next countdown after the final card. Manual stepping records explored progress without advancing. Phones highlight linked videos or show a desktop note for interactive-only flows; visual deep dives and future proposals also run on phones.
 
 ## Videos
 Walkthrough videos of the first eight flows (720p), in [`videos/`](videos):
@@ -56,12 +61,15 @@ index.html                entry point for GitHub Pages (opens pres/)
 pres/index.html           the one-page shell: side panel, toggles, design decisions, phone layout
 pres/timeline2p.js        presenter engine: stops, camera, controls, close-ups, reflow
 pres/icons.js             SVG line icons (replace emoji at runtime)
+pres/deep-dives.js        visual interview answers and illustrative AI proposals
 pres/flow*.html           one page per flow (generated)
 iot.html, svcnow.html     the architecture diagram and ServiceNow/Temporal scene (source of truth)
 vid/build.py              assembles each flow page; vid/cicd_data.py holds the CI/CD scenes
 vid/render.py             renders a flow to MP4:  python3 vid/render.py <1-8> li
 tools/build.sh            regenerates pres/flow*.html
 tools/svgs.py             generator for the graphical close-ups (embedded in timeline2p.js)
+tools/browser_check.py    browser regression suite, including every new scenario
+tools/render_assets.py    refresh PNG previews and the vector README diagram
 docs/architecture.svg     vector diagram for this README
 videos/                   rendered walkthrough videos
 ```
@@ -69,10 +77,15 @@ videos/                   rendered walkthrough videos
 ## Build
 ```bash
 ./tools/build.sh                     # regenerate the flow pages
-pip install playwright && python3 -m playwright install chromium   # only for videos / PNG
+pip install playwright pymupdf && python3 -m playwright install chromium
+python3 tools/browser_check.py       # browser checks; screenshots/results in /tmp
+python3 tools/render_assets.py       # refresh screenshot and vector previews
 ```
 It's plain static files, so it runs on GitHub Pages, Netlify or any web server, or you can open `pres/index.html` locally.
 
 ## Notes
 - Operational scenarios are the failure modes the system was **designed for**.
 - Database schemas, keys, role permissions and CI/CD tooling in the close-ups are **examples**, labelled as such.
+- Additional recovery policies and AI components are design examples/proposals, not assertions that these exact implementations ran in production. The 500K recovery burst and sustained 10× growth are designed-for scenarios, not measured throughput benchmarks.
+- The existing eight MP4s are earlier rendered snapshots. Current accuracy explanations and new scenarios are available in the interactive UI; regenerate videos separately when publishing a new video edition.
+- `tools/build.sh` embeds generated close-ups, updates all 19 flow pages and derives the video timeline from the same interactive timeline definitions.

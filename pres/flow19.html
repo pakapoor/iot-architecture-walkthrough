@@ -1,0 +1,363 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#F5F8FC}
+.cv{position:relative;overflow:hidden;font-family:Inter,"Segoe UI",Helvetica,Arial,sans-serif;color:#0F1E33;
+ background:radial-gradient(1100px 600px at 72% 35%,#FFFFFF 0%,#EEF3F9 70%)}
+.band{position:absolute;top:0;left:0;right:0;height:8px;background:linear-gradient(90deg,#FF9933 0 33.3%,#E8ECF2 33.3% 66.6%,#22A33A 66.6%)}
+.hdr{position:absolute;left:60px;top:34px}
+.hdr .k{font-size:14px;letter-spacing:4px;color:#E07A10;font-weight:700}
+.hdr h1{font-size:40px;font-weight:800;letter-spacing:-.5px;margin-top:4px;color:#0B1F3F}
+.hdr h1 span{color:#2563EB;font-weight:700}
+.stats{position:absolute;left:60px;top:128px;display:flex;gap:10px}
+.pill{border:1px solid #D3DDEA;background:#fff;border-radius:999px;padding:6px 14px;font-size:14px;font-weight:600;color:#4A5B70;box-shadow:0 2px 6px rgba(15,30,51,.05)}
+.pill b{color:#0B1F3F}
+.box{position:absolute;border-radius:14px;background:#fff;border:1.5px solid #D3DDEA;padding:14px 16px;box-shadow:0 8px 24px rgba(15,30,51,.08);z-index:3}
+.box .t{font-size:16px;font-weight:700;display:flex;align-items:center;gap:9px;color:#0B1F3F}
+.box .s{font-size:13.5px;color:#4A5B70;margin-top:7px;line-height:1.5}
+.box .s b{color:#0B1F3F;font-weight:600}
+.ic{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:15px;flex:none}
+.blue{border-color:#3B82F6;border-top-width:4px}.blue .ic{background:#DBEAFE}
+.cyan{border-color:#0EA5B7;border-top-width:4px}.cyan .ic{background:#CFF4F8}
+.green{border-color:#16A34A;border-top-width:4px}.green .ic{background:#DCFCE7}
+.violet{border-color:#7C5CFA;border-top-width:4px}.violet .ic{background:#EDE7FF}
+.orange{border-color:#F08A1C;border-top-width:4px}.orange .ic{background:#FFEDD5}
+.pink{border-color:#E0458F;border-top-width:4px}.pink .ic{background:#FCE7F3}
+.ops{margin-top:8px;display:grid;gap:6px}
+.op{background:#F5F7FB;border:1px solid #DFE6EF;border-radius:8px;padding:6px 10px;font-size:13px;color:#4A5B70}
+.op b{color:#0B1F3F}
+.op.rule{border-color:#7C5CFA;background:#F6F3FF;animation:glow 1.5s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 0 rgba(124,92,250,0)}50%{box-shadow:0 0 16px rgba(124,92,250,.45)}}
+.chip{display:inline-block;margin-top:7px;font-size:12px;color:#5B3FD9;border:1px dashed #7C5CFA;border-radius:6px;padding:3px 8px;background:#FAF8FF}
+.lane{border-radius:9px;padding:7px 10px;font-size:13px;color:#33465C;margin-top:7px;line-height:1.4}
+.lane b{font-size:13px}
+.lane.r{background:#FEF2F2;border:1px solid #EF4444}.lane.r b{color:#DC2626}
+.lane.y{background:#FFFBEB;border:1px solid #F5B70A}.lane.y b{color:#B7791F}
+.lane.r{animation:redp 3s linear infinite}
+@keyframes redp{0%,38%,70%,100%{box-shadow:0 0 0 rgba(239,68,68,0)}46%{box-shadow:0 0 20px rgba(239,68,68,.6)}}
+.tbl{margin-top:8px;display:grid;gap:6px}
+.tbl div{background:#F5F7FB;border:1px solid #DFE6EF;border-radius:8px;padding:6px 10px;font-size:13px;display:flex;justify-content:space-between;gap:8px}
+.tbl div span:first-child{color:#0B1F3F;font-weight:600}
+.tbl div span:last-child{color:#4A5B70}
+.lbl{position:absolute;font-size:12px;color:#33465C;background:#fff;padding:2px 7px;border-radius:6px;border:1px solid #D3DDEA;white-space:nowrap;z-index:4;font-weight:600}
+.dot{position:absolute;left:0;top:0;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;z-index:2;offset-rotate:0deg;animation:mv linear infinite}
+@keyframes mv{from{offset-distance:0%}to{offset-distance:100%}}
+.d-c{background:#0EA5B7;box-shadow:0 0 8px rgba(14,165,183,.7)}
+.d-b{background:#3B82F6;box-shadow:0 0 8px rgba(59,130,246,.7)}
+.d-r{background:#EF4444;box-shadow:0 0 10px rgba(239,68,68,.8);width:12px;height:12px}
+.d-y{background:#F5B70A;box-shadow:0 0 8px rgba(245,183,10,.8)}
+.d-g{background:#16A34A;box-shadow:0 0 8px rgba(22,163,74,.7)}
+.d-v{background:#7C5CFA;box-shadow:0 0 8px rgba(124,92,250,.7)}
+.d-p{background:#E0458F;box-shadow:0 0 10px rgba(224,69,143,.8)}
+svg .flow{stroke-dasharray:7 6;animation:dash 1.5s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-26}}
+.rhead{position:absolute;left:60px;top:712px;font-size:14px;letter-spacing:3px;font-weight:800;color:#E07A10}
+.cards{position:absolute;left:60px;right:60px;top:740px;display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.card{background:#fff;border:1px solid #D3DDEA;border-radius:12px;padding:12px 14px;border-top:4px solid #7C5CFA;box-shadow:0 6px 18px rgba(15,30,51,.06)}
+.card:nth-child(2){border-top-color:#EF4444}.card:nth-child(3){border-top-color:#F08A1C}.card:nth-child(4){border-top-color:#0EA5B7}.card:nth-child(5){border-top-color:#16A34A}
+.card .h{font-size:16px;font-weight:700;margin-bottom:5px;color:#0B1F3F}
+.card .p{font-size:13px;color:#4A5B70;line-height:1.45}
+.foot{position:absolute;left:60px;right:60px;bottom:22px;display:flex;justify-content:space-between;align-items:center}
+.obs{font-size:13.5px;color:#4A5B70;line-height:1.6}
+.obs b{color:#0B1F3F}
+.logo{display:flex;align-items:center}
+
+.step{display:flex;gap:12px;align-items:flex-start;background:#F5F7FB;border:1.5px solid #DFE6EF;border-radius:10px;padding:8px 12px;margin-top:8px;transition:none}
+.step .n{width:26px;height:26px;border-radius:50%;background:#E4E9F1;color:#33465C;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex:none;margin-top:1px}
+.step .x{font-size:13px;color:#4A5B70;line-height:1.4}
+.step .x b{color:#0B1F3F;font-size:14px}
+@keyframes hl{0%,24%{border-color:#7C5CFA;background:#F3EFFF;box-shadow:0 0 18px rgba(124,92,250,.35)}25%,100%{border-color:#DFE6EF;background:#F5F7FB;box-shadow:none}}
+.wid{margin-top:6px;font-size:13px;background:#0B1F3F;color:#E6EDF5;border-radius:8px;padding:6px 10px;font-family:"JetBrains Mono",Consolas,monospace}
+.wid b{color:#FFD23F}
+.mono{font-family:"JetBrains Mono",Consolas,monospace;font-size:12.5px;color:#7C5CFA;font-weight:600}
+#sceneB .cards{top:742px;grid-template-columns:repeat(4,1fr)}
+#sceneB .rhead{top:714px}
+
+.step.on{border-color:#7C5CFA;background:#F3EFFF;box-shadow:0 0 18px rgba(124,92,250,.35)}
+.step.on .n{background:#7C5CFA;color:#fff}
+.step.done .n{background:#16A34A;color:#fff}
+.narr{background:#0B1F3F;color:#fff;border-radius:999px;padding:8px 18px;font-size:16px;font-weight:600;min-width:900px;box-shadow:0 6px 18px rgba(15,30,51,.15)}
+.narr .k{color:#FFD23F;margin-right:8px}
+.box{transform-origin:center center}
+.dim{opacity:.55}
+.pk{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;z-index:8;display:none}
+.snchip{display:inline-block;margin-left:10px;font-size:13px;font-weight:700;border-radius:6px;padding:3px 9px;background:#EEF2F7;color:#33465C}
+svg .flow{animation-duration:1.5s}
+
+html,body{margin:0;background:#EEF3F9}
+#stage{width:1920px;height:1080px;position:relative;overflow:hidden;background:#EEF3F9;font-family:Inter,"Segoe UI",Helvetica,Arial,sans-serif}
+.layer{position:absolute;left:0;top:0;transform-origin:0 0}
+.pk{display:none}
+.sdot{position:absolute;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;z-index:2;display:none}
+.badge{position:absolute;z-index:7;font-size:13px;font-weight:700;border-radius:7px;padding:4px 9px;display:none;white-space:nowrap}
+#cap{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);background:rgba(11,31,63,.94);color:#fff;border-radius:14px;padding:13px 26px;font-size:27px;font-weight:600;white-space:nowrap;z-index:50;box-shadow:0 10px 30px rgba(11,31,63,.3);display:none}
+#cap .k{color:#FFD23F;margin-right:12px;font-weight:800}
+#cap b{color:#9CC3FF}
+.full{position:absolute;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:radial-gradient(1200px 700px at 50% 40%,#FFFFFF 0%,#E9F0F8 75%)}
+.full .kk{font-size:20px;letter-spacing:5px;color:#E07A10;font-weight:800}
+.full h1{font-size:76px;font-weight:800;color:#0B1F3F;margin:18px 0 10px;letter-spacing:-1px}
+.full p{font-size:32px;color:#4A5B70;font-weight:500}
+.full .lg{position:absolute;bottom:56px}
+.full .band2{position:absolute;top:0;left:0;right:0;height:10px;background:linear-gradient(90deg,#FF9933 0 33.3%,#E8ECF2 33.3% 66.6%,#22A33A 66.6%)}
+/* workflow scene */
+.wf{position:absolute;left:100px;top:160px;width:1050px;height:800px;background:#fff;border:1.5px solid #7C5CFA;border-top:7px solid #7C5CFA;border-radius:18px;box-shadow:0 20px 60px rgba(15,30,51,.12);z-index:3}
+.wh{position:absolute;left:30px;right:30px;top:28px;display:flex;align-items:center;gap:14px;font-size:26px;color:#0B1F3F}
+.wh code{font-family:"JetBrains Mono",Consolas,monospace;font-size:16px;background:#0B1F3F;color:#FFD23F;border-radius:8px;padding:6px 12px}
+.wstat{margin-left:auto;font-size:17px;font-weight:800;border-radius:999px;padding:7px 16px;background:#EDE7FF;color:#5B3FD9}
+.wst{position:absolute;left:30px;right:30px;height:140px;border:2px solid #DFE6EF;background:#F7F9FC;border-radius:14px;display:flex;align-items:center;gap:20px;padding:0 24px}
+.wst .n{width:46px;height:46px;border-radius:50%;background:#E4E9F1;color:#33465C;font-weight:800;font-size:20px;display:flex;align-items:center;justify-content:center;flex:none}
+.wst .tt{font-size:25px;font-weight:800;color:#0B1F3F}
+.wst .dd{font-size:17px;color:#4A5B70;margin-top:4px}
+.wst .lv{font-size:16px;font-weight:700;margin-top:6px;min-height:20px;color:#C2620A}
+.wst .tg{margin-left:auto;font-size:12.5px;font-weight:800;letter-spacing:1px;color:#5B3FD9;background:#F3EFFF;border:1px solid #D9CCFF;border-radius:8px;padding:5px 10px;white-space:nowrap;align-self:flex-start;margin-top:18px}
+.wst .bd{min-width:0}
+.wst.on{border-color:#7C5CFA;background:#F6F3FF;box-shadow:0 0 26px rgba(124,92,250,.35)}
+.wst.on .n{background:#7C5CFA;color:#fff}
+.wst.done .n{background:#16A34A;color:#fff}
+.ast{position:absolute;left:24px;bottom:22px;font-size:20px;font-weight:800;border-radius:10px;padding:8px 16px;background:#EEF2F7;color:#33465C}
+/* dashboard */
+#sceneD .hd{position:absolute;left:120px;top:38px}
+#sceneD .hd .k{font-size:16px;letter-spacing:4px;color:#E07A10;font-weight:700}
+#sceneD .hd h1{font-size:44px;font-weight:800;color:#0B1F3F;margin-top:4px}
+#sceneD .hd h1 span{color:#2563EB;font-weight:700}
+.app{position:absolute;left:120px;top:150px;width:1680px;height:800px;background:#fff;border-radius:18px;box-shadow:0 20px 60px rgba(15,30,51,.14);border:1px solid #D3DDEA;overflow:hidden}
+.topb{height:60px;border-bottom:1px solid #E3E9F1;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:17px;color:#4A5B70}
+.topb b{color:#0B1F3F}
+.live{display:inline-flex;align-items:center;gap:8px;background:#ECFDF3;color:#15803D;border:1px solid #A7E3BC;border-radius:999px;padding:5px 14px;font-weight:700;font-size:15px}
+.live i{width:9px;height:9px;border-radius:50%;background:#16A34A;display:inline-block}
+.side{position:absolute;left:0;top:60px;bottom:0;width:270px;background:#F6F8FB;border-right:1px solid #E3E9F1;padding:20px 16px}
+.side .tn{font-weight:800;color:#0B1F3F;font-size:19px;margin-bottom:4px}
+.side .sub{font-size:13px;color:#7A8BA0;margin-bottom:16px;letter-spacing:1px}
+.site{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:9px;font-size:15px;color:#33465C;margin-bottom:4px}
+.site.sel{background:#E5EDFF;color:#1D4ED8;font-weight:700}
+.sd{width:10px;height:10px;border-radius:50%;display:inline-block}
+.g{background:#16A34A}.y{background:#F5B70A}.r{background:#EF4444}
+.main{position:absolute;left:270px;top:60px;width:900px;bottom:0;padding:22px 26px}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.tile{border:1px solid #E3E9F1;border-radius:12px;padding:12px 16px}
+.tile .l{font-size:13px;color:#7A8BA0;font-weight:600;letter-spacing:.5px}
+.tile .v{font-size:32px;font-weight:800;color:#0B1F3F;margin-top:2px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:20px}
+.dev{border:1.5px solid #E3E9F1;border-radius:12px;padding:12px 14px;height:132px;position:relative;background:#fff}
+.dev .nm{font-weight:800;color:#0B1F3F;font-size:16px;display:flex;justify-content:space-between;align-items:center}
+.dev .ty{font-size:13px;color:#7A8BA0;margin-top:2px}
+.dev .mt{font-size:14px;color:#33465C;margin-top:12px;font-weight:600}
+.dev .st{position:absolute;left:14px;bottom:12px;font-size:12px;font-weight:800;letter-spacing:.5px;border-radius:6px;padding:3px 8px}
+.st.g2{background:#ECFDF3;color:#15803D}.st.y2{background:#FFFBEB;color:#B7791F}.st.r2{background:#FEF2F2;color:#DC2626}
+.dev.yel{border-color:#F5B70A;background:#FFFDF5}.dev.red{border-color:#EF4444;background:#FFF8F8}
+.panel{position:absolute;left:1170px;top:60px;right:0;bottom:0;border-left:1px solid #E3E9F1;padding:22px 24px}
+.panel h3{font-size:18px;color:#0B1F3F;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.al{border:1px solid #E3E9F1;border-radius:10px;padding:11px 14px;margin-bottom:10px;font-size:14.5px;color:#33465C;display:flex;gap:10px;align-items:flex-start}
+.al b{color:#0B1F3F}
+.al small{display:block;color:#7A8BA0;font-size:12.5px;margin-top:2px}
+.toast{position:absolute;right:40px;bottom:36px;background:#0B1F3F;color:#fff;border-radius:12px;padding:14px 20px;font-size:17px;font-weight:600;box-shadow:0 12px 30px rgba(11,31,63,.3);opacity:0}
+.toast small{display:block;font-weight:500;color:#B9C8DA;font-size:14px;margin-top:3px}
+.ring{position:absolute;inset:-6px;border-radius:16px;border:3px solid #F5B70A;opacity:0}
+#cursor{position:absolute;z-index:40;width:34px;height:34px;display:none}
+#ripple{position:absolute;z-index:39;border-radius:50%;border:3px solid #2563EB;display:none}
+.det .row{display:flex;gap:10px;margin-bottom:12px}
+.det .kv{flex:1;border:1px solid #E3E9F1;border-radius:10px;padding:8px 12px;font-size:12.5px;color:#7A8BA0}
+.det .kv b{display:block;color:#0B1F3F;font-size:16px;margin-top:2px}
+.chart{border:1px solid #E3E9F1;border-radius:12px;padding:10px 14px;margin-bottom:12px}
+.chart .ct{font-size:13.5px;color:#4A5B70;font-weight:700;display:flex;justify-content:space-between}
+.chart .ct b{color:#0B1F3F;font-size:15px}
+
+/* monitoring scene */
+#sceneM .hd{position:absolute;left:100px;top:34px}
+.mapp{position:absolute;left:100px;top:140px;width:1720px;height:880px;background:#fff;border-radius:18px;border:1px solid #D3DDEA;box-shadow:0 20px 60px rgba(15,30,51,.14);overflow:hidden}
+.mtop{height:62px;border-bottom:1px solid #E3E9F1;display:flex;align-items:center;gap:18px;padding:0 26px;font-size:18px;color:#4A5B70}
+.mtop b{color:#0B1F3F}
+.mtop .rng{margin-left:auto;border:1px solid #D3DDEA;border-radius:8px;padding:5px 12px;font-size:15px}
+.mmon{font-size:16px;font-weight:800;border-radius:999px;padding:7px 16px;background:#DCFCE7;color:#15803D}
+.mp{position:absolute;width:818px;height:322px;border:1.5px solid #E3E9F1;border-radius:14px;background:#fff;padding:14px 18px}
+.mp .mh{display:flex;justify-content:space-between;align-items:baseline;font-size:17px;font-weight:700;color:#33465C}
+.mp .mh b{font-size:24px;color:#0B1F3F}
+.mp .sub{font-size:13.5px;color:#7A8BA0;margin-top:2px}
+.mp svg{position:absolute;left:18px;top:78px}
+.mev{position:absolute;left:24px;right:24px;top:800px;display:flex;gap:12px;align-items:center;font-size:15px;color:#7A8BA0}
+.mev .e{border:1.5px solid #E3E9F1;border-radius:10px;padding:7px 14px;font-weight:700;color:#33465C;background:#F7F9FC;opacity:.25}
+.mev .e.on{opacity:1;border-color:#7C5CFA;background:#F6F3FF;color:#4C2FC9}
+.mev .e.ok.on{border-color:#16A34A;background:#ECFDF3;color:#15803D}
+.mev .e.bad.on{border-color:#EF4444;background:#FEF2F2;color:#DC2626}
+
+/* observability panel (replaces design cards when shown) */
+#a-obsp{position:absolute;left:60px;right:60px;top:712px;display:none;z-index:6}
+#a-obsp .oh{font-size:14px;letter-spacing:3px;font-weight:800;color:#632CA6}
+#a-obsp .tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:14px}
+.otile{background:#fff;border:1px solid #D3DDEA;border-top:4px solid #632CA6;border-radius:12px;padding:12px 14px;box-shadow:0 6px 18px rgba(15,30,51,.06);cursor:zoom-in}
+.otile .ot{font-size:15px;font-weight:800;color:#0B1F3F}
+.otile .ov{font-size:22px;font-weight:800;color:#15803D;margin-top:6px}
+.otile .on{font-size:12.5px;color:#7A8BA0;margin-top:4px;line-height:1.35}
+.otile.bad{border-top-color:#EF4444;background:#FFF8F8}.otile.bad .ov{color:#DC2626}
+#stage.obs #a-obsp{display:block}
+#a-stor .tbl{gap:3px!important;margin-top:4px!important}
+#a-stor .tbl div{padding:2px 10px!important;line-height:1.3!important;font-size:12.5px!important;min-height:0!important;height:auto!important}
+#stage.nowhy .rhead,#stage.nowhy .cards{display:none}
+#stage.obs:not(.nowhy) .rhead{top:866px}
+#stage.obs:not(.nowhy) .cards{top:894px}
+.card.ddc{cursor:pointer}.card.ddc:hover{box-shadow:0 0 0 3px rgba(37,99,235,.35),0 6px 18px rgba(15,30,51,.08)}
+.card.ddc .p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.card.ddc .mo{font-size:11.5px;font-weight:700;color:#2563EB;margin-top:6px}
+#stage.tall.obs:not(.nowhy) .rhead{display:block;top:884px}
+#stage.tall.obs:not(.nowhy) .cards{display:grid;top:912px}
+#stage.clean .foot{visibility:hidden}
+#arch .logo{position:absolute;top:44px;right:60px;display:flex;align-items:center;z-index:4;mix-blend-mode:multiply}
+#stage.nocap #cap{visibility:hidden}
+
+/* CI/CD scene */
+#sceneC .hd{position:absolute;left:100px;top:34px}
+.crow{position:absolute;left:60px;font-size:15px;letter-spacing:3px;font-weight:800;color:#6E6E73}
+.cb{position:absolute;height:190px;background:#fff;border:1.5px solid #DCE3EC;border-radius:16px;padding:16px 16px 0;box-shadow:0 6px 18px rgba(15,30,51,.06)}
+.cb .ct{font-size:19px;font-weight:800;color:#0B1F3F;display:flex;gap:8px;align-items:center}
+.cb .cd{font-size:14.5px;color:#4A5B70;margin-top:8px;line-height:1.4}
+.cb .cs{position:absolute;left:16px;bottom:14px;font-size:13px;font-weight:800;border-radius:999px;padding:4px 12px;background:#F2F2F7;color:#6E6E73}
+.cb.run{border-color:#0071E3;box-shadow:0 0 0 4px rgba(0,113,227,.12)}.cb.run .cs{background:#E5F1FF;color:#0071E3}
+.cb.ok .cs{background:#E8F8EC;color:#1E8E3E}.cb.ok{border-color:#9AD9AB}
+.cb.bad .cs{background:#FFECEB;color:#D70015}.cb.bad{border-color:#FF9F99}
+.cfoot{position:absolute;min-height:150px;height:auto;max-height:210px;overflow:auto;border-radius:16px;padding:16px 18px;font-size:15px;line-height:1.45}
+</style></head><body>
+<div id="stage" class="obs">
+<div id="arch" class="layer cv" style="width:1600px;height:1000px">
+<div class="band"></div>
+
+<div class="hdr"><div class="k">REAL-WORLD ARCHITECTURE · PRODUCTION SYSTEM I LED</div>
+<h1>Commercial IoT Monitoring System <span>· 100M+ devices</span></h1></div>
+<div class="logo"><img src="sdi_logo.png" style="height:46px;mix-blend-mode:multiply"></div>
+<div class="stats">
+<div class="pill"><b>100M+</b> devices</div>
+<div class="pill"><b>200K</b> msgs/sec normal peak (batched)</div>
+<div class="pill"><b>1000s</b> of tenants · 100K+ sites</div>
+<div class="pill"><b>Out-of-order</b> telemetry handled</div>
+<div class="pill"><b>99.9%</b> uptime</div>
+</div>
+
+<!-- connectors -->
+<svg width="1600" height="1000" style="position:absolute;left:0;top:0;z-index:1">
+<defs>
+<marker id="m1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7F95B2"/></marker>
+</defs>
+<g fill="none" stroke-width="2.2" stroke="#9FB2CA">
+<path class="flow" d="M290 300 H350" marker-end="url(#m1)"/>
+<path class="flow" d="M560 300 H620" marker-end="url(#m1)"/>
+<path class="flow" d="M830 300 H890" marker-end="url(#m1)"/>
+<path class="flow" d="M1100 300 H1160" marker-end="url(#m1)"/>
+<path class="flow" d="M1265 405 V448" stroke="#EF4444" marker-end="url(#m1)"/>
+<path class="flow" d="M1445 405 V448" stroke="#E0A800" marker-end="url(#m1)"/>
+<path class="flow" d="M1190 405 V425 H940 V448" marker-end="url(#m1)"/>
+<path class="flow" d="M1172 405 V437 H600 V448" stroke="#16A34A" marker-end="url(#m1)"/>
+<path class="flow" d="M770 560 H720" marker-end="url(#m1)"/>
+<path class="flow" d="M370 560 H420" marker-end="url(#m1)"/>
+<path class="flow" d="M1350 670 V690 H570 V672" stroke="#E0A800" marker-end="url(#m1)"/>
+<path class="flow" d="M175 448 V392" stroke="#E0458F" marker-end="url(#m1)"/>
+</g>
+</svg>
+
+
+
+<!-- labels -->
+<div class="lbl" style="left:290px;top:268px">mTLS</div>
+<div class="lbl" style="left:1272px;top:414px;border-color:#EF4444;color:#DC2626">critical</div>
+<div class="lbl" style="left:1452px;top:414px;border-color:#E0A800;color:#B7791F">minor</div>
+<div class="lbl" style="left:990px;top:412px">raw + rollups</div>
+<div class="lbl" style="left:640px;top:426px;border-color:#16A34A;color:#15803D">live updates</div>
+<div class="lbl" style="left:900px;top:680px;border-color:#E0A800;color:#B7791F">alert + ticket status</div>
+<div class="lbl" style="left:186px;top:408px;border-color:#E0458F;color:#C0307A">firmware rollout (canary %)</div>
+
+<!-- Row 1 -->
+<div id="a-edge" class="box cyan" style="left:60px;top:190px;width:230px;height:215px">
+<div class="t"><span class="ic">📡</span>Edge Site</div>
+<div class="s">Cameras · sensors (<b>MQTT/CoAP</b>)<br><b>Active/Standby</b> gateways<br>Local buffer + retry on outage<br>Firmware agent: apply / rollback</div>
+</div>
+<div id="a-gw" class="box blue" style="left:350px;top:190px;width:210px;height:215px">
+<div class="t"><span class="ic">🔐</span>Cloud Gateway</div>
+<div class="s"><b>mTLS</b> device identity<br>Auth + <b>per-tenant quotas</b><br>Rate limiting<br>Load balancing</div>
+</div>
+<div id="a-ing" class="box blue" style="left:620px;top:190px;width:210px;height:215px">
+<div class="t"><span class="ic">⚙️</span>Ingestion</div>
+<div class="s">Stateless, autoscaled pool<br>Validate · tag tenant<br><b>Heartbeats prioritised</b> over bulk telemetry</div>
+</div>
+<div id="a-kafka" class="box green" style="left:890px;top:190px;width:210px;height:215px">
+<div class="t"><span class="ic">⇶</span>Kafka</div>
+<div class="s">Topics: <b>heartbeats</b> ⚡ · <b>telemetry</b><br>Key: <b>tenant + device</b><br>Ordering per device<br>Durable · <b>replay</b><br>Absorbs bursts</div>
+</div>
+<div id="a-flink" class="box violet" style="left:1160px;top:190px;width:380px;height:215px">
+<div class="t"><span class="ic">🧠</span>Stream Processing · Flink on K8s</div>
+<div class="ops">
+<div class="op"><b>Dedup + enrich</b> · keyed state, metadata join</div>
+<div class="op rule"><b>⏱ Rule engine</b> · DEAD · SLOW · HOT via device timers</div>
+<div class="op"><b>Rollups</b> · 1-hour aggregates for history</div>
+</div>
+<span class="chip" id="a-chip">↻ per-tenant rules pushed live from Control Plane</span>
+</div>
+
+<!-- Row 2 -->
+<div id="a-ctrl" class="box pink" style="left:60px;top:448px;width:310px;height:222px">
+<div class="t"><span class="ic">🏢</span>Multi-tenant Control Plane</div>
+<div class="s">Tenants · sites · <b>RBAC</b><br>Device onboarding / offboarding<br>Rules per device type + <b>tenant overrides</b><br>Firmware rollouts: canary → fleet</div>
+</div>
+<div id="a-dash" class="box cyan" style="left:420px;top:448px;width:300px;height:222px">
+<div class="t"><span class="ic">📊</span>Dashboards</div>
+<div class="s">Admin + tenant dashboards<br>Drill-down: <b>tenant → site → device</b><br>Health charts · alerts · ticket status<br><b>Dashboard service</b>: live push from Flink over <b>SSE</b> · history via REST</div>
+</div>
+<div id="a-stor" class="box orange" style="left:770px;top:448px;width:340px;height:222px">
+<div class="t"><span class="ic">🗄️</span>Tiered Storage</div>
+<div class="tbl">
+<div><span>Live · Redis</span><span>latest state · counts</span></div>
+<div><span>Hot · ClickHouse</span><span>7 days · charts</span></div>
+<div><span>Warm · ClickHouse</span><span>6-month rollups</span></div>
+<div><span>Cold · object store</span><span>sampled archive</span></div>
+<div><span>Metadata · MongoDB</span><span>registry · configs</span></div>
+</div>
+</div>
+<div id="a-act" class="box" style="left:1160px;top:448px;width:380px;height:222px;border-color:#EF4444;border-top-width:4px">
+<div class="t"><span class="ic" style="background:#FEE2E2">🚨</span>Action Execution</div>
+<div class="lane r" id="a-laneR" style="animation:none"><b>CRITICAL · immediate</b> → pager / on-call, bypasses batching</div>
+<div class="lane y" id="a-laneY"><b>MINOR · batched</b> → 15-min digest per site, quiet hours</div>
+<div class="s" style="margin-top:6px"><b>ServiceNow</b> tickets: idempotent upsert · retries + DLQ</div>
+</div>
+
+<div class="rhead">WHY IT'S BUILT THIS WAY</div>
+<div class="cards">
+<div class="card"><div class="h">⏱ Timers, not polling</div><div class="p">"Device down &gt; X min" is a per-device timer in Flink state. No scanning 100M rows in a DB — why Flink beat Kinesis + Lambda.</div></div>
+<div class="card"><div class="h">🚨 Two alert lanes</div><div class="p">Critical pages on-call instantly. Minor issues roll into 15-min site digests. No alert storms, no 3 AM pings.</div></div>
+<div class="card"><div class="h">🔁 Idempotent actions</div><div class="p">Correlation ID = device + window. Retries upsert the same ticket; failures go to a DLQ with alarms. Zero duplicate tickets.</div></div>
+<div class="card"><div class="h">💰 Pay for what's hot</div><div class="p">7 days hot for live views, 6-month rollups, sampled cold archive. Tiered retention bounds hot-storage cost per device.</div></div>
+<div class="card"><div class="h">🛟 Degrade, don't die</div><div class="p">Edge buffers through outages, standby gateway takes over, Kafka replays. Bounded buffering + failover; recovery is monitored.</div></div>
+</div>
+
+<div class="foot">
+<div class="obs" id="a-obs"><b>Observability:</b> consumer lag · checkpoint health · throughput · end-to-end trace ID (edge → ticket)<br><b>Deployment:</b> independent services on K8s · global region + isolated China region</div>
+</div>
+<div id="a-obsp"><div class="oh">OBSERVABILITY · DATADOG</div><div class="tiles"><div class="otile" id="a-ob0"><div class="ot">Consumer lag</div><div class="ov" id="a-ov0">● OK</div><div class="on">Kafka messages waiting for Flink</div></div><div class="otile" id="a-ob1"><div class="ot">Freshness p99</div><div class="ov" id="a-ov1">● OK</div><div class="on">event age when processed · alert > 2 min</div></div><div class="otile" id="a-ob2"><div class="ot">Flink checkpoints</div><div class="ov" id="a-ov2">● OK</div><div class="on">duration + failures · state health</div></div><div class="otile" id="a-ob3"><div class="ot">Throughput</div><div class="ov" id="a-ov3">● 200K/s</div><div class="on">msgs/sec in · per tenant</div></div><div class="otile" id="a-ob4"><div class="ot">Traces</div><div class="ov" id="a-ov4">● OK</div><div class="on">one trace ID: edge → ticket</div></div></div></div><div id="a-badge" class="badge" style="left:72px;top:372px"></div><div id="a-pk" class="pk"></div><div id="a-streams"></div></div>
+<div id="sceneD" class="layer" style="width:1920px;height:1080px;opacity:0;background:radial-gradient(1200px 700px at 60% 30%,#fff 0%,#EEF3F9 70%)">
+<div class="band"></div>
+<img src="sdi_logo.png" style="mix-blend-mode:multiply;position:absolute;right:120px;top:46px;height:54px"><div class="hd"><div class="k">ZOOM-IN · TENANT DASHBOARD</div><h1>Live device health <span>· tenant → site → device</span></h1></div>
+<div class="app">
+ <div class="topb"><div><b>Acme Retail</b> &nbsp;›&nbsp; Site-07 · Noida &nbsp;›&nbsp; Devices</div><div class="live" id="livepill"><i id="livedot"></i>LIVE · SSE</div></div>
+ <div class="side"><div class="tn">Acme Retail</div><div class="sub">TENANT · 214 SITES</div><div class="site sel">Site-07 · Noida<span class="sd g" id=site7dot></span></div><div class="site">Site-12 · Gurugram<span class="sd g" ></span></div><div class="site">Site-03 · Pune<span class="sd g" ></span></div><div class="site">Site-21 · Bengaluru<span class="sd g" ></span></div><div class="site">Site-09 · Mumbai<span class="sd g" ></span></div><div class="site">Site-15 · Hyderabad<span class="sd g" ></span></div></div>
+ <div class="main">
+  <div class="tiles"><div class="tile"><div class="l">DEVICES</div><div class="v">48</div></div><div class="tile"><div class="l">ONLINE</div><div class="v" id="t-on" style="color:#15803D">48</div></div>
+  <div class="tile"><div class="l">DEGRADED</div><div class="v" id="t-deg" style="color:#B7791F">0</div></div><div class="tile"><div class="l">DOWN</div><div class="v" id="t-down" style="color:#DC2626">0</div></div></div>
+  <div class="grid"><div class="dev" id="d-CAM-11"><div class="ring"></div><div class="nm">CAM-11<span class="sd g"></span></div><div class="ty">Camera · Entrance</div><div class="mt">99.9% uptime</div><div class="st g2">ONLINE</div></div><div class="dev" id="d-CAM-12"><div class="ring"></div><div class="nm">CAM-12<span class="sd g"></span></div><div class="ty">Camera · Billing</div><div class="mt">99.8% uptime</div><div class="st g2">ONLINE</div></div><div class="dev" id="d-CAM-14"><div class="ring"></div><div class="nm">CAM-14<span class="sd g"></span></div><div class="ty">Camera · Aisle 4</div><div class="mt">99.7% uptime</div><div class="st g2">ONLINE</div></div><div class="dev" id="d-GW-A"><div class="ring"></div><div class="nm">GW-A<span class="sd g"></span></div><div class="ty">Edge gateway · active</div><div class="mt">1.2k msg/s</div><div class="st g2">ONLINE</div></div><div class="dev" id="d-SNS-01"><div class="ring"></div><div class="nm">SNS-01<span class="sd g"></span></div><div class="ty">Footfall sensor</div><div class="mt">lat 140 ms</div><div class="st g2">ONLINE</div></div><div class="dev" id="d-SNS-02"><div class="ring"></div><div class="nm">SNS-02<span class="sd g"></span></div><div class="ty">Footfall sensor</div><div class="mt">lat 155 ms</div><div class="st g2">ONLINE</div></div><div class="dev" id="d-SNS-03"><div class="ring"></div><div class="nm">SNS-03<span class="sd g"></span></div><div class="ty">Footfall sensor</div><div class="mt">lat 160 ms</div><div class="st g2">ONLINE</div></div><div class="dev" id="d-GW-B"><div class="ring"></div><div class="nm">GW-B<span class="sd g"></span></div><div class="ty">Edge gateway · standby</div><div class="mt">standby</div><div class="st g2">ONLINE</div></div><div class="dev" id="d-TH-05"><div class="ring"></div><div class="nm">TH-05<span class="sd g"></span></div><div class="ty">Thermostat · Aisle 3</div><div class="mt">22.4 °C</div><div class="st g2">ONLINE</div></div><div class="dev" id="d-TH-06"><div class="ring"></div><div class="nm">TH-06<span class="sd g"></span></div><div class="ty">Thermostat · Cold room</div><div class="mt">4.1 °C</div><div class="st g2">ONLINE</div></div><div class="dev" id="d-DSP-01"><div class="ring"></div><div class="nm">DSP-01<span class="sd g"></span></div><div class="ty">Display · Window</div><div class="mt">on</div><div class="st g2">ONLINE</div></div><div class="dev" id="d-DSP-02"><div class="ring"></div><div class="nm">DSP-02<span class="sd g"></span></div><div class="ty">Display · Counter</div><div class="mt">on</div><div class="st g2">ONLINE</div></div></div>
+ </div>
+ <div class="panel" id="p-alerts"><h3>Site alerts <span style="font-size:13px;color:#7A8BA0;font-weight:600">last 24 h</span></h3><div id="alist"></div></div>
+ <div class="panel det" id="p-det" style="opacity:0;background:#fff">
+  <h3>TH-05 · Thermostat · Aisle 3 <span class="live" style="font-size:12px;padding:3px 10px"><i></i>LIVE</span></h3>
+  <div class="row"><div class="kv">Status<b style="color:#15803D">● Online</b></div><div class="kv">Last heartbeat<b id="lhb">2 s ago</b></div><div class="kv">Firmware<b>4.2.1</b></div></div>
+  <div class="chart"><div class="ct">Temperature (°C) <b id="v1">22.4</b></div><svg width="440" height="150" id="c1"></svg></div>
+  <div class="chart"><div class="ct">Heartbeat latency (ms) <b id="v2">140</b></div><svg width="440" height="120" id="c2"></svg></div>
+ </div>
+ <div class="toast" id="toast">📧 Site-07 digest sent · Email + Slack<small>15-min window · quiet hours respected</small></div>
+</div>
+<svg id="cursor" viewBox="0 0 24 24"><path d="M3 2 L3 20 L8 15 L11.5 22 L14.5 20.6 L11 13.8 L18 13.8 Z" fill="#0B1F3F" stroke="#fff" stroke-width="1.4"/></svg>
+<div id="ripple"></div>
+<div id="d-pk" class="pk"></div>
+</div>
+<div id="veil" style="position:absolute;inset:0;z-index:59;background:radial-gradient(1100px 650px at 50% 45%,rgba(255,255,255,.88),rgba(238,243,249,.72))"></div>
+<div id="hook" class="full" style="background:transparent"><img src="sdi_logo.png" style="mix-blend-mode:multiply;height:96px;margin-bottom:34px"><div class="kk">COMMERCIAL IOT MONITORING SYSTEM · 100M+ DEVICES</div><h1>Traffic stays 10× higher.</h1><p>A capacity change, beyond a temporary burst.</p><div style="position:absolute;bottom:52px;font-size:19px;letter-spacing:3px;color:#7A8BA0;font-weight:700">SYSTEM-DESIGN.IN · REAL-WORLD ARCHITECTURE SERIES</div></div>
+<div id="endc" class="full" style="opacity:0"><div class="band2"></div><div class="kk">REAL-WORLD ARCHITECTURE</div><h1>Measure. Expand. Prove it.</h1><p>Bound admission until the new envelope passes recovery gates.</p><img src="sdi_logo.png" style="mix-blend-mode:multiply;height:120px;margin-top:56px"></div>
+<div id="fx" style="position:absolute;inset:0;z-index:55;display:none;background:radial-gradient(1200px 700px at 50% 45%,rgba(255,255,255,.95),rgba(233,240,248,.98))"></div>
+<div id="cap"></div>
+</div>
+<script>const VID=19;</script>
+<script src="icons.js"></script><script src="timeline2p.js"></script>
+</body></html>

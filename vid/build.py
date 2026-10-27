@@ -142,7 +142,7 @@ html,body{margin:0;background:#EEF3F9}
 .cb.run{border-color:#0071E3;box-shadow:0 0 0 4px rgba(0,113,227,.12)}.cb.run .cs{background:#E5F1FF;color:#0071E3}
 .cb.ok .cs{background:#E8F8EC;color:#1E8E3E}.cb.ok{border-color:#9AD9AB}
 .cb.bad .cs{background:#FFECEB;color:#D70015}.cb.bad{border-color:#FF9F99}
-.cfoot{position:absolute;height:150px;border-radius:16px;padding:16px 18px;font-size:15px;line-height:1.45}
+.cfoot{position:absolute;min-height:150px;height:auto;max-height:210px;overflow:auto;border-radius:16px;padding:16px 18px;font-size:15px;line-height:1.45}
 '''
 
 # ---------- arch markup ----------
@@ -169,6 +169,7 @@ for k in ['edge','gw','ing','kafka','flink','ctrl','dash','stor','act']:
 sv = svc.split('<div id="c">')[1].split('\n<div id="pk">')[0].rstrip()
 sv = sv[:sv.rfind('</div>')]
 sv = re.sub(r'<div class="stats">.*?</div></div>\n', '', sv, flags=re.S)
+sv = sv.replace('id="m1"', 'id="b-m1"').replace('url(#m1)', 'url(#b-m1)')
 sv = sv.replace('src="sdi_logo_v2_crop.png"', 'src="../sdi_logo_v2_crop.png"')
 sv += '<div id="b-pk" class="pk"></div><div id="b-badge" class="badge" style="left:1030px;top:150px;font-size:16px;padding:6px 14px"></div>'
 
@@ -211,12 +212,12 @@ def wf_markup(v):
         steps = [('Upsert ticket', 'Create the ServiceNow incident — retries with exponential backoff', 'ACTIVITY · RETRY POLICY'),
                  ('Park the incident', 'Retries exhausted → status PARKED · ops alerted', 'DLQ · PARKED INCIDENTS'),
                  ('Wait for ops replay', 'Durable wait for a human "replay" signal — minutes or days', 'SIGNAL · HUMAN IN LOOP'),
-                 ('Replay → continue', 'Upsert again (idempotent) → ack timer → escalate', 'ACTIVITY')]
+                 ('Replay → continue', 'Reconcile signals + original ack deadline; retry idempotently', 'ACTIVITY')]
         actors = [('act-sn', '🎫', 'ServiceNow', 'Incident tickets', 'no ticket', 200), ('act-oc', '🧑‍💻', 'Ops engineer', 'Parked list · Replay button', 'idle', 440), ('act-x', '📟', 'On-call (L2)', 'Paged via PagerDuty', 'idle', 680)]
         pairs = [(360, 305, 1205), (516, 545, 1230), (672, 545, 1255), (828, 305, 1270)]
         return wf_render(steps, actors, pairs)
     steps = [('Upsert ticket', 'Create the ServiceNow incident — idempotent by workflowId', 'ACTIVITY · RETRY + BACKOFF'),
-             ('Wait for on-call ack', 'Durable 30-min timer, or an "ack" signal — whichever comes first', 'DURABLE TIMER'),
+             ('Wait for on-call ack', '30-min deadline from paging; ack/recovery stays active during retries', 'DURABLE TIMER'),
              ('Escalate', 'Page L2 on-call · raise ticket to P1', 'ACTIVITY'),
              (('Wait for field fix', 'Sleep until ServiceNow signals "ticket closed" — even for days', 'SIGNAL · DAYS-LONG WAIT') if v == 1 else
               ('Auto-resolve', '"Device recovered" signal → resolve ticket · stand down on-call', 'SIGNAL → ACTIVITY'))]
@@ -239,7 +240,7 @@ def wf_render(steps, actors, pairs):
 <div class="hd" style="position:absolute;left:100px;top:34px"><div style="font-size:16px;letter-spacing:4px;color:#E07A10;font-weight:700">ZOOM-IN · TEMPORAL WORKFLOW ↔ OUTSIDE WORLD</div>
 <h1 style="font-size:42px;font-weight:800;color:#0B1F3F;margin-top:4px">{title.replace('<span>', '<span style="color:#2563EB;font-weight:700">')}</h1></div>
 <svg width="1920" height="1080" style="position:absolute;left:0;top:0;z-index:1"><g fill="none" stroke="#B9C6D8" stroke-width="2.4" stroke-dasharray="7 6">{paths}</g></svg>
-<div class="wf"><div class="wh"><span style="font-size:26px">⏳</span><b>IncidentWorkflow</b><code>workflowId = "cam-14 : 03:10 window"</code><span class="wstat" id="wstat">● Running</span></div>{rows}</div>
+<div class="wf"><div class="wh"><span style="font-size:26px">⏳</span><b>IncidentWorkflow</b><code>workflowId = "acme:cam-14:outage-42"</code><span class="wstat" id="wstat">● Running</span></div>{rows}</div>
 {acts}
 <img src="../sdi_logo_v2_crop.png" style="mix-blend-mode:multiply;position:absolute;right:100px;top:46px;height:54px">
 <div id="w-pk" class="pk" style="width:18px;height:18px;margin:-9px 0 0 -9px"></div>
@@ -291,11 +292,11 @@ def cicd_markup(v):
     data['foot'] = [_re.sub('<[^>]+>', '', f[1]) for f in d['foot']]
     return f'<div id="sceneC" class="layer" style="width:1920px;height:1080px;opacity:0;background:radial-gradient(1200px 700px at 40% 30%,#fff 0%,#EEF3F9 70%)">{o}</div><script>window.CICD = {_json.dumps(data, ensure_ascii=False)};</script>'
 
-HOOK = {16: ('200 devices down at once. ⚡', 'One power cut — how many pages?'), 17: ('The Flink job just crashed. 💥', 'Lost data? Duplicate tickets?'), 18: ('One device, one hot partition. 🔥', 'Why adding workers won\'t help.'), 12: ('Shipping a change safely. 🚀', 'From a Git commit to production.'), 13: ('Shipping a change safely. 🚀', 'From a Git commit to production.'), 14: ('Shipping a change safely. 🚀', 'From a Git commit to production.'), 15: ('Shipping a change safely. 🚀', 'From a Git commit to production.'), 11: ('Shipping a change safely. 🚀', 'From a Git commit to production.'), 10: ('A rule change, live in production. 🚀', 'From a Git commit to 100M devices — safely.'), 9: ('New firmware for 1M cameras. 🧪', 'Ship it to everyone at once? Never.'), 8: ('Two tenants. One platform. 🏢', 'One tenant floods the system. The other never notices.'), 7: ('Is every device alive? 💓', '100M+ devices check in every minute. Here\'s how the platform knows.'), 6: ('Lag is climbing. Alerts are late. 📈', 'A regional outage just ended — 2,000 sites flush at once.'), 5: ('ServiceNow is down. 🎫', 'A camera just died. Will the incident get lost?'), 1: ('A camera at a retail store just died. 📷', 'Nobody is watching it at 3 AM. Here\'s how the platform handles it.'),
+HOOK = {19: ('Traffic stays 10× higher.', 'A capacity change, beyond a temporary burst.'), 16: ('200 devices down at once. ⚡', 'One power cut — how many pages?'), 17: ('The Flink job just crashed. 💥', 'Lost data? Duplicate tickets?'), 18: ('One device, one hot partition. 🔥', 'Why adding workers won\'t help.'), 12: ('Shipping a change safely. 🚀', 'From a Git commit to production.'), 13: ('Shipping a change safely. 🚀', 'From a Git commit to production.'), 14: ('Shipping a change safely. 🚀', 'From a Git commit to production.'), 15: ('Shipping a change safely. 🚀', 'From a Git commit to production.'), 11: ('Shipping a change safely. 🚀', 'From a Git commit to production.'), 10: ('A rule change, live in production. 🚀', 'From a Git commit to 100M devices — safely.'), 9: ('New firmware for 1M cameras. 🧪', 'Ship it to everyone at once? Never.'), 8: ('Two tenants. One platform. 🏢', 'Tenant budgets bound a flood; freshness verifies isolation.'), 7: ('Is every device alive? 💓', '100M+ devices check in every minute. Here\'s how the platform knows.'), 6: ('Lag is climbing. Alerts are late. 📈', 'A regional outage just ended — 2,000 sites flush at once.'), 5: ('ServiceNow is down. 🎫', 'A camera just died. Will the incident get lost?'), 1: ('A camera at a retail store just died. 📷', 'Nobody is watching it at 3 AM. Here\'s how the platform handles it.'),
         2: ('A camera went offline… and came back. 📷', 'Watch the ticket open, escalate and close itself.'),
         3: ('A sensor is getting slow. 🐢', 'Not an emergency — but someone should know.'),
         4: ('100M+ devices. One dashboard.', 'Follow a heartbeat from a sensor to your screen.')}
-END = {16: ('One root cause, one page. ✅', 'Correlate · suppress · auto-resolve.'), 17: ('Nothing lost, nothing doubled. ✅', 'Checkpoint · replay · idempotent actions.'), 18: ('Contained at the door. ✅', 'Per-device limits · lag by partition.'), 12: ('Shipped. Gated. Reversible. ✅', 'Every step checked, every step undoable.'), 13: ('Shipped. Gated. Reversible. ✅', 'Every step checked, every step undoable.'), 14: ('Shipped. Gated. Reversible. ✅', 'Every step checked, every step undoable.'), 15: ('Shipped. Gated. Reversible. ✅', 'Every step checked, every step undoable.'), 11: ('Shipped. Gated. Reversible. ✅', 'Every step checked, every step undoable.'), 10: ('Shipped. Gated. Reversible. ✅', 'Git · CI checks · GitOps · canary · metric gate · rollback.'), 9: ('Bad wave caught. Fleet safe. ✅', 'Canary · health gates · waves · auto-halt · A/B rollback.'), 8: ('Noisy neighbour contained. ✅', 'Own quotas · tenant tags · own rules · scoped queries · RBAC.'), 7: ('Alive, and you can see it. 💓', 'Priority topic · timer reset · Redis counts · live push.'), 6: ('Burst absorbed. Nothing lost. ✅', 'Kafka buffers · heartbeats protected · scale · drain.'), 5: ('Nothing lost. No duplicate tickets. ✅', 'Bounded retries → parked → human replay → one ticket.'), 1: ('The fix took 2 days. The workflow just waited. ✅', 'Durable timers, retries & escalation — no cron jobs, no duplicate tickets.'),
+END = {19: ('Measure. Expand. Prove it.', 'Bound admission until the new envelope passes recovery gates.'), 16: ('One root cause, one page. ✅', 'Correlate · suppress · auto-resolve.'), 17: ('Nothing lost, nothing doubled. ✅', 'Checkpoint · replay · idempotent actions.'), 18: ('Contained at the door. ✅', 'Per-device limits · lag by partition.'), 12: ('Shipped. Gated. Reversible. ✅', 'Every step checked, every step undoable.'), 13: ('Shipped. Gated. Reversible. ✅', 'Every step checked, every step undoable.'), 14: ('Shipped. Gated. Reversible. ✅', 'Every step checked, every step undoable.'), 15: ('Shipped. Gated. Reversible. ✅', 'Every step checked, every step undoable.'), 11: ('Shipped. Gated. Reversible. ✅', 'Every step checked, every step undoable.'), 10: ('Shipped. Gated. Reversible. ✅', 'Git · CI checks · GitOps · canary · metric gate · rollback.'), 9: ('Bad wave caught. Fleet safe. ✅', 'Canary · health gates · waves · auto-halt · A/B rollback.'), 8: ('Noisy neighbour contained. ✅', 'Own quotas · tenant tags · own rules · scoped queries · RBAC.'), 7: ('Alive, and you can see it. 💓', 'Priority topic · timer reset · Redis counts · live push.'), 6: ('Burst absorbed. Nothing lost. ✅', 'Kafka buffers · heartbeats protected · scale · drain.'), 5: ('Nothing lost. No duplicate tickets. ✅', 'Bounded retries → parked → human replay → one ticket.'), 1: ('The fix took 2 days. The workflow just waited. ✅', 'Durable timers, retries & escalation — no cron jobs, no duplicate tickets.'),
        2: ('Opened. Escalated. Closed itself. ✅', 'One incident → one workflow → one ticket.'),
        3: ('Minor issues don\'t page anyone at 3 AM. 😴', 'Batched digests + live dashboard badges.'),
        4: ('From sensor to screen in near real time. ⚡', 'Kafka → Flink → live push (SSE).')}
@@ -323,7 +324,7 @@ def page(v):
     else:
         scene = f'<div id="sceneD" class="layer" style="width:1920px;height:1080px;opacity:0;background:radial-gradient(1200px 700px at 60% 30%,#fff 0%,#EEF3F9 70%)">{dash_markup(v)}</div>'
     h, e = HOOK[v], END[v]
-    STAGECLS = 'obs' if v in (6, 16, 17, 18) else ''
+    STAGECLS = 'obs' if v in (6, 16, 17, 18, 19) else ''
     return f'''<!doctype html><html><head><meta charset="utf-8"><style>{css}</style></head><body>
 <div id="stage" class="{STAGECLS}">
 <div id="arch" class="layer cv" style="width:1600px;height:1000px">{arch}</div>
@@ -338,6 +339,21 @@ def page(v):
 <script src="timeline2.js"></script>
 </body></html>'''
 
-for v in range(1, 19):
+# Embed close-ups from their generator so a rebuild cannot leave stale diagrams.
+import runpy
+_diagrams = runpy.run_path(f'{ROOT}/tools/svgs.py')
+_timeline_path = f'{ROOT}/pres/timeline2p.js'
+_timeline = open(_timeline_path).read()
+for _name, _svg in _diagrams['OUT'].items():
+    _timeline = re.sub(r'  const ' + _name + r'_SVG = .*?;\n', lambda m: '  const ' + _name + '_SVG = ' + json.dumps(_svg, ensure_ascii=False) + ';\n', _timeline)
+_timeline = re.sub(r'  const STORE_D = .*?;\n', lambda m: '  const STORE_D = ' + json.dumps(_diagrams['OUT_D'], ensure_ascii=False) + ';\n', _timeline)
+open(_timeline_path, 'w').write(_timeline)
+
+# Keep video rendering and interactive scenario definitions consistent.
+engine = open(f'{ROOT}/pres/timeline2p.js').read().split('// ================= presenter v2:')[0]
+engine = engine.replace("const VER = 'pres';", "const VER = QS.get('ver') || 'int';")
+open(f'{ROOT}/vid/timeline2.js', 'w').write('// Generated from pres/timeline2p.js by vid/build.py.\n' + engine.rstrip() + '\n')
+
+for v in range(1, 20):
     open(f'{ROOT}/vid/v{v}.html', 'w').write(page(v))
 print('built')
