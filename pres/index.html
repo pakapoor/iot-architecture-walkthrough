@@ -466,6 +466,7 @@ const DETAIL = {
 
 const FUTURE_FLOWS = Object.values(PROPOSALS).map(p => ({ slug: 'future-' + p.slug, proposal: p.slug, page: p.page, name: p.name, color: 'var(--accent)', video: null, sub: 'Future proposal · integrated architecture with simulated AI components' }));
 KNOWLEDGE.forEach(topic => {
+  if (topic.section === 'future') topic.jev = Object.values(PROPOSALS).find(p => p.slug === topic.slug).jev;
   if (topic.section === 'future') topic.archImage = 'future-' + topic.slug + '.png';
   DETAIL[topic.title] = topic;
 });
@@ -509,7 +510,8 @@ function openDetail(t, from) {
   $('dtitle').textContent = t;
   const sec = (h, v) => `<div class="dsec"><h3>${h}</h3><p>${v}</p></div>`;
   $('dmodal').querySelector('.dcard').classList.toggle('knowledge', !!x.steps);
-  $('dtext').innerHTML = sec('Problem', x.p) + sec(x.section === 'future' ? 'Proposed design' : 'Decision', x.d) + (x.steps ? `<details class="reasoning"><summary>Trade-offs &amp; alternatives</summary>${sec('Alternative', x.alt)}${sec('Trade-off', x.tr)}</details>` : sec('Alternative', x.alt) + sec('Trade-off', x.tr)) + `<div class="dline">“${x.line}”</div>`;
+  const api = x.jev ? sec('API & data boundary', x.jev.request + ' ' + x.jev.residency) + sec('Failure handling', x.jev.recovery) + sec('Evaluation & audit', x.jev.evaluation + ' ' + x.jev.audit) + sec('About Jev', x.jev.about + ' ' + x.jev.limits) + sec('Portability', x.jev.portability) + sec('Sources', x.jev.sources.map(([title, url]) => `<a href="${url}" target="_blank" rel="noopener">${title}</a>`).join(' · ')) : '';
+  $('dtext').innerHTML = sec('Problem', x.p) + sec(x.section === 'future' ? 'Proposed design' : 'Decision', x.d) + (x.steps ? `<details class="reasoning"><summary>Trade-offs &amp; alternatives${x.jev ? ' · API contract' : ''}</summary>${sec('Alternative', x.alt)}${sec('Trade-off', x.tr)}${api}</details>` : sec('Alternative', x.alt) + sec('Trade-off', x.tr)) + `<div class="dline">“${x.line}”</div>`;
   if (x.steps) { $('dsnap').innerHTML = knowledgeVisual(x); $('dcap').textContent = x.caption; $('dkick').textContent = x.section === 'future' ? 'Future enhancement · proposal' : 'Deep dive · design example'; }
   else if (x.img) { $('dsnap').innerHTML = `<img src="${x.img}" alt="Diagram for ${t}">`; $('dcap').textContent = x.img === ACT ? 'Action Execution: SNS / SQS → Temporal → ServiceNow' : 'Datadog: ingest pipeline health'; }
   else { $('dsnap').innerHTML = `<img src="arch_snapshot.png" alt="Architecture with the relevant components highlighted"><div class="dim"></div>` +

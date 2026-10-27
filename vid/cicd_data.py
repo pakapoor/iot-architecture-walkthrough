@@ -26,7 +26,7 @@ CICD = {
    title='Gateway + Ingestion <span>· stateless, canary by traffic</span>',
    r1=[PR, ('🧪', 'Build + unit tests', 'Parallel jobs · fail fast', 'CI: build + unit tests in parallel · fails fast', '✓ 860 tests', 'core'),
        ('📜', 'Contract check', 'Producer schemas stay compatible', 'Contract check: the Avro schemas it produces must stay compatible with the registry', '✓ compatible', 'core'),
-       ('🏋', 'Load test', 'Load test at peak rate', 'Load test at peak rate: replay the 200K msgs/sec normal peak (batched) in a perf environment · throughput and reject rate checked', '✓ 200K/s sustained', 'deep'), SCAN, IMG],
+       ('🏋', 'Load test', 'Load test at peak rate', 'Load test at peak rate: replay 200K gateway envelopes/sec in a perf environment · check unpacked reading/byte load, throughput and reject rate', '✓ 200K envelopes/sec', 'deep'), SCAN, IMG],
    r2=[GIT, ARGO,
        ('🧫', 'Staging', 'Same chart · synthetic device fleet', 'Staging: same chart · a synthetic device fleet connects over mTLS and sends real-shaped traffic', '✓ fleet healthy', 'core'),
        ('🐤', 'Canary 5%', 'New pods take 5% of traffic', 'Production canary: new pods take 5% of traffic · old pods keep the rest (Argo Rollouts)', '✓ canary live', 'deep'),

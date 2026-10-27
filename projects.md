@@ -108,3 +108,10 @@ Unconfirmed implementation mechanisms remain labelled as examples or design opti
 - Preserved the liveness explanation that validates heartbeat event age and clock bounds: late spooled heartbeats are history, not renewed health.
 - Scoped Redis atomic device/site-count transitions to a site hash tag, with asynchronous, reconciled tenant totals; explained the hot-slot risk of a tenant-wide tag.
 - Aligned partition/key titles to tenant + device identity and corrected current build/validation descriptions to 23 timelines.
+## Jev decision service — future proposals
+
+- All four future architectures retain four components: a separately budgeted Flink candidate job, an internal decision service calling the official Jev API, cited GenAI assistance, and human review or a restricted diagnostic gate.
+- Corrected the brief against official API semantics: Noul supplies a yes/no probability; Score rates an ordered rubric. Default context limits are 64k/request and 32k/state plus any question. Alternative models require an adapter and re-evaluation.
+- Added question types/options, candidate-only Temporal activities, bounded retries/timeouts, circuit breaking and rule fallback to the UI and component close-ups. Critical alerts stay independent.
+- UI trade-offs explain DPA/redaction, regional disablement, shadow evaluation, calibration, drift/bias and scoped audit retention, with primary documentation links. Runbook scores never authorize production writes.
+- These remain simulations; no external model API or infrastructure tool is connected.
