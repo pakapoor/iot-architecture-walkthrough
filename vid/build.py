@@ -248,7 +248,7 @@ def wf_render(steps, actors, pairs):
 def mon_markup():
     def panel(pid, x, y, title, sub, vid, extra=''):
         return f'<div class="mp" id="{pid}" style="left:{x}px;top:{y}px"><div class="mh">{title}<b id="{vid}">–</b></div><div class="sub">{sub}{extra}</div><svg id="{pid}-c" width="782" height="226"></svg></div>'
-    p = (panel('m-ingest', 24, 84, 'Ingest rate', 'msgs/sec into Kafka · normal ≈ 200K', 'm-v1') +
+    p = (panel('m-ingest', 24, 84, 'Ingest rate', 'msgs/sec into Kafka · normal peak ≈ 200K (batched)', 'm-v1') +
          panel('m-lag', 878, 84, 'Kafka consumer lag', 'messages waiting for Flink', 'm-v2') +
          panel('m-fresh', 24, 444, 'Freshness p99', 'age of an event when Flink processes it · alert > 2 min', 'm-v3',
                ' · <span style="color:#F08A1C;font-weight:700">telemetry</span> vs <span style="color:#16A34A;font-weight:700">heartbeats</span>') +

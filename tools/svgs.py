@@ -60,7 +60,7 @@ b.append(box(650,230,250,140,'p','Firmware',['Canary % first','Status back via t
 b.append(arr('M625 150 H640 V150','#7A8BA0'))
 b.append(arr('M920 200 H1010','#1D4ED8')+lab(930,190,'mTLS · batches','#1D4ED8',13,800))
 b.append(box(1015,120,240,160,'b','Cloud Gateway',['Device identity check','Per-tenant quotas'],fs=14))
-b.append(box(1280,14,220,380,'n','Why batch here',['100M devices × 1/min','≈ 1.7M msgs/sec','per-site batching →','≈ 200K msgs/sec','at peak','','Spool = no data loss','in site outages'],fs=14))
+b.append(box(1280,14,220,380,'n','Why batch here',['100M devices × 1/min','≈ 1.7M msgs/sec','per-site batching →','200K msgs/sec','normal peak (batched)','','Spool = no data loss','in site outages'],fs=14))
 OUT['EDGE']=svg(1520,410,''.join(b))
 # ---------- GATEWAY ----------
 b=[]
@@ -187,20 +187,21 @@ import math
 raw=[22.4+0.5*math.sin(i/2.3)+0.2*math.sin(i*1.7) for i in range(40)]
 hourly=[(21.2+0.8*math.sin(i/3),23.6+0.6*math.sin(i/3+1)) for i in range(24)]; avg=[(a+b_)/2 for a,b_ in hourly]
 D={}
-b=[code(20,10,700,["CREATE TABLE telemetry_raw (","  tenant_id  LowCardinality(String),","  device_id  String,","  metric     LowCardinality(String),","  ts         DateTime64(3),","  value      Float64",") ENGINE = MergeTree","PARTITION BY toYYYYMMDD(ts)","ORDER BY (tenant_id, device_id, metric, ts)","TTL ts + INTERVAL 7 DAY      -- then rolled off"],'EXAMPLE SCHEMA · CLICKHOUSE HOT'),
+b=[code(20,10,700,["CREATE TABLE telemetry_raw (","  tenant_id  LowCardinality(String),","  device_id  String,","  event_id   String,   -- device + boot ID + sequence","  metric     LowCardinality(String),","  ts         DateTime64(3),","  value      Float64",") ENGINE = ReplacingMergeTree","PARTITION BY toYYYYMMDD(ts)","ORDER BY (tenant_id, device_id, metric, ts, event_id)","TTL ts + INTERVAL 7 DAY      -- then rolled off"],'EXAMPLE SCHEMA · CLICKHOUSE HOT'),
    table(20,300,['tenant_id','device_id','metric','ts','value'],[['acme','TH-05','temp_c','10:42:00','22.4'],['acme','TH-05','temp_c','10:43:00','22.6'],['acme','TH-05','temp_c','10:44:00','22.5'],['beta','SNS-07','lat_ms','10:42:00','160']],700,hl={0,1,2}),
-   f'<rect x="750" y="10" width="760" height="190" rx="12" fill="#F4F8FF" stroke="#93B4F5"/>'+hd(768,38,'HOW THE INDEX WORKS','b'),
+   f'<rect x="750" y="10" width="760" height="196" rx="12" fill="#F4F8FF" stroke="#93B4F5"/>'+hd(768,38,'HOW THE INDEX WORKS','b'),
    lab(768,64,'Sorted on disk by (tenant, device, metric, time).',fs=14.5,c='#24364E',wgt=400),lab(768,88,'A sparse primary index keeps one entry per 8,192 rows.',fs=14.5,c='#24364E',wgt=400),
    lab(768,112,'"TH-05, last hour" → jumps straight to a few blocks;',fs=14.5,c='#24364E',wgt=400),lab(768,136,'no full scan, even with billions of rows.',fs=14.5,c='#24364E',wgt=400),
-   lab(768,170,'Daily partitions make the 7-day TTL a cheap drop.',fs=14.5,c='#1D4ED8',wgt=700),
+   lab(768,160,'A replayed event keeps its event_id, so it collapses at merge.',fs=14.5,c='#24364E',wgt=400),
+   lab(768,186,'Daily partitions make the 7-day TTL a cheap drop.',fs=14.5,c='#1D4ED8',wgt=700),
    chart(750,214,760,236,raw,21.5,23.3,'#F08A1C',title='TH-05 · temp_c · last 40 min (raw points)')]
 D['chhot']=('ClickHouse hot · raw telemetry, 7 days',svg(1520,460,''.join(b)))
-b=[code(20,10,700,["CREATE TABLE telemetry_1h (","  tenant_id  LowCardinality(String),","  device_id  String,","  metric     LowCardinality(String),","  hour       DateTime,","  min Float64, max Float64,","  avg Float64, cnt UInt32",") ENGINE = ReplacingMergeTree","ORDER BY (tenant_id, device_id, metric, hour)","TTL hour + INTERVAL 6 MONTH  -- then archived"],'EXAMPLE SCHEMA · CLICKHOUSE WARM'),
+b=[code(20,10,700,["CREATE TABLE telemetry_1h (","  tenant_id  LowCardinality(String),","  device_id  String,","  metric     LowCardinality(String),","  hour       DateTime,","  min Float64, max Float64,","  avg Float64, cnt UInt32,","  version    UInt64",") ENGINE = ReplacingMergeTree(version)","ORDER BY (tenant_id, device_id, metric, hour)","TTL hour + INTERVAL 6 MONTH  -- then archived"],'EXAMPLE SCHEMA · CLICKHOUSE WARM'),
    table(20,320,['device_id','hour','min','max','avg'],[['TH-05','09:00','21.9','23.1','22.4'],['TH-05','10:00','22.0','23.4','22.6'],['TH-05','11:00','21.8','23.0','22.3']],700),
-   f'<rect x="750" y="10" width="760" height="170" rx="12" fill="#F4F8FF" stroke="#93B4F5"/>'+hd(768,38,'WHY THIS SHAPE','b'),
-   lab(768,64,'Flink computes each hour once and writes it here.',fs=14.5,c='#24364E',wgt=400),lab(768,88,'Replacing engine: a re-sent hour (after a replay)',fs=14.5,c='#24364E',wgt=400),
-   lab(768,112,'replaces the old row instead of double-counting.',fs=14.5,c='#24364E',wgt=400),lab(768,148,'6 months × 24 rows/day per metric — tiny vs raw.',fs=14.5,c='#1D4ED8',wgt=700),
-   chart(750,194,760,256,avg,20.5,24.5,'#2563EB',band=hourly,title='TH-05 · temp_c · last 24 h (avg with min–max band)')]
+   f'<rect x="750" y="10" width="760" height="190" rx="12" fill="#F4F8FF" stroke="#93B4F5"/>'+hd(768,38,'WHY THIS SHAPE','b'),
+   lab(768,64,'Flink computes each hour once and writes it here.',fs=14.5,c='#24364E',wgt=400),lab(768,88,'Duplicates collapse at background merge; dashboard queries',fs=14.5,c='#24364E',wgt=400),
+   lab(768,112,'use FINAL (or argMax by version), so a delayed older',fs=14.5,c='#24364E',wgt=400),lab(768,136,'aggregate never overrides a newer one.',fs=14.5,c='#24364E',wgt=400),lab(768,172,'6 months × 24 rows/day per metric — tiny vs raw.',fs=14.5,c='#1D4ED8',wgt=700),
+   chart(750,214,760,236,avg,20.5,24.5,'#2563EB',band=hourly,title='TH-05 · temp_c · last 24 h (avg with min–max band)')]
 D['chwarm']=('ClickHouse warm · hourly rollups, 6 months',svg(1520,460,''.join(b)))
 b=[hd(20,30,'EXAMPLE KEYS · REDIS','g'),
    table(20,44,['key','type','value'],[['dev:acme:CAM-14','HASH','status=ONLINE  last_seen=10:42:07'],['dev:acme:TH-05','HASH','status=ONLINE  temp=22.4'],['cnt:acme:site-07','HASH','online=47  degraded=1  down=0'],['cnt:acme','HASH','online=10,212  down=14'],['live:acme','PUB/SUB','channel → dashboard service']],900,hl={4}),
@@ -208,9 +209,10 @@ b=[hd(20,30,'EXAMPLE KEYS · REDIS','g'),
    lab(968,86,'Flink writes on every state change.',fs=14.5,c='#24364E',wgt=400),lab(968,110,'Dashboard tiles read cnt:* — one call, instant.',fs=14.5,c='#24364E',wgt=400),
    lab(968,134,'live:<tenant> fans out to every open page.',fs=14.5,c='#24364E',wgt=400),lab(968,170,'A cache, not the source of truth:',fs=14.5,c='#15803D',wgt=700),lab(968,194,'rebuildable from Flink state if lost.',fs=14.5,c='#15803D',wgt=700),
    f'<rect x="20" y="250" width="1490" height="150" rx="12" fill="#fff" stroke="#C9D5E5"/>'+hd(38,278,'ONE UPDATE, MANY VIEWERS','t')]
-for i,t in enumerate(['Flink: CAM-14 → DEAD','HSET state + HINCRBY counts','PUBLISH live:acme','dashboard service','30 open pages update']):
-    x=38+i*296; b.append(f'<rect x="{x}" y="296" width="270" height="80" rx="10" fill="#F0FDFA" stroke="#99F6E4"/>'+lab(x+14,342,t,'#0F766E',13.5,700))
-    if i<4: b.append(arr(f'M{x+270} 336 H{x+294}','#16A34A','qg'))
+for i,t in enumerate(['Flink: CAM-14 → DEAD','Lua: HINCRBY only if changed','PUBLISH live:acme','dashboard service','30 open pages update']):
+    x=38+i*296; b.append(f'<rect x="{x}" y="290" width="270" height="68" rx="10" fill="#F0FDFA" stroke="#99F6E4"/>'+lab(x+14,329,t,'#0F766E',13.5,700))
+    if i<4: b.append(arr(f'M{x+270} 324 H{x+294}','#16A34A','qg'))
+b.append(lab(38,384,"One atomic Lua script: HINCRBY the counts only if the status actually changed. A replayed DEAD doesn't double-count.",fs=14,c='#0F766E',wgt=600))
 D['redis']=('Redis · live state and counts',svg(1520,410,''.join(b)))
 b=[code(20,10,620,['{','  "_id": "CAM-14",','  "tenant_id": "acme",','  "site_id": "site-07",','  "type": "camera",','  "firmware": "4.2.1",','  "location": "Aisle 4",','  "created": "2025-03-14"','}'],'EXAMPLE DOCUMENT · devices'),
    code(20,270,620,['{ "tenant_id": "acme",','  "device_type": "camera",','  "rule": "DEAD", "after_min": 10 }'],'EXAMPLE DOCUMENT · rule_overrides'),
@@ -223,7 +225,7 @@ D['mongo']=('MongoDB · registry, configs, rules',svg(1520,400,''.join(b)))
 b=[hd(20,30,'EXAMPLE LAYOUT · S3 COLD ARCHIVE','n'),
    code(20,44,760,['s3://iot-archive/','  dt=2026-10-26/','    tenant=acme/  part-0001.parquet','    tenant=beta/  part-0001.parquet','  dt=2026-10-27/ …'],None),
    f'<rect x="820" y="20" width="690" height="200" rx="12" fill="#F6F8FB" stroke="#B9C6D8"/>'+hd(838,48,'WHAT GOES HERE','n')]
-for i,t in enumerate(['Sampled telemetry after the 7-day TTL','Rollups after the 6-month TTL','Columnar files, partitioned by date and tenant','Lifecycle rules move old data to cheaper storage']): b.append(lab(838,78+i*26,'• '+t,fs=14.5,c='#24364E',wgt=400))
+for i,t in enumerate(['Sampled telemetry after the 7-day TTL','Rollups after the 6-month TTL','Columnar files, partitioned by date and tenant','Lifecycle rules move old data to cheaper storage','An export job writes Parquet to S3 and verifies it before TTL drops the partition']): b.append(lab(838,78+i*26,'• '+t,fs=14.5,c='#24364E',wgt=400))
 b.append(f'<rect x="20" y="240" width="1490" height="130" rx="12" fill="#fff" stroke="#C9D5E5"/>'+hd(38,268,'NOT ON THE READ PATH','n'))
 for i,t in enumerate(['Dashboards never read S3. It is for audits, long-term analysis and reprocessing.','Cost per device stays flat: old data lives in the cheapest tier.']): b.append(lab(38,298+i*26,t,fs=14.5,c='#24364E',wgt=400))
 D['s3']=('S3 cold · sampled archive',svg(1520,380,''.join(b)))
