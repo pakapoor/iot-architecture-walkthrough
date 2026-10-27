@@ -60,7 +60,7 @@ b.append(box(650,230,250,140,'p','Firmware',['Canary % first','Status back via t
 b.append(arr('M625 150 H640 V150','#7A8BA0'))
 b.append(arr('M920 200 H1010','#1D4ED8')+lab(930,190,'mTLS · batches','#1D4ED8',13,800))
 b.append(box(1015,120,240,160,'b','Cloud Gateway',['Device identity check','Per-tenant quotas'],fs=14))
-b.append(box(1280,14,220,380,'n','Why batch here',['100M devices × 1/min','≈ 1.7M msgs/sec','per-site batching →','200K msgs/sec','normal peak (batched)','','Durability is bounded','by spool + failover'],fs=14))
+b.append(box(1280,14,220,380,'n','Why batch here',['100M devices × 1/min','≈ 1.7M heartbeats/sec','per-site batching →','200K envelopes/sec','gateway normal peak','','Durability is bounded','by spool + failover'],fs=14))
 OUT['EDGE']=svg(1520,410,''.join(b))
 # ---------- GATEWAY ----------
 b=[]
@@ -204,15 +204,15 @@ b=[code(20,10,700,["CREATE TABLE telemetry_1h (","  tenant_id  LowCardinality(St
    chart(750,214,760,236,avg,20.5,24.5,'#2563EB',band=hourly,title='TH-05 · temp_c · last 24 h (avg with min–max band)')]
 D['chwarm']=('ClickHouse warm · hourly rollups, 6 months',svg(1520,510,''.join(b)))
 b=[hd(20,30,'EXAMPLE KEYS · REDIS','g'),
-   table(20,44,['key','type','value'],[['dev:acme:CAM-14','HASH','status=ONLINE  last_seen=10:42:07'],['dev:acme:TH-05','HASH','status=ONLINE  temp=22.4'],['cnt:acme:site-07','HASH','online=47  degraded=1  down=0'],['cnt:acme','HASH','online=10,212  down=14'],['live:acme','PUB/SUB','channel → dashboard service']],900,hl={4}),
+   table(20,44,['key','type','value'],[['dev:{acme:site-07}:CAM-14','HASH','status=ONLINE  last_seen=10:42:07'],['dev:{acme:site-07}:TH-05','HASH','status=ONLINE  temp=22.4'],['cnt:{acme:site-07}','HASH','online=47  degraded=1  down=0'],['cnt:acme','HASH','async tenant rollup; reconciled'],['live:acme','PUB/SUB','channel → dashboard service']],900,hl={4}),
    f'<rect x="950" y="30" width="560" height="200" rx="12" fill="#ECFDF3" stroke="#86EFAC"/>'+hd(968,58,'HOW IT IS USED','g'),
-   lab(968,86,'Versioned transitions + freshness updates.',fs=14.5,c='#24364E',wgt=400),lab(968,110,'Dashboard tiles read cnt:* — one call, instant.',fs=14.5,c='#24364E',wgt=400),
-   lab(968,134,'live:<tenant> fans out to every open page.',fs=14.5,c='#24364E',wgt=400),lab(968,170,'A cache, not the source of truth:',fs=14.5,c='#15803D',wgt=700),lab(968,194,'snapshot + newer updates rebuild a generation.',fs=14.5,c='#15803D',wgt=700),
+   lab(968,86,'Lua: newer device state + site counts, one slot.',fs=14.5,c='#24364E',wgt=400),lab(968,110,'Site tags spread load; a tenant-wide tag is hot.',fs=14.5,c='#24364E',wgt=400),
+   lab(968,134,'Tenant totals: async rollup + reconciliation.',fs=14.5,c='#24364E',wgt=400),lab(968,170,'A rebuildable cache, not the source of truth:',fs=14.5,c='#15803D',wgt=700),lab(968,194,'snapshot + applied cursor + subsequent updates.',fs=14.5,c='#15803D',wgt=700),
    f'<rect x="20" y="250" width="1490" height="150" rx="12" fill="#fff" stroke="#C9D5E5"/>'+hd(38,278,'ONE UPDATE, MANY VIEWERS','t')]
-for i,t in enumerate(['Flink: CAM-14 → DEAD','Lua: accept newer version','PUBLISH live:acme','dashboard service','30 open pages update']):
+for i,t in enumerate(['Flink: CAM-14 → DEAD','Lua: state + site counts','PUBLISH live:acme','dashboard service','30 open pages update']):
     x=38+i*296; b.append(f'<rect x="{x}" y="290" width="270" height="68" rx="10" fill="#F0FDFA" stroke="#99F6E4"/>'+lab(x+14,329,t,'#0F766E',13.5,700))
     if i<4: b.append(arr(f'M{x+270} 324 H{x+294}','#16A34A','qg'))
-b.append(lab(38,384,"Example: version-check state + counters atomically; co-locate Redis Cluster keys or reconcile aggregates separately.",fs=14,c='#0F766E',wgt=600))
+b.append(lab(38,384,"E.g. dev:{acme:site-07}:CAM-14 + cnt:{acme:site-07} share a slot; tenant totals are eventually consistent.",fs=14,c='#0F766E',wgt=600))
 D['redis']=('Redis · live state and counts',svg(1520,410,''.join(b)))
 b=[code(20,10,620,['{','  "_id": "CAM-14",','  "tenant_id": "acme",','  "site_id": "site-07",','  "type": "camera",','  "firmware": "4.2.1",','  "location": "Aisle 4",','  "created": "2025-03-14"','}'],'EXAMPLE DOCUMENT · devices'),
    code(20,270,620,['{ "tenant_id": "acme",','  "device_type": "camera",','  "rule": "DEAD", "after_min": 10 }'],'EXAMPLE DOCUMENT · rule_overrides'),

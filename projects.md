@@ -21,7 +21,7 @@ Presentation: [GitHub Pages walkthrough](https://pakapoor.github.io/iot-architec
 
 ### Sustained 10× traffic scenario
 
-Added the fifth infrastructure issue, **Sustained 10× traffic**, bringing the architecture presentation to 19 timelines.
+Added the fifth infrastructure issue, **Sustained 10× traffic**, bringing infrastructure scenarios to five; the complete build now includes 23 architecture timelines.
 
 The walkthrough covers sustained legitimate growth separately from a temporary backlog burst: capacity measurement by envelopes/readings/bytes/state, admission budgets, heartbeat reservation, independent bottleneck scaling, ordered Kafka topic migration, storage and dashboard limits, bounded overload and recovery/soak gates. The 2M-envelope/sec example is a design exercise, not a measured benchmark.
 
@@ -77,11 +77,11 @@ Unconfirmed implementation mechanisms remain labelled as examples or design opti
 
 ### Build, assets and validation
 
-- Updated the build to generate all 19 flow pages, embed close-ups from `tools/svgs.py`, and derive the video timeline from the interactive timeline definitions.
+- Updated the build to generate all 23 flow pages, embed close-ups from `tools/svgs.py`, and derive the video timeline from the interactive timeline definitions.
 - Added [browser regression checks](tools/browser_check.py) and [asset rendering](tools/render_assets.py).
 - Regenerated `pres/arch_snapshot.png`, `pres/actions_detail.png`, `docs/og.png` and the vector `docs/architecture.svg` from HTML.
 - Updated [README.md](README.md) with navigation, scenarios, build/check commands and scope qualifications.
-- Browser-checked every pause in all 19 timelines, automatic completion for six representative scenarios, manual stepping, navigation lists, dialogs, light/dark layouts, mobile links/resizing, all ten visual lessons, message handling and the delayed-autoplay guard.
+- Browser-checked every pause in all 23 timelines, automatic completion for six representative scenarios, manual stepping, navigation lists, dialogs, light/dark layouts, mobile links/resizing, all ten visual lessons, message handling and the delayed-autoplay guard.
 - Checked 57 JavaScript blocks/files, Python syntax, local asset references, duplicate HTML IDs, vector XML, storage SVG text bounds and deterministic regeneration. `git diff --check` passed.
 
 ### Remaining limitations
@@ -100,3 +100,11 @@ Unconfirmed implementation mechanisms remain labelled as examples or design opti
 - Added `vid/proposal_data.py` as the component/timeline source, generated `pres/proposals.js`, and four architecture preview assets. The build now produces 23 timelines.
 - Reviewed the new content for technical correctness and clarity: made topic-cutover state/offset handling explicit, distinguished heartbeat event time from receipt time, specified consistent snapshot/replay boundaries, and clarified incident identity and Temporal versioning contracts.
 - Proposed AI paths use an independent Kafka consumer and capacity budget, identify additional evidence sources, preserve critical alerts, and explain missing-evidence/AI-outage handling. Numeric predictions remain illustrative until validated against real outcomes.
+
+
+## Review follow-up — units, heartbeat clock and Redis slots
+
+- Labelled the 200K normal and designed-for 500K burst rates as gateway envelopes/sec; Kafka, Flink and ClickHouse capacity is measured in unpacked device readings and bytes (about 1.7M heartbeat readings/sec at one/minute for 100M devices).
+- Preserved the liveness explanation that validates heartbeat event age and clock bounds: late spooled heartbeats are history, not renewed health.
+- Scoped Redis atomic device/site-count transitions to a site hash tag, with asynchronous, reconciled tenant totals; explained the hot-slot risk of a tenant-wide tag.
+- Aligned partition/key titles to tenant + device identity and corrected current build/validation descriptions to 23 timelines.
