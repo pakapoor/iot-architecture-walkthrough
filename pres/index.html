@@ -546,7 +546,7 @@ function load(f, autoplay) {
   nf.addEventListener('load', () => { if (frame !== nf) { nf.remove(); return; }
     try { nf.contentWindow.postMessage(Object.assign({ type: 'opts' }, opts()), location.origin === 'null' ? '*' : location.origin); } catch (_) {} requestAnimationFrame(() => { nf.style.opacity = '1'; if (!MQ.matches && $('dmodal').hidden) try { nf.focus(); } catch (_) {} });
     if (old) setTimeout(() => document.querySelectorAll('#stage iframe').forEach(fr => { if (fr !== frame) fr.remove(); }), 380);
-    watchFrame(nf); if (autoplay) setTimeout(() => { if (frame === nf) playFrame(nf); }, 700); }, { once: true });
+    watchFrame(nf); if (autoplay) setTimeout(() => { if (frame === nf && !MQ.matches && $('dmodal').hidden) playFrame(nf); }, 700); }, { once: true });
   $('stage').appendChild(nf); frame = nf;
 }
 function select(f, push = true, autoplay = false) {

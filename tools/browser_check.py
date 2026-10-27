@@ -202,6 +202,20 @@ def run(output, playback=None):
         assert 'flow=telemetry' in page.url  # close removed only the proposal parameter
         passed('trusted message text is escaped and shell ignores unrelated senders')
 
+        page.evaluate("select(ALL.find(f => f.slug === 'telemetry'), true, true)")
+        page.set_viewport_size({'width': 390, 'height': 844})
+        page.wait_for_timeout(1300)
+        assert page.evaluate("!document.querySelector('iframe').contentDocument.getElementById('bPlay').classList.contains('on')")
+        page.set_viewport_size({'width': 1440, 'height': 900})
+        page.evaluate("select(ALL.find(f => f.slug === 'telemetry'), true, true)")
+        page.locator('#futureToggle').click()
+        page.locator('#futureSelect').select_option('predictive')
+        page.wait_for_timeout(1300)
+        assert page.evaluate("!document.querySelector('iframe').contentDocument.getElementById('bPlay').classList.contains('on')")
+        page.keyboard.press('Escape')
+        assert page.evaluate('lessonTimer === null')
+        passed('queued autoplay stays stopped on mobile/behind a modal; closing stops lesson timers')
+
         assert not errors, errors
         passed('no JavaScript exceptions across tested pages and interactions')
         context.close()
