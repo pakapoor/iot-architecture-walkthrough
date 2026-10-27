@@ -102,7 +102,7 @@ function doText(tn){
    if(Array.isArray(d)) g.setAttribute('stroke',d[1]);
    txt.parentNode.insertBefore(g,txt); txt.remove(); return;
   }
-  tn.nodeValue=s.replace(RX,m=>KEEP.has(m)?m:'').replace(/^\s+/,''); return;
+  const nv=s.replace(RX,m=>KEEP.has(m)?m:'').replace(/^\s+/,''); if(nv!==s)tn.nodeValue=nv; return; // writing an unchanged value re-triggers the observer forever
  }
  if(par.closest&&par.closest('script,style,textarea,.noemi'))return;
  const frag=document.createDocumentFragment(); let last=0; RX.lastIndex=0; let m, changed=false;
