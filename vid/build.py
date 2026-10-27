@@ -162,7 +162,7 @@ arch = arch.replace('<span class="chip">', '<span class="chip" id="a-chip">')
 arch = arch.replace('<div class="lane r">', '<div class="lane r" id="a-laneR" style="animation:none">')
 arch = arch.replace('<div class="lane y">', '<div class="lane y" id="a-laneY">')
 arch = arch.replace('src="sdi_logo_v2_crop.png"', 'src="../sdi_logo_v2_crop.png"')
-arch += '<div id="a-obsp"><div class="oh">OBSERVABILITY · DATADOG</div><div class="tiles"><div class="otile" id="a-ob0"><div class="ot">Consumer lag</div><div class="ov" id="a-ov0">● OK</div><div class="on">Kafka messages waiting for Flink</div></div><div class="otile" id="a-ob1"><div class="ot">Freshness p99</div><div class="ov" id="a-ov1">● OK</div><div class="on">event age when processed · alert > 2 min</div></div><div class="otile" id="a-ob2"><div class="ot">Flink checkpoints</div><div class="ov" id="a-ov2">● OK</div><div class="on">duration + failures · state health</div></div><div class="otile" id="a-ob3"><div class="ot">Throughput</div><div class="ov" id="a-ov3">● 200K/s</div><div class="on">msgs/sec in · per tenant</div></div><div class="otile" id="a-ob4"><div class="ot">Traces</div><div class="ov" id="a-ov4">● OK</div><div class="on">one trace ID: edge → ticket</div></div></div></div>'
+arch += '<div id="a-obsp"><div class="oh">OBSERVABILITY · DATADOG</div><div class="tiles"><div class="otile" id="a-ob0"><div class="ot">Consumer lag</div><div class="ov" id="a-ov0">● OK</div><div class="on">Kafka messages waiting for Flink</div></div><div class="otile" id="a-ob1"><div class="ot">Freshness p99</div><div class="ov" id="a-ov1">● OK</div><div class="on">event age when processed · alert > 2 min</div></div><div class="otile" id="a-ob2"><div class="ot">Flink checkpoints</div><div class="ov" id="a-ov2">● OK</div><div class="on">duration + failures · state health</div></div><div class="otile" id="a-ob3"><div class="ot">Gateway ingress</div><div class="ov" id="a-ov3">● 200K/s</div><div class="on">gateway envelopes/sec · per tenant</div></div><div class="otile" id="a-ob4"><div class="ot">Traces</div><div class="ov" id="a-ov4">● OK</div><div class="on">one trace ID: edge → ticket</div></div></div></div>'
 arch += '<div id="a-badge" class="badge" style="left:72px;top:372px"></div><div id="a-pk" class="pk"></div><div id="a-streams"></div>'
 for k in ['edge','gw','ing','kafka','flink','ctrl','dash','stor','act']:
     assert f'id="a-{k}"' in arch, k
@@ -251,7 +251,7 @@ def wf_render(steps, actors, pairs):
 def mon_markup():
     def panel(pid, x, y, title, sub, vid, extra=''):
         return f'<div class="mp" id="{pid}" style="left:{x}px;top:{y}px"><div class="mh">{title}<b id="{vid}">–</b></div><div class="sub">{sub}{extra}</div><svg id="{pid}-c" width="782" height="226"></svg></div>'
-    p = (panel('m-ingest', 24, 84, 'Ingest rate', 'msgs/sec into Kafka · normal peak ≈ 200K (batched)', 'm-v1') +
+    p = (panel('m-ingest', 24, 84, 'Gateway ingress', 'gateway envelopes/sec · normal peak ≈ 200K', 'm-v1') +
          panel('m-lag', 878, 84, 'Kafka consumer lag', 'messages waiting for Flink', 'm-v2') +
          panel('m-fresh', 24, 444, 'Freshness p99', 'age of an event when Flink processes it · alert > 2 min', 'm-v3',
                ' · <span style="color:#F08A1C;font-weight:700">telemetry</span> vs <span style="color:#16A34A;font-weight:700">heartbeats</span>') +

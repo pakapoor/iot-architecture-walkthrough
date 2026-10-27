@@ -162,7 +162,7 @@ if (VID === 6) {
   st('a', 'a-flink', 'br', 'core', 'y', 'Flink falls behind · telemetry alerts would now arrive late', (S) => { S.chip = ['⚠ backpressure · falling behind', ...org]; });
   st('a', 'a-obsp', 'tl', 'core', 'y', 'Observability: Datadog tiles turn red — lag, freshness, throughput', null, { pt: () => { const r = rectOf('a-ob0'); return [r.x - 26, r.y + r.h / 2, r.x + r.w / 2, r.y + r.h / 2]; } });
   zoomIn(0, 'Zooming in: the Datadog dashboard 🔍');
-  st('m', 'm-ingest', 'tr', 'core', 'y', 'Spools flush: ingest jumps from 200K msgs/sec normal peak (batched) to a recovery burst up to 500K msgs/sec (designed-for)', mT(0.04, 0.12), { pop: true });
+  st('m', 'm-ingest', 'tr', 'core', 'y', 'Spools flush: gateway ingress rises from 200K envelopes/sec normal peak to a designed-for 500K envelopes/sec burst; Kafka carries the unpacked device readings', mT(0.04, 0.12), { pop: true });
   st('m', 'm-lag', 'tr', 'core', 'y', 'Consumer lag climbs · Kafka is buffering, so nothing is lost', mT(0.12, 0.14));
   st('m', 'm-mon', 'bl', 'core', 'r', 'Monitor fires: freshness p99 > 2 min → on-call paged', (S) => { S.mT = 0.14; S.mAlert = 'fire'; S.mAnn = 1; }, { pt: () => { const r = rectOf('m-mon'); return [r.x - 30, r.y + r.h / 2, r.x + r.w / 2, r.y + r.h / 2]; } });
   st('m', 'm-fresh', 'tr', 'deep', 'y', 'Telemetry freshness climbs… <b>heartbeats stay fresh</b> — the priority topic protects DEAD detection', (S, t, s) => { S.mAlert = 'fire'; S.mAnn = 1; mT(0.14, 0.48)(S, t, s); });
@@ -308,7 +308,7 @@ if (PROPOSAL) {
 
 // ---------- compile timeline ----------
 const T0 = HOOK_R + P.intro;            // first stop arrival
-let tcur = T0, prev = null, stepNo = 0; const CAPS = [[HOOK_R - 0.3, T0 - 0.1, '', 'Commercial IoT monitoring · 100M+ devices · 200K msgs/sec normal peak (batched)']];
+let tcur = T0, prev = null, stepNo = 0; const CAPS = [[HOOK_R - 0.3, T0 - 0.1, '', 'Commercial IoT monitoring · 100M+ devices · 200K gateway envelopes/sec normal peak']];
 STOPS = STOPS.filter(s => !(VER === 'li' && s.li === false));
 STOPS.forEach((s, i) => {
   if (s.zoom) { const tr = TRS[s.tr]; tr.a = tcur + 0.2; tr.b = tr.a + P.zoom; CAPS.push([tr.a, tr.b, '', s.cap]); tcur = tr.b + 0.1; prev = null; return; }
