@@ -702,13 +702,15 @@ setT(0);
   const IC = (d, fill) => `<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="${fill ? 'currentColor' : 'none'}" stroke="${fill ? 'none' : 'currentColor'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
   const I = { prev: IC('<path d="M6 5v14"/><path d="M19 5 9 12l10 7z" fill="currentColor"/>'), next: IC('<path d="M18 5v14"/><path d="m5 5 10 7-10 7z" fill="currentColor"/>'),
     play: IC('<path d="M7 4.5v15l13-7.5z"/>', 1), pause: IC('<rect x="6" y="4.5" width="4" height="15" rx="1.2"/><rect x="14" y="4.5" width="4" height="15" rx="1.2"/>', 1),
-    ff: IC('<path d="M3 5.5v13l9-6.5z M12 5.5v13l9-6.5z"/>', 1), rew: IC('<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/>'), home: IC('<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/>') };
+    ff: IC('<path d="M3 5.5v13l9-6.5z M12 5.5v13l9-6.5z"/>', 1), rew: IC('<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/>'), home: IC('<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/>'),
+    doc: IC('<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h6"/>') };
   const bar = document.createElement('div'); bar.id = 'pbar';
   bar.innerHTML = `<button id="bReset" title="Rewind to start (Home)" aria-label="Rewind to start">${I.rew}</button><span class="sep"></span>
     <button id="bPrev" title="Previous (←)" aria-label="Previous">${I.prev}</button><button id="bPlay" title="Play (Space)" aria-label="Play">${I.play}</button>
     <button id="bNext" title="Next (→)" aria-label="Next">${I.next}</button><button id="bFF" title="Fast-forward" aria-label="Fast-forward">${I.ff}</button>${EMBED ? '' : '<span class="sep"></span><a id="bAll" href="index.html" title="All flows" aria-label="All flows">' + I.home + '</a>'}
-    <span class="ctr" id="bCtr"></span>`;
+    ${EMBED ? `<span class="sep"></span><button id="bDesc" title="Description &amp; trade-offs (D)" aria-label="Description and trade-offs">${I.doc}</button>` : ''}<span class="ctr" id="bCtr"></span>`;
   stage.appendChild(bar); if (IDLE) bar.style.display = 'none';
+  if (EMBED) E('bDesc').onclick = () => toParent({ type: 'describe' });
   let wakeT = 0; addEventListener('mousemove', () => { bar.classList.add('awake'); wakeT = performance.now(); });
   E('bPrev').onclick = () => prev(); E('bNext').onclick = () => next(); E('bReset').onclick = () => reset();
   E('bPlay').onclick = () => setMode(mode === 'play' ? 'step' : 'play'); E('bFF').onclick = () => setMode(mode === 'ff' ? 'step' : 'ff');
@@ -744,6 +746,7 @@ setT(0);
     if (e.defaultPrevented) return;
     if (e.target.closest && e.target.closest('button,a,[role="button"]') && [' ', 'Enter'].includes(e.key)) return;
     if (closeup) { if (e.key === 'Escape') closeCU(); return; }
+    if (EMBED && (e.key === 'd' || e.key === 'D') && !e.ctrlKey && !e.metaKey && !e.altKey) { toParent({ type: 'describe' }); return; }
     if (EMBED && /^[0-9]$/.test(e.key)) { toParent({ type: 'key', key: e.key }); return; }
     if (e.key === 'Escape') { if (closeup) closeCU(); return; }
     if (closeup) return;

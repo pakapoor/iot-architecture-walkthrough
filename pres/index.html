@@ -250,6 +250,14 @@ aside{transition:visibility 0s .25s}
 .reasoning summary{cursor:pointer;font-size:14px;font-weight:500;margin-bottom:12px;color:var(--accent)}
 .dhead{position:sticky;top:0;z-index:2;background:var(--card)}
 @media(max-width:1100px){.dcard.knowledge .dbody figure{order:-1}}
+/* text-first "Description & trade-offs" view */
+.dcard.textonly{width:min(880px,100%)}
+.dcard.textonly .dbody{grid-template-columns:1fr}
+.dcard.textonly figure,.dcard.textonly #lessonControls,.dcard.textonly #lessonCaption{display:none}
+.ddesc{border-top:1px solid var(--line);margin-top:18px;padding-top:16px}
+.ddesc h4{font-family:var(--display);font-size:17px;font-weight:600;margin:0 0 10px}
+.dsec ol{margin:4px 0 0;padding-left:20px}.dsec li{margin:0 0 8px;font-size:15px;line-height:1.5}
+.dnote{font-size:13px;color:var(--muted);margin:14px 0 0}
 @media (prefers-reduced-motion:reduce){.sectiontoggle .chev{transition:none}}
 .vcard.hl{box-shadow:0 0 0 2px var(--accent),0 1px 3px rgba(0,0,0,.08)}
 .vcard .vdesk{margin-top:6px;color:var(--accent)!important;font-weight:500}
@@ -502,7 +510,7 @@ $('lessonPlay').addEventListener('click', () => {
 });
 }
 function openDetail(t, from) {
-  const x = DETAIL[t]; if (!x) return; lastFocus = from || null;
+  const x = DETAIL[t]; if (!x) return; lastFocus = from || null; $('dmodal').querySelector('.dcard').classList.remove('textonly');
   stopLesson(); $('lessonControls').hidden = $('lessonCaption').hidden = !x.steps;
   hideUpNext(); if (frame) { pauseFrame(frame); frame.inert = true; }
   $('panel').inert = true; $('paneltoggle').inert = true;
@@ -518,6 +526,34 @@ function openDetail(t, from) {
       x.boxes.map(k => { const [bx, by, bw, bh] = ARCHBOX[k]; return `<div class="hl" style="left:${bx / 16}%;top:${by / 7.2}%;width:${bw / 16}%;height:${bh / 7.2}%"></div>`; }).join('');
     $('dcap').textContent = 'Highlighted: where this decision lives in the architecture'; }
   $('dmodal').hidden = false; $('dclose').focus();
+}
+// "Description & trade-offs": every design decision of the current flow (or the future proposal) as plain text, nothing collapsed
+function openDescription(from) {
+  const f = current; if (!f) return;
+  const sec = (h, v) => v ? `<div class="dsec"><h3>${h}</h3><p>${v}</p></div>` : '';
+  let html = sec('What this flow shows', f.sub), kick = 'Description & trade-offs';
+  if (f.proposal) {
+    const x = KNOWLEDGE.find(t => t.slug === f.proposal); if (!x) return;
+    const comps = (PROPOSALS[f.page] || {}).components || [];
+    kick = 'Future proposal · description & trade-offs';
+    html += sec('Problem', x.p) + sec('Proposed design', x.d)
+      + (comps.length ? `<div class="dsec"><h3>Components, in order</h3><ol>${comps.map(c => `<li><b>${c[0]}</b> · ${c[1]}. ${c[3]}</li>`).join('')}</ol></div>` : '')
+      + sec('Alternatives', x.alt) + sec('Trade-offs', x.tr);
+    if (x.jev) html += sec('API & data boundary', x.jev.request + ' ' + x.jev.residency) + sec('Failure handling', x.jev.recovery)
+      + sec('Evaluation & audit', x.jev.evaluation + ' ' + x.jev.audit) + sec('About Jev', x.jev.about + ' ' + x.jev.limits) + sec('Portability', x.jev.portability)
+      + sec('Sources', x.jev.sources.map(([title, url]) => `<a href="${url}" target="_blank" rel="noopener">${title}</a>`).join(' · '));
+    html += `<div class="dline">“${x.line}”</div><p class="dnote">${x.caption}</p>`;
+  } else {
+    const list = DECISIONS[f.slug] || []; if (!list.length) return;
+    html += list.map(([t, short]) => { const x = DETAIL[t];
+      return `<div class="ddesc"><h4>${t}</h4>` + (x ? sec('Problem', x.p) + sec('Decision', x.d) + sec('Alternative', x.alt) + sec('Trade-off', x.tr) + `<div class="dline">“${x.line}”</div>` : `<p>${short}</p>`) + '</div>'; }).join('');
+  }
+  lastFocus = from || null; activeKnowledge = null; stopLesson();
+  hideUpNext(); if (frame) { pauseFrame(frame); frame.inert = true; }
+  $('panel').inert = true; $('paneltoggle').inert = true;
+  const card = $('dmodal').querySelector('.dcard'); card.classList.remove('knowledge'); card.classList.add('textonly');
+  $('dkick').textContent = kick; $('dtitle').textContent = f.name; $('dtext').innerHTML = html; $('dsnap').innerHTML = ''; $('dcap').textContent = '';
+  $('dmodal').hidden = false; card.scrollTop = 0; $('dclose').focus();
 }
 function closeDetail() {
   if ($('dmodal').hidden) return; $('dmodal').hidden = true;
@@ -629,13 +665,14 @@ addEventListener('message', e => {
   const d = e.data; if (!d || typeof d !== 'object') return;
   if (d.type === 'home') $('home').click();
   if (d.type === 'key' && /^[0-9]$/.test(d.key)) jump(d.key);
+  if (d.type === 'describe') openDescription({ frame, id: 'bDesc' });
   if (d.type === 'dd' && typeof d.t === 'string' && Object.hasOwn(DETAIL, d.t)) openDetail(d.t, { frame, id: /^ddc-\d+$/.test(d.trigger) ? d.trigger : '' });
   if (d.type === 'view' && ['idle', 'arch', 'zoom', 'end'].includes(d.view)) { setView(d.view); onView(d.view, d.auto === true); } });
 function setView(v) { const arch = (v === 'idle' || v === 'arch') && !current?.proposal;
   $('tObs').closest('.sw').hidden = !arch; $('tWhy').closest('.sw').hidden = !arch; $('tCap').closest('.sw').hidden = !(v === 'arch' || v === 'zoom');
   document.querySelector('.toggles').hidden = !arch && !(v === 'arch' || v === 'zoom'); }
 function jump(k) { const f = ALL.find(x => x.key === k); if (f) { select(f); return; } const g = FLOWS.find(x => x.items && x.key === k); if (g) select(g.items[0]); }
-addEventListener('keydown', e => { if (!$('dmodal').hidden || e.target.closest && e.target.closest('input')) return; if (/^[1-9]$/.test(e.key)) jump(e.key); });
+addEventListener('keydown', e => { if (!$('dmodal').hidden || e.target.closest && e.target.closest('input')) return; if (/^[1-9]$/.test(e.key)) jump(e.key); if ((e.key === 'd' || e.key === 'D') && current && !e.ctrlKey && !e.metaKey && !e.altKey) openDescription(document.activeElement); });
 
 // phone: plain video list
 $('vids').innerHTML = ALL.filter(f => f.video).map(f => `<div class="vcard" id="v-${f.slug}"><video controls playsinline preload="none" src="m/${f.video}" poster="m/${f.video.replace('.mp4', '.jpg')}" aria-label="${f.name} walkthrough video"></video><div class="vt"><span class="dot" style="width:11px;height:11px;border-radius:50%;background:${f.color};flex:none"></span><div>${f.infra ? 'Infra issue · ' : ''}${f.name}<small>${f.sub}</small></div></div></div>`).join('');
