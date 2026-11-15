@@ -15,7 +15,7 @@ Run `python3 tools/browser_check.py` after `./tools/build.sh`. Results and inspe
 - Manual arrow stepping records completion without automatic navigation.
 - Automatic playback reaches the final card, displays a real five-second countdown and advances for `cicd-svc`, `cicd-dash`, `telemetry`, `storm`, `red-snow` and `growth`. Timeline frame time is accelerated in this regression check; countdown time is not.
 - Light and dark themes are checked at desktop, narrow desktop and phone sizes. Phone links highlight/scroll videos or show a desktop note, and widening initializes the selected interactive flow.
-- The six correctness deep dives open as flows from the sidebar, from old `?deep=` links and from the phone list. The My role dialog opens from the sidebar and the R key.
+- The correctness deep dives (including Data residency) and Region outage → failover open as flows from the sidebar, from old `?deep=` links and from the phone list. The My role dialog opens from the sidebar and the R key.
 - Sender checks reject unrelated shell messages; dynamic design-card text escapes executable HTML.
 - Raw/warm storage schemas, Redis and the S3 detail SVGs were inspected for text beyond their view boxes. Architecture typography and refreshed images were visually inspected.
 

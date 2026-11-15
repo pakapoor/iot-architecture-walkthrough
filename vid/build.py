@@ -162,6 +162,7 @@ arch = arch.replace('<div class="lane r">', '<div class="lane r" id="a-laneR" st
 arch = arch.replace('<div class="lane y">', '<div class="lane y" id="a-laneY">')
 arch = arch.replace('src="sdi_logo_v2_crop.png"', 'src="../sdi_logo_v2_crop.png"')
 arch += '<div id="a-obsp"><div class="oh">OBSERVABILITY · DATADOG</div><div class="tiles"><div class="otile" id="a-ob0"><div class="ot">Consumer lag</div><div class="ov" id="a-ov0">● OK</div><div class="on">Kafka messages waiting for Flink</div></div><div class="otile" id="a-ob1"><div class="ot">Freshness p99</div><div class="ov" id="a-ov1">● OK</div><div class="on">event age when processed · alert > 2 min</div></div><div class="otile" id="a-ob2"><div class="ot">Flink checkpoints</div><div class="ov" id="a-ov2">● OK</div><div class="on">duration + failures · state health</div></div><div class="otile" id="a-ob3"><div class="ot">Gateway ingress</div><div class="ov" id="a-ov3">● 200K/s</div><div class="on">gateway envelopes/sec · per tenant</div></div><div class="otile" id="a-ob4"><div class="ot">Traces</div><div class="ov" id="a-ov4">● OK</div><div class="on">one trace ID: edge → ticket</div></div></div></div>'
+arch += '<style>#a-reg{position:absolute;left:1148px;top:96px;width:392px;height:66px;box-sizing:border-box;background:#fff;border:1.5px solid #C4B5FD;border-radius:14px;padding:8px 14px;cursor:pointer;box-shadow:0 6px 18px rgba(15,30,51,.06)}#a-reg .rt{font-size:16px;font-weight:800;color:#0B1F3F;display:flex;align-items:center;gap:8px}#a-reg .rt span{font-size:11px;font-weight:800;letter-spacing:1.2px;color:#5B3FD9;background:#F6F3FF;border-radius:999px;padding:2px 8px}#a-reg .rs{font-size:13px;color:#4A5B70;margin-top:4px;white-space:nowrap}</style><div id="a-reg"><div class="rt">🌐 Regions<span>DESIGN EXTENSION</span></div><div class="rs">e.g. EU · US home cells · paired standby · China isolated</div></div>'
 arch += '<div id="a-badge" class="badge" style="left:72px;top:372px"></div><div id="a-pk" class="pk"></div><div id="a-streams"></div>'
 for k in ['edge','gw','ing','kafka','flink','ctrl','dash','stor','act']:
     assert f'id="a-{k}"' in arch, k
@@ -315,6 +316,11 @@ END[23] = ('Identity follows the data. ✅', 'Every hop is tenant-scoped and bud
 END[24] = ('Snapshot plus cursor. ✅', 'No gaps, no regressions.')
 END[25] = ('Shipped, gated, reversible. ✅', 'Compatibility first · canary · one-step rollback.')
 
+HOOK[26] = ('One platform, many jurisdictions. 🌐', 'Where does each tenant\'s data live?')
+HOOK[27] = ('A whole region goes dark. 🌩', 'Fail over without a page storm or a duplicate ticket.')
+END[26] = ('Residency by placement. ✅', 'Home region per tenant · global routing only · China isolated.')
+END[27] = ('Failed over, failed back. ✅', 'UNKNOWN, not DEAD · same incident IDs · rehearsed RPO / RTO.')
+
 def page(v):
     scene = ''
     if v in (1, 2, 5):
@@ -370,6 +376,6 @@ engine = open(f'{ROOT}/pres/timeline2p.js').read().split('// ================= p
 engine = engine.replace("const VER = 'pres';", "const VER = QS.get('ver') || 'int';")
 open(f'{ROOT}/vid/timeline2.js', 'w').write('// Generated from pres/timeline2p.js by vid/build.py.\n' + engine.rstrip() + '\n')
 
-for v in range(1, 26):
+for v in range(1, 28):
     open(f'{ROOT}/vid/v{v}.html', 'w').write(page(v))
 print('built')

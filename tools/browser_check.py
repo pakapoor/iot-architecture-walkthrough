@@ -60,7 +60,7 @@ def run(output, playback=None):
             page.wait_for_timeout(100)
             return page.frames[-1]
 
-        for v in range(1, 26):
+        for v in range(1, 28):
             page.goto(f'{base}/pres/flow{v}.html?embed=1&obs=1&why=1&caps=1')
             page.wait_for_function('window.PRESENTER')
             result = page.evaluate('''() => {
@@ -68,12 +68,12 @@ def run(output, playback=None):
               return {pauses:PRESENTER.PAUSES.length, finite:Number.isFinite(window.TOTAL)};
             }''')
             assert result['finite'] and result['pauses'] > 5, (v, result)
-        passed('all 25 timelines render every pause without runtime errors')
+        passed('all 27 timelines render every pause without runtime errors')
 
         frame = shell()
         assert page.locator('#flows button[data-flow]').count() == 7
-        assert page.locator('#issues button[data-flow]').count() == 5
-        assert page.locator('#deepTopics button[data-flow]').count() == 6
+        assert page.locator('#issues button[data-flow]').count() == 6
+        assert page.locator('#deepTopics button[data-flow]').count() == 7
         assert page.locator('#deploy button[data-flow]').count() == 7
         assert page.locator('#deepToggle').get_attribute('aria-expanded') == 'false'
         assert page.locator('#deployToggle').get_attribute('aria-expanded') == 'false'
@@ -186,8 +186,8 @@ def run(output, playback=None):
             assert page.locator('#v-telemetry').evaluate('e => e.getBoundingClientRect().top < innerHeight')
         passed('light/dark layouts, narrow desktop, phone links/resizing')
 
-        # The six correctness deep dives are flows: old ?deep= links, desktop sidebar and phone list all reach them.
-        lessons = {'replay': 20, 'liveness': 21, 'incidents': 22, 'tenancy': 23, 'consistency': 24, 'upgrades': 25}
+        # The correctness deep dives are flows: old ?deep= links, desktop sidebar and phone list all reach them.
+        lessons = {'replay': 20, 'liveness': 21, 'incidents': 22, 'tenancy': 23, 'consistency': 24, 'upgrades': 25, 'residency': 26}
         desk = context.new_page()
         desk.set_default_timeout(8000)
         desk.goto(f'{base}/pres/?deep=consistency')
@@ -198,17 +198,20 @@ def run(output, playback=None):
             desk.wait_for_function(f"document.querySelector('#stage iframe:last-of-type')?.src.includes('flow{v}.html')")
             desk.wait_for_function("document.querySelector('#stage iframe:last-of-type')?.contentWindow.PRESENTER")
             assert desk.evaluate("document.querySelector('#stage iframe:last-of-type').contentWindow.PRESENTER.PAUSES.length") > 1, slug
+        desk.locator('#issues button[data-flow="region"]').click()   # multi-region failover, a When things break flow
+        desk.wait_for_function("document.querySelector('#stage iframe:last-of-type')?.src.includes('flow27.html')")
+        assert 'flow=region' in desk.url
         desk.close()
         phone = context.new_page()
         phone.set_viewport_size({'width': 390, 'height': 844})
         phone.goto(f'{base}/pres/?deep=replay')
         assert phone.locator('#vnote').inner_text().startswith('Delivery & replay') and phone.locator('.mobile-learning').evaluate('e => e.open')
         assert phone.locator('#dmodal').is_hidden() and phone.locator('#stage iframe').count() == 0
-        for slug in lessons:
+        for slug in [*lessons, 'region']:
             phone.locator('#mobile-flow-' + slug).click()
             assert phone.locator('#vnote').is_visible() and f'flow={slug}' in phone.url, slug
         phone.close()
-        passed('the six correctness deep dives open as flows: sidebar, old ?deep= links, phone list')
+        passed('the correctness deep dives and the region flow open as flows: sidebar, old ?deep= links, phone list')
 
         page.set_viewport_size({'width': 1440, 'height': 900})
         page.goto(f'{base}/pres/?future=security')   # removed section: an old link falls back to the architecture

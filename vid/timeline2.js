@@ -381,6 +381,37 @@ if (VID === 25) {   // lesson · Safe upgrades & rollback (notes: pres/notes-les
   RECAP = { cap: 'Rollback restores execution state — savepoint · replay · stable IDs — and reconciles what was already sent ↩', badge: ['✅ restored · reconciled', ...grn], boxes: ['a-flink', 'a-kafka', 'a-act', 'a-obsp'] };
   TRS = [];
 }
+if (VID === 26) {   // lesson · Data residency, a design extension (notes: pres/notes-regions.js)
+  st('a', 'a-reg', 'tr', 'deep', 'b', 'Design extension: every residency zone runs full regional cells · each tenant has one <b>home region</b>', (S) => { S.aBadge = ['🌐 e.g. EU · US · China (isolated)', '#E5EDFF', '#1D4ED8', '#93B4F5']; });
+  st('a', 'a-ctrl', 'br', 'core', 'b', 'Onboarding: Acme gets home region <b>EU-1</b> · only routing metadata (tenant → home region) is global');
+  st('a', 'a-edge', 'br', 'core', 'b', 'Acme\'s site gateways resolve their home cell through the registry + DNS · they connect to EU-1 only');
+  st('a', 'a-gw', 'br', 'deep', 'b', 'The EU-1 gateway admits only tenants homed in EU-1 · a device registered to another region is refused');
+  st('a', 'a-flink', 'br', 'core', 'b', 'Telemetry, device state, timers and incident decisions are processed in the home cell: Kafka and Flink in EU-1');
+  st('a', 'a-act', 'tr', 'core', 'b', 'Pages, workflows and ServiceNow tickets are raised from the home cell · Temporal runs in EU-1');
+  st('a', 'a-stor', 'tr', 'core', 'b', 'Stores stay in the zone: Acme\'s Redis keys, ClickHouse history, MongoDB records and archive live in EU-1');
+  st('a', 'a-dash', 'tr', 'core', 'b', 'Dashboards are served from the home region with RBAC · platform views across regions use <b>aggregates only</b>');
+  st('a', 'a-reg', 'tr', 'deep', 'r', 'China is fully isolated: its own control plane copy and its own DR · nothing replicates out', (S) => { S.aBadge = ['🔒 China · isolated', ...red]; });
+  st('a', 'a-reg', 'tr', 'deep', 'v', 'Rejected: one global cluster with per-row region tags · moving a tenant\'s home region is a planned migration', (S) => { S.aBadge = ['🌐 residency by placement, not by filter', '#F6F3FF', '#5B3FD9', '#C4B5FD']; }, { stay: true });
+  RECAP = { cap: 'Residency by placement, not by filter: one home region per tenant · routing metadata global · China isolated 🌐', badge: ['✅ data stays in its zone', ...grn], boxes: ['a-reg', 'a-ctrl', 'a-edge', 'a-gw', 'a-flink', 'a-act', 'a-stor', 'a-dash'] };
+  TRS = [];
+}
+if (VID === 27) {   // region outage → failover, a design extension (notes: pres/notes-regions.js)
+  const obsPt = () => { const r = rectOf('a-ob1'); return [r.x - 26, r.y + r.h / 2, r.x + r.w / 2, r.y + r.h / 2]; };
+  st('a', 'a-reg', 'tr', 'core', 'r', 'Design example: Acme\'s home region <b>EU-1</b> goes dark', (S) => { S.aBadge = ['🌩 EU-1 · region outage', ...red]; });
+  st('a', 'a-edge', 'br', 'core', 'r', 'Site gateways cannot reach EU-1 · they <b>spool to disk</b> and keep retrying');
+  st('a', 'a-obsp', 'tl', 'deep', 'r', 'Region health monitors fire · operators are paged about <b>the region</b>, not about every device', (S) => { S.obsT = { 1: ['▲ EU-1 unreachable', 1], 3: ['▼ EU-1 ingress 0', 1] }; }, { pt: obsPt });
+  st('a', 'a-reg', 'tr', 'deep', 'o', 'Failover decision: human-approved, or automated with guardrails · target the paired standby <b>EU-2</b> in the same zone', (S) => { S.aBadge = ['↪ failover → EU-2', ...org]; });
+  st('a', 'a-gw', 'br', 'core', 'o', 'Registry + DNS move Acme\'s gateways to EU-2 · same certificates, same tenant identity');
+  st('a', 'a-kafka', 'br', 'deep', 'o', 'EU-2 already holds the replicated topics (e.g. MirrorMaker 2 or cluster linking) · consumer offsets are translated');
+  st('a', 'a-flink', 'br', 'deep', 'o', 'Flink restores the last checkpoint from replicated object storage · devices stay <b>UNKNOWN</b> until caught up, so no DEAD pages', (S) => { S.chip = ['❔ UNKNOWN · catching up', ...yel]; });
+  st('a', 'a-act', 'tr', 'deep', 'o', 'Temporal history is replicated · open incidents continue with the <b>same incident IDs</b>, so no duplicate tickets');
+  st('a', 'a-edge', 'br', 'core', 'g', 'Spools flush to EU-2 · fresh heartbeats arrive and health resumes', (S) => { S.chip = null; S.aBadge = ['✅ serving from EU-2', ...grn]; });
+  st('a', 'a-stor', 'tr', 'core', 'g', 'Redis is rebuilt from the log · ClickHouse replicas keep history available');
+  st('a', 'a-obsp', 'tl', 'deep', 'v', '<b>RPO</b> = the replication-lag window · <b>RTO</b> = time to fail over and catch up · define both, rehearse both', (S) => { S.obsT = { 1: ['✓ freshness recovered', 0], 3: ['EU-2 serving', 0] }; }, { pt: obsPt });
+  st('a', 'a-reg', 'tr', 'deep', 'g', 'Fail back to EU-1 as a planned, drained move · never mid-incident', (S) => { S.aBadge = ['✅ back home · EU-1', ...grn]; });
+  RECAP = { cap: 'Region lost → spools buffer → UNKNOWN, not DEAD → fail over in-zone → same incident IDs → rehearsed fail-back 🌩', badge: ['✅ no page storm · no duplicate tickets', ...grn], boxes: ['a-reg', 'a-edge', 'a-gw', 'a-kafka', 'a-flink', 'a-act', 'a-stor', 'a-obsp'] };
+  TRS = [];
+}
 
 // ---------- compile timeline ----------
 const T0 = HOOK_R + P.intro;            // first stop arrival
@@ -470,7 +501,7 @@ function setT(t) {
   const S = BASE_STATE(); let cur = null;
   for (const s of STOPS) { if (s.zoom) continue; if (t >= s.h0) cur = s; if ((s.early ? t >= s.h0 : t > s.ta) && s.fx) s.fx(S, t, s); }   // > : a stay stop starts exactly at the previous pause
   { const cs = STOPS.find(s => s.id === 'd-TH-05'); if (cs && t >= cs.h0) S.cursor = cs; }
-  if (t >= RECAP_T - P.zoom) { if (RECAP.badge) S.aBadge = RECAP.badge; S.chip = null; S.laneR = S.laneY = 0; }
+  if (t >= (TRS.length ? RECAP_T - P.zoom : STORY_END + 0.2)) { if (RECAP.badge) S.aBadge = RECAP.badge; S.chip = null; S.laneR = S.laneY = 0; }
 
   // ball: exactly one, in the current stop's layer
   ['a', 'b', 'w', 'd', 'm', 'c'].forEach(l => { const p = E(l + '-pk'); if (p) p.style.display = 'none'; });

@@ -33,8 +33,9 @@ Open **My role** for the presenter's role, scope, decisions and outcomes. Expand
 | Flink job crash | checkpoint restore → Kafka replay → idempotent actions |
 | Hot partition | contained at the door: per-device limits · lag by partition |
 | Sustained 10× traffic | measure the bottleneck → scale each layer → ordered Kafka migration → bounded admission → recovery/soak gates |
+| Region outage → failover (design extension) | spools buffer → UNKNOWN, not DEAD → in-zone failover → same incident IDs → rehearsed RPO/RTO and fail-back |
 
-**Deep dives** also contains six runnable visual answers on correctness and trade-offs: delivery/replay, device versus pipeline health, incident races, tenant isolation, live/history consistency, and safe rollback. Each is a flow on the main architecture diagram (flows 20–25), with presenter notes and inside views like the other walkthroughs; old `?deep=` links open the matching flow.
+**Deep dives** also contains seven runnable visual answers on correctness and trade-offs: delivery/replay, device versus pipeline health, incident races, tenant isolation, live/history consistency, safe rollback, and data residency (a multi-region design extension). Each is a flow on the main architecture diagram (flows 20–26), with presenter notes and inside views like the other walkthroughs; old `?deep=` links open the matching flow.
 
 | Deployment & upgrades | What it shows |
 |---|---|
@@ -65,7 +66,7 @@ pres/index.html           the one-page shell: side panel, My role dialog, phone 
 pres/timeline2p.js        presenter engine: stops, camera, controls, close-ups, reflow
 pres/icons.js             SVG line icons (replace emoji at runtime)
 pres/notes.js             explanation-panel notes + inside views: flow 1 and registerFlow()
-pres/notes-*.js           the other flows' notes: alerts, device, infra, deploy, lessons (correctness deep dives, flows 20–25)
+pres/notes-*.js           the other flows' notes: alerts, device, infra, deploy, lessons (correctness deep dives, flows 20–25), regions (multi-region design extension, flows 26–27)
 pres/role.js              content of the My role dialog
 pres/flow*.html           one page per flow (generated)
 iot.html, svcnow.html     the architecture diagram and ServiceNow/Temporal scene (source of truth)

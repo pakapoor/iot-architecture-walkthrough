@@ -222,6 +222,26 @@ b.append(arr('M1210 180 H1246'))
 b.append(box(1250,30,250,300,'g','Automation first',['autoscale Flink + ingestion','annotate the dashboards','humans step in past','the guardrails'],fs=13.5,tfs=15))
 b.append(box(240,346,1260,50,'v',None,[])+hd(258,368,'PER TENANT AND PER PARTITION','v')+lab(258,388,'averages hide the outlier: freshness per tenant, lag per partition','#3B2A8C',13.5,400))
 OUT['OBS']=svg(1520,410,''.join(b))
+
+# ---------- REGIONS (design extension: residency zones, home cells, paired standby) ----------
+b=[]
+b.append(box(380,14,760,64,'v','Global control plane · routing metadata only',['tenant → home region · one writable primary, read replicas in every region'],fs=13.5,tfs=15))
+b.append(arr('M440 78 V96','#5B3FD9',dash='5 4')+arr('M760 78 V96','#5B3FD9',dash='5 4'))
+for zx,name,h,s in [(20,'EU ZONE · E.G.','EU-1','EU-2'),(510,'US ZONE · E.G.','US-1','US-2')]:
+    b.append(f'<rect x="{zx}" y="100" width="470" height="248" rx="14" fill="#F4F8FF" stroke="#93B4F5" stroke-width="1.6"/>'+hd(zx+18,124,name,'b'))
+    b.append(box(zx+18,136,190,156,'b',f'{h} · home',['gateway · ingestion','Kafka · Flink','Temporal · storage','dashboards'],fs=13,tfs=15))
+    b.append(box(zx+262,136,190,156,'n',f'{s} · standby',['warm · same stack','replicated topics','checkpoints, history','scales up on failover'],fs=13,tfs=15))
+    b.append(arr(f'M{zx+208} 214 H{zx+258}','#15803D','qg',dash='5 4'))
+    b.append(lab(zx+18,318,'replicated: Kafka topics · Flink checkpoints · Temporal history','#15803D',12.5,600))
+    b.append(lab(zx+18,338,'Redis is rebuilt from the log after a failover','#56667C',12.5,400))
+b.append('<rect x="1000" y="100" width="500" height="248" rx="14" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="1.6" stroke-dasharray="7 5"/>'+hd(1018,124,'CHINA · ISOLATED','r'))
+b.append(box(1018,136,464,44,'r',None,[])+lab(1032,164,'own control plane copy · nothing replicates out','#DC2626',13.5,700))
+b.append(box(1018,192,220,100,'b','CN-1 · home',['full stack, in China'],fs=13,tfs=15))
+b.append(box(1262,192,220,100,'n','CN-2 · standby',['DR stays in China'],fs=13,tfs=15))
+b.append(arr('M1238 242 H1258','#15803D','qg',dash='5 4'))
+b.append(lab(1018,318,'deployed from the same Git repo, run separately','#56667C',12.5,400))
+b.append(box(20,362,1480,50,'n',None,[])+hd(38,384,'SITES CONNECT TO THEIR HOME CELL','n')+lab(38,404,"registry + DNS route each tenant's gateways · e.g. Acme → EU-1, Beta → US-1 · telemetry, state, incidents and tickets stay in the zone",'#33465C',13,400))
+OUT['REG']=svg(1520,420,''.join(b))
 # ---------- STORAGE level 1 ----------
 b=[]
 b.append(box(20,150,170,100,'v','Flink',['writes in parallel'],fs=13,tfs=16))

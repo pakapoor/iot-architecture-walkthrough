@@ -353,7 +353,8 @@ const ISSUES = [
   { slug: 'storm', key: '6', name: 'Alert storm', page: 16, color: 'var(--r)', video: null, sub: 'Site power cut → 200 DEAD → one correlated page', infra: true },
   { slug: 'crash', key: '7', name: 'Flink job crash', page: 17, color: 'var(--v)', video: null, sub: 'Checkpoint restore + Kafka replay + idempotent actions', infra: true },
   { slug: 'hot', key: '8', name: 'Hot partition', page: 18, color: 'var(--y)', video: null, sub: 'One runaway device → one lagging partition → per-device limit', infra: true },
-  { slug: 'growth', key: '9', name: 'Sustained 10× traffic', page: 19, color: 'var(--dd)', video: null, sub: 'Measure → scale bottlenecks → ordered capacity expansion → bound overload → soak test', infra: true }
+  { slug: 'growth', key: '9', name: 'Sustained 10× traffic', page: 19, color: 'var(--dd)', video: null, sub: 'Measure → scale bottlenecks → ordered capacity expansion → bound overload → soak test', infra: true },
+  { slug: 'region', name: 'Region outage → failover', page: 27, color: 'var(--r)', video: null, sub: 'Design extension: spools buffer → UNKNOWN, not DEAD → in-zone failover → same incident IDs', infra: true }
 ];
 const LESSONS = [   // Correctness & trade-offs deep dives, shown as flows on the main diagram
   { slug: 'replay', name: 'Delivery & replay', page: 20, color: 'var(--v)', video: null, sub: 'Crash after an external write: no duplicate, no missing incident' },
@@ -361,7 +362,8 @@ const LESSONS = [   // Correctness & trade-offs deep dives, shown as flows on th
   { slug: 'incidents', name: 'Incident recovery races', page: 22, color: 'var(--r)', video: null, sub: 'Recovery while parked, then a new outage: which incident is it?' },
   { slug: 'tenancy', name: 'Tenant isolation', page: 23, color: '#2563EB', video: null, sub: 'Shared ingestion, state and caches: identity scope at every hop' },
   { slug: 'consistency', name: 'Live & history consistency', page: 24, color: 'var(--dd)', video: null, sub: 'Live point before history, reconnects: snapshot plus cursor' },
-  { slug: 'upgrades', name: 'Safe upgrades & rollback', page: 25, color: '#0EA5A4', video: null, sub: 'Compatible changes, canary gates and one-step rollback' }
+  { slug: 'upgrades', name: 'Safe upgrades & rollback', page: 25, color: '#0EA5A4', video: null, sub: 'Compatible changes, canary gates and one-step rollback' },
+  { slug: 'residency', name: 'Data residency', page: 26, color: '#7C5CFA', video: null, sub: 'Design extension: a home region per tenant, global routing only, China isolated' }
 ];
 LESSONS.forEach(f => { f.infra = true; f.lesson = true; });
 let lastFocus = null;
