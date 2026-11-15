@@ -127,6 +127,16 @@
         'Config changes like tenants, rules and firmware are <b>low-volume</b> and need <b>consistency</b>.',
         'Telemetry is high-volume: <b>different paths, different scaling</b>.',
         'Rollout status returns through the <b>normal telemetry</b> pipeline, not a side channel.'] }] },
+    2: { steps: [   // tenant view, then the small site
+      { h: 'The canary: 1% of cameras, sampled like the fleet.', hl: [[40, 60, 400, 300], [460, 60, 400, 300], [880, 60, 146, 300]], at: [405, 268], lab: [[58, 318, 'canary · 1% of cameras']], b: [
+        'The 1% is sampled across <b>tenants, sites and device models</b>.',
+        'Small stores and flagships alike: the canary should <b>look like the fleet</b>.'] },
+      { h: 'Why not one friendly site?', hl: [[880, 60, 146, 300]], at: [405, 268], b: [
+        'A canary of one site can <b>miss problems, or invent them</b>.',
+        'Trade-off: a bug can reach several tenants at once, but only in <b>small numbers</b>.'] },
+      { svg: 'small', h: 'Each site\'s edge pair downloads 4.3.0.', hl: [[490, 60, 300, 180]], at: [760, 212], lab: [[506, 196, 'firmware agent · downloading 4.3.0']], b: [
+        'The <b>firmware agent</b> on the active gateway downloads the image.',
+        'Next it installs it on the camera, with a way back.'] }] },
     3: { steps: [   // tenant view, then the small site
       { h: 'Canary cameras sit at many sites, across tenants.', hl: [[40, 60, 400, 300], [460, 60, 400, 300]], at: [405, 268], lab: [[58, 318, 'downloading 4.3.0']], b: [
         'The 1% is spread across <b>sites, tenants and models</b>, small stores and flagships alike.',
@@ -145,6 +155,39 @@
         'Example: a <b>local watchdog</b> and a health-confirmation deadline run after the reboot.',
         'Only a confirmed boot is <b>marked good</b>.',
         'Failing to boot or to <b>regain connectivity</b> reselects the previous slot.'] }] },
+    4: { steps: [   // Cloud Gateway close-up (GW_SVG)
+      { h: 'An upgraded camera\'s heartbeat arrives.', hl: [[20, 46, 250, 54]], at: [240, 73], lab: [[34, 262, 'heartbeat · firmware 4.3.0']], b: [
+        'Upgraded cameras send their <b>normal heartbeats</b>, now carrying the firmware version.',
+        'The canary is spread across tenants; this one is an Acme camera at Site-07.'] },
+      { h: 'Same checks as before: mTLS and tenant lookup.', hl: [[325, 46, 200, 194], [570, 46, 200, 194]], path: [[240, 73], [318, 73], [495, 210], [740, 210]], lab: [[582, 196, 'tenant = acme']], b: [
+        'A new firmware version changes <b>nothing</b> about identity: the certificate and registry decide.',
+        'There is <b>no special lane</b> for rollout traffic.'] },
+      { h: 'Quotas as usual, then on to ingestion.', hl: [[815, 30, 330, 226], [1190, 46, 150, 194], [1378, 40, 130, 206]], path: [[740, 210], [808, 143], [1115, 226], [1183, 143], [1310, 143], [1478, 135]], b: [
+        'The heartbeat passes quotas and is load-balanced to an ingestion pod.',
+        'Trade-off: the version must be in <b>every message schema</b>.'] }] },
+    5: { steps: [   // Ingestion close-up
+      { h: 'Upgraded heartbeats arrive from the gateway.', hl: [[20, 120, 180, 110]], at: [170, 200], b: [
+        'Authenticated and <b>tenant-tagged</b>, like every other envelope.',
+        'Each heartbeat now carries the <b>firmware version</b>.'] },
+      { h: 'Validate and unpack, as always.', hl: [[275, 66, 330, 58], [275, 142, 330, 58]], path: [[170, 200], [248, 175], [580, 95], [580, 171]], b: [
+        'The <b>Avro schema</b> already includes the version field.',
+        'Trade-off: the version must be in <b>every message schema</b>.'] },
+      { h: 'Tag: tenant, device model, firmware version.', hl: [[275, 142, 330, 58]], at: [580, 171], lab: [[620, 186, 'tags: tenant · model · 4.3.0']], b: [
+        'These are the tags the <b>health comparison</b> needs.',
+        'They let Flink compare versions within the same <b>model and site cohorts</b>.'] },
+      { h: 'Route as usual: heartbeats to the priority topic.', hl: [[275, 218, 330, 58], [905, 60, 300, 100]], path: [[580, 171], [580, 247], [605, 258], [860, 258], [860, 110], [900, 110], [1175, 130]], b: [
+        'Validation, keying and routing are <b>unchanged</b>.',
+        'There is no special lane for rollout traffic.'] }] },
+    6: { steps: [   // Kafka close-up
+      { h: 'Same topics, no side channel.', hl: [[20, 130, 170, 100], [240, 14, 820, 306]], path: [[160, 200], [232, 180], [420, 126], [789, 126]], b: [
+        'Rollout data rides the <b>same heartbeats and telemetry</b> topics.',
+        'Keys stay <b>tenant + device</b>, so each camera\'s events stay in order.'] },
+      { h: 'Why no separate reporting channel.', hl: [[250, 44, 800, 100]], at: [789, 126], b: [
+        '<b>If the platform can see a device, it can judge its firmware.</b>',
+        'The rejected alternative was a separate channel just for updates: more to build, and it could <b>disagree</b> with the real data.'] },
+      { h: 'Flink reads it like any other heartbeat.', hl: [[1128, 186, 334, 46]], path: [[789, 126], [866, 126], [1100, 126], [1440, 209]], b: [
+        'The Flink consumer group picks it up as usual.',
+        'The comparison happens there, next.'] }] },
     7: { steps: [   // Flink close-up
       { h: 'Heartbeats arrive carrying their firmware version.', hl: [[20, 40, 170, 90]], at: [160, 100], lab: [[36, 280, 'tagged: tenant · model · version']], b: [
         'These are the <b>same heartbeats</b> as always, from the same topic.',
@@ -162,6 +205,36 @@
         'A cohort of only reporting devices would <b>hide the failed ones</b>.',
         'If pipeline freshness is unhealthy, the gate <b>pauses</b> instead of passing on missing data.',
         'Promotion also needs <b>enough samples</b> and a stable observation time.'] }] },
+    8: { steps: [   // Flink close-up
+      { h: '24 hours of canary data, compared with the baseline.', hl: [[736, 20, 300, 240]], at: [1006, 230], lab: [[750, 186, '24 h · no regression', '#15803D']], b: [
+        'After <b>24 hours</b> with no regression against 4.2.1, the gate passes.',
+        'Crash loops, heartbeat gaps and error rate all match the baseline.'] },
+      { h: 'Enough samples, a stable observation time.', hl: [[444, 30, 250, 220]], path: [[1006, 230], [720, 250], [664, 238]], b: [
+        'Promotion needs <b>enough samples</b> in each model and site cohort.',
+        'Silent canary devices still count; missing data never counts as success.'] },
+      { h: 'The gate passes; the control plane may widen.', hl: [[444, 268, 250, 74]], path: [[664, 238], [694, 300]], b: [
+        'The <b>control plane</b> owns the rollout plan, so it starts the next wave.',
+        'Fixed thresholds per device type were the alternative; we judge a release <b>against what it replaces</b>.'] }] },
+    9: { steps: [   // control plane close-up (CTRL_SVG)
+      { h: 'Wave 2: 10% of cameras.', hl: [[36, 186, 330, 30]], at: [330, 322], lab: [[20, 392, 'wave 2 · 10% · its own health gate']], b: [
+        'The rollout widens from the 1% canary to <b>10%</b>.',
+        'It is still sampled across tenants, sites and models.'] },
+      { h: 'Every wave waits for its own gate.', hl: [[20, 14, 350, 330]], at: [330, 322], lab: [[20, 392, '1% ✓ → 10% (gate) → 50% → 100%']], b: [
+        'Passing one wave does <b>not</b> approve the next.',
+        'Later waves go to <b>50%</b>, then <b>100%</b>, under the same rule.'] },
+      { h: 'The gate decides, not someone watching.', hl: [[36, 228, 330, 30]], at: [330, 322], lab: [[20, 392, 'platform health · per wave']], b: [
+        'The platform admin can follow every wave in <b>platform health</b>.',
+        'But promotion is decided by the gate, so nobody has to watch at 3 AM.'] }] },
+    10: { steps: [   // Flink close-up
+      { h: 'Wave 2 reaches more devices, and more models.', hl: [[20, 40, 170, 90]], at: [160, 100], lab: [[36, 280, 'wave 2 · 10% of cameras']], b: [
+        'Ten times as many cameras are now on 4.3.0.',
+        'A larger wave can surface what the 1% canary did not.'] },
+      { h: 'Model X2: heartbeat gaps at three times the baseline.', hl: [[736, 20, 300, 240]], path: [[160, 100], [226, 85], [382, 222], [438, 140], [730, 140], [1006, 230]], lab: [[750, 186, 'X2 · gaps 3×', '#DC2626']], b: [
+        'One model, <b>X2</b>, starts missing heartbeats.',
+        'Compared within its cohort, the gap rate is <b>3× the baseline</b>.'] },
+      { h: 'The gate fails.', hl: [[736, 20, 300, 240], [444, 268, 250, 74]], at: [1006, 230], lab: [[750, 186, 'gate FAILED', '#DC2626']], b: [
+        'Silent devices count <b>against</b> the release; they are never dropped from the sample.',
+        'The failed gate goes to the control plane, which halts the rollout next.'] }] },
     11: { steps: [   // control plane: automatic halt
       { h: 'The gate failed, so the rollout stops itself.', hl: [[36, 186, 330, 30]], at: [330, 322], lab: [[20, 392, 'rollout halted at wave 2', '#DC2626']], b: [
         'The failed health gate <b>halts the rollout immediately</b>.',
@@ -185,7 +258,17 @@
         'No cloud command was needed.'] },
       { h: 'Heartbeats resume on the old version.', hl: [[40, 60, 230, 56], [490, 60, 300, 180]], path: [[250, 88], [484, 88], [760, 212]], lab: [[506, 196, 'X2 back on 4.2.1', '#15803D']], b: [
         'The camera\'s heartbeats now carry <b>4.2.1</b> again.',
-        'The same pipeline that caught the problem <b>confirms the rollback</b>.'] }] }
+        'The same pipeline that caught the problem <b>confirms the rollback</b>.'] }] },
+    13: { steps: [   // Dashboards close-up
+      { h: 'Rollout status arrives like any other change.', hl: [[240, 14, 190, 54], [490, 64, 320, 96]], path: [[458, 41], [458, 100], [780, 140]], lab: [[215, 140, '4.3.0 · halted at wave 2', '#DC2626']], b: [
+        'Flink pushes health per version to the <b>dashboard service</b>.',
+        'Open pages update over <b>SSE</b>; nobody refreshes.'] },
+      { h: 'The platform admin sees waves and health per version.', hl: [[880, 20, 300, 370]], path: [[780, 140], [860, 140], [1150, 330]], b: [
+        'Admins see <b>wave progress</b> and <b>health per firmware version</b>.',
+        'X2 is visible as the model that failed, back on 4.2.1.'] },
+      { h: 'The fix ships as 4.3.1, through the same waves.', hl: [[880, 20, 300, 370]], at: [1150, 330], b: [
+        'The fix starts again with a <b>canary</b>, then the same waves.',
+        'A fix is just another release: it earns its way through the <b>same gates</b>.'] }] }
   });
 
   // ---------- 10 · Flink jobs ----------
@@ -249,6 +332,18 @@
       '<b>CD</b>: a signed image, GitOps, and Argo CD syncing clusters to Git.',
       '<b>Production</b>: a savepoint upgrade, judged by a 30-minute Datadog gate.',
       '<b>Rollback</b>: the old version from the same savepoint, with Kafka replay and reconciled side effects.'] }
+  }, {
+    1: { steps: [   // Flink close-up
+      { h: 'The change: a new OVERHEATING rule.', hl: [[736, 20, 300, 240]], at: [1006, 230], lab: [[750, 186, 'new: OVERHEATING', '#B45309']], b: [
+        'OVERHEATING is a <b>temperature rate-of-change</b> rule, next to SILENT, DEAD and SLOW.',
+        'The developer changes the rule engine inside the Flink job.'] },
+      { h: 'The job holds state for every device.', hl: [[232, 40, 170, 200], [444, 30, 250, 220]], path: [[1006, 230], [720, 250], [664, 238]], b: [
+        'Every device has <b>keyed state and a timer</b>: its silence countdown, its dedup window.',
+        'So this deploy is not just new code: it must carry <b>every device\'s state</b> across versions.'] },
+      { h: 'Checkpoints and savepoints carry that state.', hl: [[20, 360, 1010, 40]], at: [990, 380], b: [
+        'A <b>savepoint</b> upgrade stops the old job and starts the new one from the same state.',
+        'Restarting from nothing would lose every timer, and with it every silence in progress.',
+        'Let\'s zoom in on how that change reaches production.'] }] }
   });
 
   // ---------- 11 · Gateway + Ingestion ----------
@@ -311,6 +406,21 @@
       '<b>CD</b>: GitOps, a synthetic fleet in staging, then a <b>5% canary</b> by traffic.',
       '<b>Gate</b>: errors, rejects and produce latency against the stable pods, at every step to 100%.',
       '<b>Zero downtime</b>: readiness probes, connection draining and PodDisruptionBudgets.'] }
+  }, {
+    1: { steps: [   // Ingestion close-up
+      { h: 'The change: stricter validation for one device type.', hl: [[275, 66, 330, 58]], path: [[170, 200], [248, 175], [580, 95]], lab: [[620, 186, 'changing: validation rule']], b: [
+        'Ingestion validates every payload against its <b>Avro schema</b>.',
+        'This change tightens it for one <b>new device type</b>.'] },
+      { h: 'Every reading, from every tenant, passes here.', hl: [[20, 120, 180, 110], [905, 60, 300, 100], [905, 220, 300, 100]], at: [580, 95], b: [
+        'Heartbeats and telemetry for <b>every tenant</b> go through this step.',
+        'A bad build could <b>reject or corrupt everyone\'s data</b>.'] },
+      { h: 'Too strict means good data is rejected.', hl: [[905, 330, 300, 62]], path: [[580, 95], [440, 130], [440, 340], [880, 361]], b: [
+        'Rejected readings are <b>counted and alarmed</b>, never dropped silently.',
+        'That alarm is what a canary gate watches.'] },
+      { h: 'Stateless, so it can canary by traffic.', hl: [[630, 80, 168, 48]], at: [780, 104], b: [
+        'Pods hold <b>no state</b>: a new version can take a slice of traffic first.',
+        'Rollback is just <b>moving traffic back</b>.',
+        'Let\'s zoom in on how that change reaches production.'] }] }
   });
 
   // ---------- 12 · Temporal + Action services ----------
@@ -376,6 +486,18 @@
       '<b>Versioned workers</b>: new incidents on new code, running ones on the code that started them.',
       '<b>Datadog gate</b> on workflow failures, task latency and ticket errors.',
       'Old workers retire only when <b>no running workflow</b> needs them.'] }
+  }, {
+    1: { steps: [   // Action Execution close-up (ACT_SVG)
+      { h: 'Each incident runs as one Temporal workflow.', hl: [[880, 14, 390, 300]], at: [1240, 290], b: [
+        'Action Execution runs each incident\'s lifecycle as a durable <b>Temporal workflow</b>.',
+        'Ticket, wait for ack, escalate, resolve: the steps are <b>code</b>.'] },
+      { h: 'Some workflows are mid-flight for days.', hl: [[898, 252, 354, 46]], at: [1240, 290], b: [
+        'Right now, some incidents are <b>waiting days</b> for a technician.',
+        'Temporal rebuilds a workflow by <b>replaying its history</b>, so changing the step order breaks running ones.'] },
+      { h: 'The new step: notify the site manager.', hl: [[898, 90, 354, 100]], path: [[1240, 290], [1260, 190], [1240, 136]], b: [
+        'The new step must apply to <b>new</b> incidents without changing the running ones.',
+        'Replay tests against real histories prove it, before anything ships.',
+        'Let\'s zoom in on how that change reaches production.'] }] }
   });
 
   // ---------- 13 · Dashboard service + UI ----------
@@ -440,6 +562,21 @@
       '<b>UI</b>: assets first, index last, so there is never a half-deployed app.',
       '<b>Release</b>: dark behind a flag, an internal tenant first, everyone after the Datadog gate.',
       '<b>Rollback</b>: flag off in seconds, and live streams survive deploys.'] }
+  }, {
+    1: { steps: [   // Dashboards close-up
+      { h: 'The change: a per-site uptime chart.', hl: [[1200, 20, 310, 370]], at: [1466, 136], b: [
+        'Tenant admins drill down <b>tenant → site → device</b>.',
+        'The new chart belongs to the <b>site</b> level.'] },
+      { h: 'It changes the API and the UI.', hl: [[490, 174, 320, 96], [20, 170, 180, 100]], path: [[1466, 136], [1190, 330], [780, 230]], b: [
+        'History comes through the <b>REST API</b>, from ClickHouse.',
+        'The UI and the API change together, so they must stay <b>compatible</b> mid-deploy.'] },
+      { h: 'Risk one: a tenant data leak.', hl: [[490, 284, 320, 90]], path: [[780, 230], [780, 345]], b: [
+        'Every call is scoped by <b>role + tenant + sites</b>.',
+        'A new endpoint that skips that check would show one tenant another\'s sites.'] },
+      { h: 'Risk two: breaking live screens mid-deploy.', hl: [[490, 64, 320, 96]], path: [[780, 345], [780, 140]], b: [
+        'Open pages hold <b>SSE</b> streams to the dashboard service.',
+        'A deploy must drain them, and clients must reconnect cleanly.',
+        'Let\'s zoom in on how that change reaches production.'] }] }
   });
 
   // ---------- 14 · Data stores ----------
@@ -513,6 +650,18 @@
       '<b>Expand</b> with nullable fields, ship <b>dual-read</b> code, and <b>backfill</b> slowly.',
       '<b>Online indexes</b> and a <b>Datadog</b> check before anything is removed.',
       '<b>Contract last</b>: until then, every step can be undone.'] }
+  }, {
+    1: { steps: [   // Storage close-up (STOR_SVG)
+      { h: 'The change: firmware_version on telemetry rows.', hl: [[272, 112, 250, 82]], path: [[160, 230], [230, 200], [230, 152], [500, 170]], b: [
+        'Raw telemetry lives in <b>ClickHouse hot</b>, written by Flink.',
+        'The new column lets dashboards show health <b>per firmware version</b>.'] },
+      { h: 'And on device documents in MongoDB.', hl: [[272, 388, 250, 82]], path: [[500, 170], [240, 250], [240, 430], [500, 450]], b: [
+        'Device documents live in the <b>MongoDB</b> registry.',
+        'It is the version the firmware rollout compares.'] },
+      { h: 'Old and new code run side by side.', hl: [[848, 170, 264, 90], [848, 276, 264, 90]], path: [[500, 450], [800, 321], [1090, 320]], b: [
+        'During the deploy, old and new readers and writers coexist.',
+        'So <b>both must work at every step</b>: expand → migrate → contract.',
+        'Let\'s zoom in on how that change reaches production.'] }] }
   });
 
   // ---------- 15 · Kafka + platform ----------
@@ -588,5 +737,17 @@
       '<b>Rehearse</b> the same upgrade on staging under replayed load.',
       '<b>Roll</b> one broker at a time, gated on zero under-replicated partitions.',
       '<b>Finalize last</b>: the metadata.version bump is the point of no return.'] }
+  }, {
+    1: { steps: [   // Kafka close-up
+      { h: 'The change: longer retention on the telemetry topic.', hl: [[250, 166, 800, 100]], at: [840, 226], b: [
+        'Retention decides how far back we can <b>replay</b>.',
+        'It must cover an outage <b>and</b> the catch-up after it.'] },
+      { h: 'Replay depends on it.', hl: [[1110, 334, 370, 58]], path: [[840, 226], [1080, 300], [1450, 363]], b: [
+        'After a bug or an outage we <b>rewind the offset</b> and reprocess.',
+        'Longer retention means more broker <b>disk</b>, planned in advance.'] },
+      { h: 'Every reading flows through these brokers.', hl: [[240, 14, 820, 306]], path: [[1450, 363], [1100, 180], [789, 126]], b: [
+        'Both topics, every tenant: the cluster must <b>stay available</b> during the upgrade.',
+        'So brokers upgrade <b>one at a time</b>, with producers and consumers running.',
+        'Let\'s zoom in on how that change reaches production.'] }] }
   });
 })();

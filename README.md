@@ -34,7 +34,7 @@ Open **My role** for the presenter's role, scope, decisions and outcomes. Expand
 | Hot partition | contained at the door: per-device limits · lag by partition |
 | Sustained 10× traffic | measure the bottleneck → scale each layer → ordered Kafka migration → bounded admission → recovery/soak gates |
 
-**Deep dives** also contains six runnable visual answers on correctness and trade-offs: delivery/replay, device versus pipeline health, incident races, tenant isolation, live/history consistency, and safe rollback. They run in a focused dialog with Play/Next controls, including on phones.
+**Deep dives** also contains six runnable visual answers on correctness and trade-offs: delivery/replay, device versus pipeline health, incident races, tenant isolation, live/history consistency, and safe rollback. Each is a flow on the main architecture diagram (flows 20–25), with presenter notes and inside views like the other walkthroughs; old `?deep=` links open the matching flow.
 
 | Deployment & upgrades | What it shows |
 |---|---|
@@ -61,12 +61,11 @@ Walkthrough videos of the first eight flows (720p), in [`videos/`](videos):
 ## Repository layout
 ```
 index.html                entry point for GitHub Pages (opens pres/)
-pres/index.html           the one-page shell: side panel, My role, deep-dive dialogs, phone layout
+pres/index.html           the one-page shell: side panel, My role dialog, phone layout
 pres/timeline2p.js        presenter engine: stops, camera, controls, close-ups, reflow
 pres/icons.js             SVG line icons (replace emoji at runtime)
-pres/deep-dives.js        visual interview answers (Deep dives · correctness & trade-offs)
 pres/notes.js             explanation-panel notes + inside views: flow 1 and registerFlow()
-pres/notes-*.js           the other flows' notes: alerts, device, infra, deploy
+pres/notes-*.js           the other flows' notes: alerts, device, infra, deploy, lessons (correctness deep dives, flows 20–25)
 pres/role.js              content of the My role dialog
 pres/flow*.html           one page per flow (generated)
 iot.html, svcnow.html     the architecture diagram and ServiceNow/Temporal scene (source of truth)

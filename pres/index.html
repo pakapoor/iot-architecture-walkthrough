@@ -76,11 +76,6 @@ aside{border-left:1px solid var(--line);background:var(--surface);display:flex;f
 .dsec h3{font:600 11px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
 .dsec p{margin:0;font-size:15px;line-height:1.5}
 .dline{border-left:3px solid var(--accent);padding:8px 12px;background:var(--hover);font-weight:600;font-size:15px;line-height:1.45}
-.snap{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#EEF3F9;align-self:start}
-.snap img{display:block;width:100%;height:auto}
-.snap .hl{position:absolute;border:3px solid #2563EB;border-radius:10px;box-shadow:0 0 0 4px rgba(37,99,235,.18),0 0 26px rgba(37,99,235,.45)}
-.snap .dim{position:absolute;inset:0;background:rgba(238,243,249,.55)}
-figure{margin:0;display:grid;gap:8px;align-content:start}
 figcaption{font-size:12.5px;color:var(--muted)}
 
 .hint kbd{font:500 11px var(--mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px}
@@ -133,7 +128,6 @@ aside{padding:30px 20px 24px;gap:26px;border-left:1px solid var(--line)}
 .dbody{padding:22px 26px 26px;gap:28px}
 .dsec h3{font:600 11px/1.2 var(--body);letter-spacing:.06em}
 .dline{border-left:0;border-radius:14px;background:var(--hover);padding:12px 16px;font-weight:600}
-.snap{border:0;border-radius:16px;box-shadow:0 0 0 1px var(--line)}
 .vcard{border:0;border-radius:18px;box-shadow:0 1px 3px rgba(0,0,0,.08),0 0 0 1px var(--line)}
 
 /* spacious navigation panel */
@@ -235,8 +229,6 @@ aside{transition:visibility 0s .25s}
 .rolefacts b{color:var(--ink);font-weight:600}
 .dsec ul{margin:4px 0 0;padding-left:20px}
 .dlead{font-size:16px;line-height:1.55;margin:0 0 14px}
-.knowledge-list .item{font-size:14px;padding:9px 12px}
-.snap svg{display:block;width:100%;height:auto}
 .dmodal{position:fixed;z-index:100}
 .mobile-learning{margin:0 0 22px;color:var(--muted)}
 .mobile-learning summary{cursor:pointer;padding:10px 0;font-size:14px;font-weight:500}
@@ -246,21 +238,12 @@ aside{transition:visibility 0s .25s}
 .navgroup{display:grid;gap:2px}
 .navgroup + .navgroup{margin-top:12px}
 .navgroup-label{padding:7px 12px 3px;font-size:11px;font-weight:500;color:var(--muted)}
-.lesson-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.lesson-controls[hidden],.lesson-caption[hidden]{display:none}
-.lesson-controls button{border:0;border-radius:999px;background:var(--hover);color:var(--ink);padding:8px 13px;font:500 13px var(--body);cursor:pointer}
-.lesson-controls button:disabled{opacity:.35;cursor:default}
-.lesson-controls button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.lesson-count{margin-left:auto;color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
-.lesson-caption{margin:0;background:var(--hover);border-radius:12px;padding:12px 14px;color:var(--ink);font-size:14px;line-height:1.5}
 .reasoning{margin:16px 0;color:var(--muted)}
 .reasoning summary{cursor:pointer;font-size:14px;font-weight:500;margin-bottom:12px;color:var(--accent)}
 .dhead{position:sticky;top:0;z-index:2;background:var(--card)}
-@media(max-width:1100px){.dcard.knowledge .dbody figure{order:-1}}
 /* text-first "Description & trade-offs" view */
 .dcard.textonly{width:min(880px,100%)}
 .dcard.textonly .dbody{grid-template-columns:1fr}
-.dcard.textonly figure,.dcard.textonly #lessonControls,.dcard.textonly #lessonCaption{display:none}
 .ddesc{border-top:1px solid var(--line);margin-top:18px;padding-top:16px}
 .ddesc h4{font-family:var(--display);font-size:17px;font-weight:600;margin:0 0 10px}
 .rolesec{border-top:1px solid var(--line,#E2E8F0);padding:2px 0}
@@ -297,7 +280,7 @@ aside{transition:visibility 0s .25s}
   <main class="stagewrap" id="stage" aria-label="Architecture walkthrough">
     <div class="dmodal" id="dmodal" hidden><div class="dcard" role="dialog" aria-modal="true" aria-labelledby="dtitle">
       <div class="dhead"><div><div class="kick" id="dkick"></div><h2 id="dtitle"></h2></div><button class="dclose" id="dclose" type="button">Close · Esc</button></div>
-      <div class="dbody"><div id="dtext"></div><figure><div class="snap" id="dsnap"></div><div class="lesson-controls" id="lessonControls" hidden><button type="button" id="lessonPrev">Previous</button><button type="button" id="lessonPlay">Play</button><button type="button" id="lessonNext">Next</button><span class="lesson-count" id="lessonCount"></span></div><p class="lesson-caption" id="lessonCaption" hidden aria-live="polite"></p><figcaption id="dcap"></figcaption></figure></div>
+      <div class="dbody"><div id="dtext"></div></div>
     </div></div>
     <div class="upnext" id="upnext" hidden role="status" aria-live="polite">
       <div class="un-row">
@@ -325,7 +308,7 @@ aside{transition:visibility 0s .25s}
     <section class="grp" aria-labelledby="g2"><h2 id="g2"><button class="sectiontoggle" id="deepToggle" type="button" aria-expanded="false" aria-controls="deepNav">Deep dives<span class="chev" aria-hidden="true">›</span></button></h2>
       <div id="deepNav" hidden>
         <div class="navgroup" role="group" aria-label="When things break"><div class="navgroup-label">When things break</div><div class="list" id="issues"></div></div>
-        <div class="navgroup" role="group" aria-label="Correctness and trade-offs"><div class="navgroup-label">Correctness &amp; trade-offs</div><div class="list knowledge-list" id="deepTopics"></div></div>
+        <div class="navgroup" role="group" aria-label="Correctness and trade-offs"><div class="navgroup-label">Correctness &amp; trade-offs</div><div class="list" id="deepTopics"></div></div>
       </div>
     </section>
     <section class="grp" aria-labelledby="g3"><h2 id="g3"><button class="sectiontoggle" id="deployToggle" type="button" aria-expanded="false" aria-controls="deploy">Deployment &amp; upgrades<span class="chev" aria-hidden="true">›</span></button></h2><div class="list" id="deploy" hidden></div></section>
@@ -344,7 +327,6 @@ aside{transition:visibility 0s .25s}
 </div>
 
 <script src="role.js"></script>
-<script src="deep-dives.js"></script>
 <script>
 const FLOWS = [
   { group: 'Device data', slug: 'g-data', key: '1', color: 'var(--g)', items: [
@@ -373,57 +355,25 @@ const ISSUES = [
   { slug: 'hot', key: '8', name: 'Hot partition', page: 18, color: 'var(--y)', video: null, sub: 'One runaway device → one lagging partition → per-device limit', infra: true },
   { slug: 'growth', key: '9', name: 'Sustained 10× traffic', page: 19, color: 'var(--dd)', video: null, sub: 'Measure → scale bottlenecks → ordered capacity expansion → bound overload → soak test', infra: true }
 ];
-const DETAIL = {};   // deep-dive lessons, keyed by title (pres/deep-dives.js)
-
-KNOWLEDGE.forEach(topic => { DETAIL[topic.title] = topic; });
-function knowledgeVisual(topic, active = 0) {
-  const esc = v => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  return `<svg viewBox="0 0 520 ${topic.steps.length * 94 + 24}" role="img" aria-label="${esc(topic.title)}: step ${active + 1} of ${topic.steps.length}"><defs><marker id="deepArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1 8 5 1 9" fill="none" stroke="var(--muted)" stroke-width="1.5"/></marker></defs>` + topic.steps.map(([title, desc], i) => {
-    const y = 20 + i * 94;
-    return `${i ? `<path d="M260 ${y - 22} V${y - 4}" fill="none" stroke="var(--muted)" marker-end="url(#deepArrow)"/>` : ''}<rect x="20" y="${y}" width="480" height="72" rx="14" fill="${i === active ? 'var(--hover)' : 'var(--surface)'}" stroke="${i === active ? 'var(--accent)' : 'var(--line)'}" stroke-width="${i === active ? 2 : 1}"/><text x="40" y="${y + 27}" fill="var(--ink)" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="17" font-weight="600">${esc(title)}</text><text x="40" y="${y + 51}" fill="var(--muted)" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="13">${esc(desc)}</text>`;
-  }).join('') + '</svg>';
-}
-let lastFocus = null, activeKnowledge = null, lessonStep = 0, lessonTimer = null;
-function stopLesson() { clearInterval(lessonTimer); lessonTimer = null; $('lessonPlay').textContent = 'Play'; }
-function setLessonStep(step) {
-  if (!activeKnowledge) return; lessonStep = Math.max(0, Math.min(step, activeKnowledge.steps.length - 1));
-  $('dsnap').innerHTML = knowledgeVisual(activeKnowledge, lessonStep);
-  $('lessonCount').textContent = `${lessonStep + 1} / ${activeKnowledge.steps.length}`;
-  const [title, description] = activeKnowledge.steps[lessonStep];
-  $('lessonCaption').textContent = `${title}. ${description}`;
-  $('lessonPrev').disabled = lessonStep === 0; $('lessonNext').disabled = lessonStep === activeKnowledge.steps.length - 1;
-  if ($('lessonNext').disabled) stopLesson();
-}
-function initLessons() {
-$('lessonPrev').addEventListener('click', () => { stopLesson(); setLessonStep(lessonStep - 1); });
-$('lessonNext').addEventListener('click', () => { stopLesson(); setLessonStep(lessonStep + 1); });
-$('lessonPlay').addEventListener('click', () => {
-  if (lessonTimer) { stopLesson(); return; } if (!activeKnowledge) return;
-  if (lessonStep === activeKnowledge.steps.length - 1) setLessonStep(0);
-  $('lessonPlay').textContent = 'Pause'; lessonTimer = setInterval(() => setLessonStep(lessonStep + 1), 2600);
-});
-}
-function openDetail(t, from) {
-  const x = DETAIL[t]; if (!x) return; lastFocus = from || null; $('dmodal').querySelector('.dcard').classList.remove('textonly');
-  stopLesson(); $('lessonControls').hidden = $('lessonCaption').hidden = !x.steps;
-  hideUpNext(); if (frame) { pauseFrame(frame); frame.inert = true; }
-  $('panel').inert = true; $('paneltoggle').inert = true;
-  $('dtitle').textContent = t;
-  const sec = (h, v) => `<div class="dsec"><h3>${h}</h3><p>${v}</p></div>`;
-  $('dmodal').querySelector('.dcard').classList.toggle('knowledge', !!x.steps);
-  $('dtext').innerHTML = sec('Problem', x.p) + sec('Decision', x.d) + `<details class="reasoning"><summary>Trade-offs &amp; alternatives</summary>${sec('Alternative', x.alt)}${sec('Trade-off', x.tr)}</details><div class="dline">“${x.line}”</div>`;
-  if (x.steps) { $('dsnap').innerHTML = knowledgeVisual(x); $('dcap').textContent = x.caption; $('dkick').textContent = 'Deep dive · design example'; }
-  $('dmodal').hidden = false; $('dclose').focus();
-}
+const LESSONS = [   // Correctness & trade-offs deep dives, shown as flows on the main diagram
+  { slug: 'replay', name: 'Delivery & replay', page: 20, color: 'var(--v)', video: null, sub: 'Crash after an external write: no duplicate, no missing incident' },
+  { slug: 'liveness', name: 'Device or pipeline failure?', page: 21, color: 'var(--y)', video: null, sub: 'Many devices silent while the consumer is behind: page or hold?' },
+  { slug: 'incidents', name: 'Incident recovery races', page: 22, color: 'var(--r)', video: null, sub: 'Recovery while parked, then a new outage: which incident is it?' },
+  { slug: 'tenancy', name: 'Tenant isolation', page: 23, color: '#2563EB', video: null, sub: 'Shared ingestion, state and caches: identity scope at every hop' },
+  { slug: 'consistency', name: 'Live & history consistency', page: 24, color: 'var(--dd)', video: null, sub: 'Live point before history, reconnects: snapshot plus cursor' },
+  { slug: 'upgrades', name: 'Safe upgrades & rollback', page: 25, color: '#0EA5A4', video: null, sub: 'Compatible changes, canary gates and one-step rollback' }
+];
+LESSONS.forEach(f => { f.infra = true; f.lesson = true; });
+let lastFocus = null;
 // "My role": the presenter's role, scope, decisions and outcomes (pres/role.js)
 function openRole(from) {
   const esc = v => String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/&lt;(\/?)(b|i)&gt;/g, '<$1$2>');
   // Each section is collapsed by default (heading + item count); the lead and facts stay visible.
   const list = (sec, i) => `<details class="rolesec"${sec.open ? ' open' : ''}><summary><span>${esc(sec.h)}</span><em>${sec.items.length}</em></summary><${sec.ordered ? 'ol' : 'ul'}>${sec.items.map(x => `<li>${esc(x)}</li>`).join('')}</${sec.ordered ? 'ol' : 'ul'}></details>`;
-  lastFocus = from || null; activeKnowledge = null; stopLesson();
+  lastFocus = from || null;
   hideUpNext(); if (frame) { pauseFrame(frame); frame.inert = true; }
   $('panel').inert = true; $('paneltoggle').inert = true;
-  const card = $('dmodal').querySelector('.dcard'); card.classList.remove('knowledge'); card.classList.add('textonly');
+  const card = $('dmodal').querySelector('.dcard'); card.classList.add('textonly');
   $('dkick').textContent = ROLE.kicker; $('dtitle').textContent = ROLE.title;
   $('dtext').innerHTML = `<p class="dlead">${esc(ROLE.lead)}</p><div class="rolefacts">${ROLE.facts.map(([k, v]) => `<span>${esc(k)} <b>${esc(v)}</b></span>`).join('')}</div>`
     + `<div class="roletools"><button type="button" id="roleAll" aria-pressed="false">Expand all</button></div>` + ROLE.sections.map(list).join('');
@@ -431,13 +381,10 @@ function openRole(from) {
   const sync = () => { const open = secs.every(d => d.open); all.textContent = open ? 'Collapse all' : 'Expand all'; all.setAttribute('aria-pressed', String(open)); };
   all.addEventListener('click', () => { const open = !secs.every(d => d.open); secs.forEach(d => { d.open = open; }); sync(); });
   secs.forEach(d => d.addEventListener('toggle', sync)); sync();
-  $('dsnap').innerHTML = ''; $('dcap').textContent = '';
   $('dmodal').hidden = false; card.scrollTop = 0; $('dclose').focus();
 }
 function closeDetail() {
   if ($('dmodal').hidden) return; $('dmodal').hidden = true;
-  stopLesson(); document.querySelectorAll('.navitem[data-topic]').forEach(b => { b.classList.remove('on'); b.setAttribute('aria-pressed', 'false'); });
-  if (activeKnowledge) { activeKnowledge = null; const u = new URL(location.href); u.searchParams.delete('deep'); history.replaceState(null, '', u); }
   $('panel').inert = false; $('paneltoggle').inert = false; if (frame) frame.inert = false;
   if (lastFocus && lastFocus.frame === frame) {
     try { const el = frame.contentDocument.getElementById(lastFocus.id); if (el) el.focus({ preventScroll: true }); else frame.focus(); } catch (_) { frame.focus(); }
@@ -445,7 +392,6 @@ function closeDetail() {
 }
 function initDetail() {
 document.body.appendChild($('dmodal'));
-initLessons();
 $('dclose').addEventListener('click', closeDetail);
 $('dmodal').addEventListener('click', e => { if (e.target.id === 'dmodal') closeDetail(); });
 addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
@@ -454,7 +400,7 @@ $('dmodal').addEventListener('keydown', e => { if (e.key !== 'Tab') return;
   const i = f.indexOf(document.activeElement), n = e.shiftKey ? (i <= 0 ? f.length - 1 : i - 1) : (i === f.length - 1 ? 0 : i + 1);
   e.preventDefault(); f[n].focus(); });
 }
-const ALL = FLOWS.flatMap(f => f.items || [f]).concat(ISSUES, DEPLOY.items);
+const ALL = FLOWS.flatMap(f => f.items || [f]).concat(ISSUES, LESSONS, DEPLOY.items);
 const $ = id => document.getElementById(id);
 let current = null, frame = null;
 
@@ -495,28 +441,21 @@ FLOWS.forEach(f => {
   f.items.forEach(item => flowButton(item, group)); $('flows').appendChild(group);
 });
 ISSUES.forEach(f => flowButton(f, $('issues')));
+LESSONS.forEach(f => flowButton(f, $('deepTopics')));
 DEPLOY.items.forEach(f => flowButton(f, $('deploy')));
 function setSection(id, open) {
   if (open) ['flowToggle', 'deepToggle', 'deployToggle'].forEach(other => { if (other !== id) { const b = $(other); b.setAttribute('aria-expanded', 'false'); $(b.getAttribute('aria-controls')).hidden = true; } });
   const btn = $(id); btn.setAttribute('aria-expanded', String(open)); $(btn.getAttribute('aria-controls')).hidden = !open;
 }
 ['flowToggle', 'deepToggle', 'deployToggle'].forEach(id => $(id).addEventListener('click', () => setSection(id, $(id).getAttribute('aria-expanded') !== 'true')));
-function openKnowledge(topic, trigger) {
-  stopLesson(); teaser = 'off'; clearTimeout(teaserT); setSection('deepToggle', true);
-  openDetail(topic.title, trigger); activeKnowledge = topic; setLessonStep(0);
-  document.querySelectorAll('.navitem[data-topic]').forEach(b => { const on = b.dataset.topic === topic.slug; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
-  const u = new URL(location.href); u.searchParams.delete('deep'); u.searchParams.delete('future'); u.searchParams.set(topic.section, topic.slug); history.replaceState(null, '', u);
-}
-function topicButton(topic, target, prefix) {
-  const b = navButton(topic.title, button => openKnowledge(topic, button)); b.id = prefix + topic.slug; b.dataset.topic = topic.slug;
-  target.appendChild(b);
-}
-KNOWLEDGE.forEach(topic => topicButton(topic, $('deepTopics'), 'topic-'));
+// phone: the deep dives are listed too; each opens its card (interactive on desktop)
 const mobileLearning = document.createElement('details'); mobileLearning.className = 'mobile-learning';
 mobileLearning.innerHTML = '<summary>Deep dives</summary><div id="phoneTopics"></div>';
 $('vids').before(mobileLearning);
 { const group = document.createElement('div'); group.className = 'navgroup'; group.setAttribute('role', 'group'); group.setAttribute('aria-label', 'Deep dives');
-  KNOWLEDGE.forEach(topic => topicButton(topic, group, 'mobile-topic-')); $('phoneTopics').appendChild(group); }
+  ISSUES.concat(LESSONS).forEach(f => { const b = navButton(f.name, () => { showPhoneFlow(f); const u = new URL(location.href); u.searchParams.delete('deep'); u.searchParams.set('flow', f.slug); try { history.replaceState(null, '', u); } catch (_) {} });
+    b.id = 'mobile-flow-' + f.slug; b.dataset.phone = f.slug; group.appendChild(b); });
+  $('phoneTopics').appendChild(group); }
 
 $('roleBtn').addEventListener('click', () => openRole($('roleBtn')));
 $('home').addEventListener('click', () => select(null));
@@ -625,16 +564,15 @@ function showPhoneFlow(f) {
 // start: deep link or architecture
 initDetail();
 const start = ALL.find(f => f.slug === new URLSearchParams(location.search).get('flow'));
-const knowledgeStart = KNOWLEDGE.find(t => new URLSearchParams(location.search).get(t.section) === t.slug);
-const requestedStart = start;   // old ?future= links fall back to the architecture
+const deepStart = LESSONS.find(f => f.slug === new URLSearchParams(location.search).get('deep'));   // old ?deep=<slug> lesson links open the lesson's flow
+const requestedStart = start || deepStart;   // old ?future= links fall back to the architecture
 if (new URLSearchParams(location.search).has('future')) { const u = new URL(location.href); u.searchParams.delete('future'); history.replaceState(null, '', u); }
-if (MQ.matches) showPhoneFlow(requestedStart); else select(requestedStart || null, false);
-if (knowledgeStart && (MQ.matches || knowledgeStart.section === 'deep')) { if (MQ.matches) mobileLearning.open = true; openKnowledge(knowledgeStart, $((MQ.matches ? 'mobile-topic-' : 'topic-') + knowledgeStart.slug)); }
+if (MQ.matches) { if (requestedStart && requestedStart.infra) mobileLearning.open = true; showPhoneFlow(requestedStart); } else select(requestedStart || null, !!deepStart);
 // 13. layout switches: build the stage when entering desktop, pause it when entering phone
 MQ.addEventListener('change', e => {
   if (e.matches) { if (frame) pauseFrame(frame); hideUpNext(); clearTimeout(teaserT); teaser = 'off'; showPhoneFlow(current || start); }
   else { document.querySelectorAll('video').forEach(v => v.pause()); if (!frame) select(current || requestedStart || null); }
 });
-if (!MQ.matches && !start && !knowledgeStart) { teaser = 'waiting'; teaserT = setTimeout(() => { if (teaser !== 'waiting' || current) return; teaser = 'playing'; select(ALL.find(f => f.slug === 'health'), true, true); }, 8000); }
+if (!MQ.matches && !requestedStart) { teaser = 'waiting'; teaserT = setTimeout(() => { if (teaser !== 'waiting' || current) return; teaser = 'playing'; select(ALL.find(f => f.slug === 'health'), true, true); }, 8000); }
 </script>
 </html>

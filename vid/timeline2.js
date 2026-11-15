@@ -299,6 +299,88 @@ if (VID === 19) {
   TRS = [];
 }
 
+if (VID === 20) {   // lesson · Delivery & replay (notes: pres/notes-lessons-a.js)
+  const OBP = { pt: () => { const r = rectOf('a-ob0'); return [r.x - 26, r.y + r.h / 2, r.x + r.w / 2, r.y + r.h / 2]; } };
+  st('a', 'a-flink', 'br', 'core', 'v', 'CAM-14 turns DEAD · Flink writes the incident decision to a <b>transactional</b> Kafka sink · pending, not yet visible', (S) => { S.chip = ['🔴 CAM-14 DEAD · INC-1042 pending', ...red]; });
+  st('a', 'a-kafka', 'br', 'deep', 'v', 'The checkpoint completes → the transaction commits · fan-out reads <b>committed</b> decisions only', (S) => { S.chip = ['✓ INC-1042 committed', '#E5EDFF', '#1D4ED8', '#93B4F5']; });
+  st('a', 'a-act', 'tr', 'core', 'r', 'Page + ServiceNow upsert for INC-1042 · the write succeeds, the reply times out, the worker crashes before its ack', (S) => { S.laneR = 1; S.aBadge = ['⚠ ambiguous timeout · no ack', ...org]; });
+  st('a', 'a-act', 'tr', 'deep', 'g', 'SQS redelivers · the <b>same action key</b> (INC-1042) → the upsert finds the open ticket · still one ticket', (S) => { S.aBadge = ['✅ one ticket · INC-1042', ...grn]; }, { stay: true });
+  st('a', 'a-flink', 'br', 'deep', 'r', 'Later, a bad deploy is rolled back to an older checkpoint → Flink decides CAM-14\'s DEAD transition again', (S) => { S.chip = ['⟲ rolled back · re-deciding', ...org]; });
+  st('a', 'a-flink', 'br', 'deep', 'v', 'The retained <b>decision register</b> returns the original incident ID · INC-1042 again, never a new one', (S) => { S.chip = ['🪪 same identity · INC-1042', '#E5EDFF', '#1D4ED8', '#93B4F5']; }, { stay: true });
+  st('a', 'a-stor', 'tr', 'core', 'g', 'Storage replays safely too: Redis rejects older versions · ClickHouse reads deduplicate event IDs', null, { via: [[1514, 425], [1082, 425]] });
+  st('a', 'a-obsp', 'tl', 'core', 'g', 'Reconciliation compares the final incident state with ServiceNow · a mismatch alarms', (S) => { S.obsT = { 4: ['✓ reconciled', 0] }; }, OBP);
+  RECAP = { cap: 'Crash after the write → redeliver or roll back → same incident ID → one page, one ticket ♻', badge: ['✅ CAM-14 · one incident, one ticket', ...grn], boxes: ['a-kafka', 'a-flink', 'a-act', 'a-stor', 'a-obsp'] };
+  TRS = [];
+}
+if (VID === 21) {   // lesson · Device or pipeline failure? (notes: pres/notes-lessons-a.js)
+  const OBP = { pt: () => { const r = rectOf('a-ob1'); return [r.x - 26, r.y + r.h / 2, r.x + r.w / 2, r.y + r.h / 2]; } };
+  st('a', 'a-edge', 'br', 'core', 'g', 'Devices are healthy · every one still heartbeats once a minute', (S) => { S.aBadge = ['📡 devices healthy · heartbeating', ...grn]; });
+  st('a', 'a-ing', 'br', 'pass', 'g', 'Heartbeats keep their <b>reserved capacity</b> · priority topic, end to end');
+  st('a', 'a-kafka', 'br', 'core', 'y', 'Heartbeats land in Kafka · but the Flink consumer falls behind and lag grows', (S) => { S.obsT = { 0: ['▲ lag rising', 1] }; });
+  st('a', 'a-flink', 'br', 'deep', 'r', 'Device timers expire for many devices at once → DEAD <b>candidates</b>, not pages', (S) => { S.chip = ['⚠ many DEAD candidates', ...org]; });
+  st('a', 'a-obsp', 'tl', 'deep', 'y', 'Is the observer healthy? Freshness p99 and completed-checkpoint age say <b>no</b> · this is a pipeline problem', (S) => { S.obsT = { 0: ['▲ lag rising', 1], 1: ['▲ freshness > 2 min', 1], 2: ['⚠ checkpoint age', 1] }; }, OBP);
+  st('a', 'a-flink', 'br', 'deep', 'v', 'Recovery gate: candidates are held and shown <b>UNKNOWN</b> · the hold is short and bounded', (S) => { S.chip = ['❔ UNKNOWN · data delayed', '#EEF2F7', '#33465C', '#B9C6D8']; });
+  st('a', 'a-act', 'tr', 'core', 'r', 'One page goes to the <b>pipeline owner</b> now · not one page per device', (S) => { S.laneR = 1; });
+  st('a', 'a-dash', 'tr', 'core', 'y', 'Dashboards show UNKNOWN · data delayed · no wall of red', null, { via: [[1350, 690], [570, 690]] });
+  st('a', 'a-flink', 'br', 'deep', 'g', 'Freshness recovers · fresh heartbeats clear their devices · a still-silent device becomes DEAD and pages as normal', (S) => { S.chip = ['✓ observer healthy · verdicts resume', ...grn]; S.obsT = { 0: ['● OK', 0], 1: ['● OK', 0], 2: ['● OK', 0] }; });
+  RECAP = { cap: 'Silent devices + a lagging pipeline → UNKNOWN, not DEAD → page the pipeline owner → verdicts resume when fresh 🩺', badge: ['✅ no false device pages', ...grn], boxes: ['a-kafka', 'a-flink', 'a-obsp', 'a-act', 'a-dash'] };
+  TRS = [];
+}
+if (VID === 22) {   // lesson · Incident recovery races (notes: pres/notes-lessons-a.js)
+  st('a', 'a-flink', 'br', 'core', 'r', 'CAM-14 is DEAD at minute 20 · Flink stores <b>outage generation A</b> in durable state · the incident ID includes it', (S) => { S.chip = ['🔴 CAM-14 · outage A', ...red]; });
+  st('a', 'a-act', 'tr', 'core', 'r', 'On-call is paged now · at minute 30 ServiceNow is down, so ticket creation for A is <b>parked</b>', (S) => { S.laneR = 1; S.aBadge = ['⏸ ticket for A parked', ...org]; });
+  st('a', 'a-edge', 'br', 'core', 'g', 'CAM-14 comes back · fresh heartbeats again', (S) => { S.chip = ['🟢 CAM-14 · back online', ...grn]; });
+  st('a', 'a-flink', 'br', 'deep', 'v', 'Recovery is recorded for <b>A</b>, with a version · the workflow\'s signal handler stays active while the ticket is parked');
+  st('a', 'a-act', 'tr', 'deep', 'g', 'Before replaying the parked ticket, the workflow <b>reconciles</b>: A has recovered → no stale ticket is opened', (S) => { S.aBadge = ['✅ A recovered · no stale ticket', ...grn]; });
+  st('a', 'a-edge', 'br', 'core', 'r', 'Minutes later, CAM-14 fails again', (S) => { S.chip = ['🔴 CAM-14 · silent again', ...red]; });
+  st('a', 'a-flink', 'br', 'deep', 'r', 'A new outage gets <b>generation B</b> · a new incident ID and a new workflow', (S) => { S.chip = ['🔴 CAM-14 · outage B', ...red]; });
+  st('a', 'a-act', 'tr', 'deep', 'v', 'A delayed recovery signal for A arrives · it carries A\'s ID and version → it cannot resolve B', (S) => { S.aBadge = ['🛡 stale signal for A rejected', '#E5EDFF', '#1D4ED8', '#93B4F5']; });
+  st('a', 'a-dash', 'tr', 'core', 'y', 'Dashboard: one open incident, B · A is closed with its full timeline', null, { via: [[1350, 690], [570, 690]] });
+  RECAP = { cap: 'Outage A recovers while parked → reconcile, no stale ticket → outage B gets its own identity → stale signals rejected 🔁', badge: ['✅ B open · A closed correctly', ...grn], boxes: ['a-edge', 'a-flink', 'a-act', 'a-dash'] };
+  TRS = [];
+}
+if (VID === 23) {   // lesson · Tenant isolation (notes: pres/notes-lessons-b.js)
+  const obsPt = () => { const r = rectOf('a-ob1'); return [r.x - 26, r.y + r.h / 2, r.x + r.w / 2, r.y + r.h / 2]; };
+  st('a', 'a-edge', 'br', 'core', 'b', 'Acme and Beta share everything: gateway, Kafka, Flink, workflows, caches, stores, dashboards', (S) => { S.aBadge = ['🏢 Acme + Beta · one shared platform', '#E5EDFF', '#1D4ED8', '#93B4F5']; });
+  st('a', 'a-gw', 'br', 'deep', 'b', 'Authenticated gateway: the certificate binds a site gateway to its allowed tenant, sites and devices · the registry checks every device in a batch');
+  st('a', 'a-gw', 'br', 'deep', 'o', 'A payload that claims <b>tenant = beta</b> is ignored · identity comes from the certificate and registry, never the payload', (S) => { S.aBadge = ['🚫 payload tenant tag ignored', ...org]; }, { stay: true });
+  st('a', 'a-kafka', 'br', 'core', 'b', 'Shared topics, tenant-qualified keys: <b>tenant + device</b> · every message carries its tenant_id');
+  st('a', 'a-flink', 'br', 'deep', 'b', 'Tenant-qualified state: keyed state, timers and incident IDs include the tenant · acme:CAM-14 never collides with beta:CAM-14', (S) => { S.chip = ['🔑 key = acme + CAM-14', '#E5EDFF', '#1D4ED8', '#93B4F5']; });
+  st('a', 'a-act', 'tr', 'core', 'b', 'Workflows and tickets too: workflow ID = <b>tenant + device + outage generation</b>');
+  st('a', 'a-stor', 'tr', 'core', 'b', 'Caches and stores: Redis keys and channels carry the tenant · every ClickHouse and MongoDB query starts with tenant_id');
+  st('a', 'a-dash', 'tr', 'deep', 'b', 'Scoped reads and replay: REST, SSE subscriptions and replay cursors are authorized <b>on the server</b> · a client-side filter is not a boundary');
+  st('a', 'a-obsp', 'tl', 'deep', 'y', 'Resource budgets: byte/reading quotas plus query and stream budgets · per-tenant freshness proves performance isolation', (S) => { S.obsT = { 1: ['per tenant · measured', 0], 3: ['per-tenant budgets', 0] }; }, { pt: obsPt });
+  RECAP = { cap: 'Identity scope follows the data: gateway → keys → state → workflows → caches → reads · budgets bound the noise 🏢', badge: ['✅ isolated by identity and budget', ...grn], boxes: ['a-edge', 'a-gw', 'a-kafka', 'a-flink', 'a-act', 'a-stor', 'a-dash', 'a-obsp'] };
+  TRS = [];
+}
+if (VID === 24) {   // lesson · Live & history consistency (notes: pres/notes-lessons-b.js)
+  st('a', 'a-flink', 'br', 'core', 'g', 'TH-05\'s reading reaches Flink: the history write and the live update go out <b>in parallel</b>', (S) => { S.chip = ['⇉ write history ∥ publish live', '#E5EDFF', '#1D4ED8', '#93B4F5']; });
+  st('a', 'a-stor', 'tr', 'deep', 'y', 'Parallel writes are not atomic: ClickHouse can show the point <b>later</b> than the live stream does', null, { via: [[1514, 425], [1082, 425]] });
+  st('a', 'a-dash', 'tr', 'deep', 'y', 'The race: a page loads history, then subscribes · an update landing between the two would be lost');
+  st('a', 'a-dash', 'tr', 'deep', 'g', 'Fix: each snapshot is published with the <b>exact stream position</b> it includes · the client replays only later events', null, { stay: true });
+  st('a', 'a-stor', 'tr', 'core', 'g', 'Example: a retained, shared event stream in Redis · any dashboard pod can replay from a position');
+  st('a', 'a-dash', 'tr', 'deep', 'r', 'A reconnect lands on another pod: it resumes from <b>Last-Event-ID</b> · an expired position gets a new snapshot, never "latest"');
+  st('a', 'a-flink', 'br', 'deep', 'v', 'A late reading arrives: the correction writes a <b>new version</b> · stable event IDs and monotonic versions prevent regressions', (S) => { S.chip = ['↻ late correction · version 2', '#E5EDFF', '#1D4ED8', '#93B4F5']; }, { via: [[570, 425], [1350, 425]] });
+  st('a', 'a-stor', 'tr', 'core', 'v', 'History reads deduplicate by event ID and select the <b>latest rollup revision</b>', null, { via: [[1514, 425], [1082, 425]] });
+  st('a', 'a-dash', 'tr', 'core', 'g', 'The UI shows <b>freshness</b> · late corrections converge without hiding staleness');
+  RECAP = { cap: 'A snapshot plus a cursor bridges history and live · shared replay · versions · visible freshness ⏱', badge: ['✅ no gap, no regression', ...grn], boxes: ['a-flink', 'a-stor', 'a-dash'] };
+  TRS = [];
+}
+if (VID === 25) {   // lesson · Safe upgrades & rollback (notes: pres/notes-lessons-b.js)
+  const obsPt = () => { const r = rectOf('a-ob1'); return [r.x - 26, r.y + r.h / 2, r.x + r.w / 2, r.y + r.h / 2]; };
+  st('a', 'a-flink', 'br', 'core', 'v', 'Release v2 of the Flink job: take a savepoint of v1 · operator IDs and state schema are compatibility-tested first', (S) => { S.chip = ['💾 savepoint · v1', '#E5EDFF', '#1D4ED8', '#93B4F5']; });
+  st('a', 'a-flink', 'br', 'deep', 'o', 'v2 restores that savepoint: same state, same source offsets · canary and shadow outputs are isolated', (S) => { S.chip = ['🧪 v2 canary · processing traffic', ...org]; }, { stay: true });
+  st('a', 'a-act', 'tr', 'core', 'o', 'v2 has already sent real actions: pages and ticket updates went out under its decisions');
+  st('a', 'a-obsp', 'tl', 'deep', 'r', 'The gate fails: freshness, checkpoint duration and action rates regress against the baseline', (S) => { S.obsT = { 1: ['▲ freshness regressing', 1], 2: ['▲ checkpoints slow', 1] }; }, { pt: obsPt });
+  st('a', 'a-flink', 'br', 'deep', 'v', 'Rollback: restore v1 from the compatible savepoint · state and source offsets go back together', (S) => { S.chip = ['↩ v1 restored from savepoint', '#E5EDFF', '#1D4ED8', '#93B4F5']; S.obsT = { 0: ['▲ catching up', 1] }; });
+  st('a', 'a-kafka', 'br', 'deep', 'v', 'Kafka replays the retained traffic since that savepoint · nothing is lost');
+  st('a', 'a-act', 'tr', 'deep', 'g', 'Replayed decisions reuse <b>recorded incident identities</b> · ticket and page updates deduplicate by correlation ID', (S) => { S.obsT = {}; });
+  st('a', 'a-act', 'tr', 'deep', 'r', 'Rollback does not unsend a page: wrong actions already sent need <b>reconciliation or compensation</b>', null, { stay: true });
+  st('a', 'a-act', 'tr', 'core', 'v', 'Temporal: <b>pinned</b> workflow versions · keep compatible workers until in-flight workflows drain', null, { stay: true });
+  st('a', 'a-obsp', 'tl', 'deep', 'g', 'Before the next release: test failure and recovery, including actions the rejected version already published', (S) => { S.obsT = { 1: ['✓ freshness gate', 0], 2: ['✓ checkpoint gate', 0] }; }, { pt: obsPt });
+  RECAP = { cap: 'Rollback restores execution state — savepoint · replay · stable IDs — and reconciles what was already sent ↩', badge: ['✅ restored · reconciled', ...grn], boxes: ['a-flink', 'a-kafka', 'a-act', 'a-obsp'] };
+  TRS = [];
+}
 
 // ---------- compile timeline ----------
 const T0 = HOOK_R + P.intro;            // first stop arrival

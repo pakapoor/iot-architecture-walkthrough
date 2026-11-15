@@ -8,14 +8,14 @@ This is a static educational presentation. Recovery mechanisms introduced during
 
 Run `python3 tools/browser_check.py` after `./tools/build.sh`. Results and inspection screenshots are written to `/tmp/iot-browser-checks/` by default.
 
-- Every pause in all 19 architecture timelines renders without JavaScript exceptions.
-- The sidebar has three sections: Flows, Deep dives (infra issues plus correctness lessons) and Deployment & upgrades. Section headers reveal direct item lists, preserving selection, shortcuts and direct links; opening a section closes the others. Old `?future=` links fall back to the architecture.
+- Every pause in all 25 architecture timelines renders without JavaScript exceptions.
+- The sidebar has three sections: Flows, Deep dives (infra issues plus correctness lessons) and Deployment & upgrades. Section headers reveal direct item lists, preserving selection, shortcuts and direct links; opening a section closes the others. Old `?future=` links fall back to the architecture. The six correctness deep dives open as flows 20–25 on the main diagram (sidebar, phone list, and old `?deep=` links).
 - Design-decision cards open with a real mouse click and Enter. Dialog focus, Tab/Shift+Tab containment, Escape and focus restoration are checked.
 - The Cloud Gateway close-up exercises the previous icon/check-mark freeze case.
 - Manual arrow stepping records completion without automatic navigation.
 - Automatic playback reaches the final card, displays a real five-second countdown and advances for `cicd-svc`, `cicd-dash`, `telemetry`, `storm`, `red-snow` and `growth`. Timeline frame time is accelerated in this regression check; countdown time is not.
 - Light and dark themes are checked at desktop, narrow desktop and phone sizes. Phone links highlight/scroll videos or show a desktop note, and widening initializes the selected interactive flow.
-- All six deep dives run through their UI steps on phones; playback ends, stops on close and returns focus to its triggering item. The My role dialog opens from the sidebar and the R key.
+- The six correctness deep dives open as flows from the sidebar, from old `?deep=` links and from the phone list. The My role dialog opens from the sidebar and the R key.
 - Sender checks reject unrelated shell messages; dynamic design-card text escapes executable HTML.
 - Raw/warm storage schemas, Redis and the S3 detail SVGs were inspected for text beyond their view boxes. Architecture typography and refreshed images were visually inspected.
 

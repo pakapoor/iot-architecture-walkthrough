@@ -60,7 +60,7 @@ def run(output, playback=None):
             page.wait_for_timeout(100)
             return page.frames[-1]
 
-        for v in range(1, 20):
+        for v in range(1, 26):
             page.goto(f'{base}/pres/flow{v}.html?embed=1&obs=1&why=1&caps=1')
             page.wait_for_function('window.PRESENTER')
             result = page.evaluate('''() => {
@@ -68,12 +68,12 @@ def run(output, playback=None):
               return {pauses:PRESENTER.PAUSES.length, finite:Number.isFinite(window.TOTAL)};
             }''')
             assert result['finite'] and result['pauses'] > 5, (v, result)
-        passed('all 19 timelines render every pause without runtime errors')
+        passed('all 25 timelines render every pause without runtime errors')
 
         frame = shell()
         assert page.locator('#flows button[data-flow]').count() == 7
         assert page.locator('#issues button[data-flow]').count() == 5
-        assert page.locator('#deepTopics button[data-topic]').count() == 6
+        assert page.locator('#deepTopics button[data-flow]').count() == 6
         assert page.locator('#deploy button[data-flow]').count() == 7
         assert page.locator('#deepToggle').get_attribute('aria-expanded') == 'false'
         assert page.locator('#deployToggle').get_attribute('aria-expanded') == 'false'
@@ -89,6 +89,11 @@ def run(output, playback=None):
         page.wait_for_function("document.querySelector('#stage iframe')?.src.includes('flow9.html')")
         assert page.locator('#deployToggle').get_attribute('aria-expanded') == 'true'
         assert page.locator('select').count() == 0
+        page.locator('#deepToggle').click()
+        page.locator('#deepTopics button[data-flow="replay"]').click()
+        page.wait_for_function("document.querySelector('#stage iframe:last-of-type')?.src.includes('flow20.html')")
+        assert 'flow=replay' in page.url and page.locator('#deepToggle').get_attribute('aria-expanded') == 'true'
+        assert page.locator('#deepTopics button[data-flow="replay"]').get_attribute('aria-pressed') == 'true'
         passed('sections: Flows, Deep dives (infra issues + lessons), Deployment; selection, links and shortcuts preserved')
 
         page.locator('#roleBtn').click()
@@ -110,18 +115,14 @@ def run(output, playback=None):
         # fixed layout: observability always shown, no design-decision cards or switches, panel in every flow
         assert frame.locator('#a-obsp').is_visible() and frame.locator('#xpanel').is_visible()
         assert not frame.locator('.cards').is_visible() and page.locator('.toggles, #tObs, #tWhy, #tCap').count() == 0
-        page.locator('#deepToggle').click()
-        page.locator('#topic-replay').click()
+        page.locator('#roleBtn').click()
         page.locator('#dmodal').wait_for(state='visible')
         assert page.locator('#dclose').evaluate('e => e === document.activeElement')
         for _ in range(6):
             page.keyboard.press('Tab')
             assert page.evaluate("document.getElementById('dmodal').contains(document.activeElement)")
         page.keyboard.press('Escape')
-        assert page.locator('#topic-replay').evaluate('e => e === document.activeElement')
-        page.locator('#topic-replay').press('Enter')
-        page.locator('#dmodal').wait_for(state='visible')
-        page.keyboard.press('Escape')
+        assert page.locator('#roleBtn').evaluate('e => e === document.activeElement')
         frame.locator('#a-gw').focus()
         page.keyboard.press('Enter')
         frame.locator('#cucard').wait_for(state='visible')
@@ -132,7 +133,7 @@ def run(output, playback=None):
         page.keyboard.press('Escape')
         frame.locator('#cucard').wait_for(state='hidden')
         assert frame.locator('#a-gw').evaluate('e => e === document.activeElement')
-        passed('fixed layout; deep-dive dialog and close-up: focus, trap, Escape, restoration; no icon freeze')
+        passed('fixed layout; dialog and close-up: focus, trap, Escape, restoration; no icon freeze')
 
         # Complete a manually stepped flow using the actual keyboard handler.
         frame = shell('health')
@@ -185,27 +186,29 @@ def run(output, playback=None):
             assert page.locator('#v-telemetry').evaluate('e => e.getBoundingClientRect().top < innerHeight')
         passed('light/dark layouts, narrow desktop, phone links/resizing')
 
-        # Lesson playback on mobile has no hidden iframe and can use a virtual clock.
-        lessons = context.new_page()
-        lessons.set_viewport_size({'width': 390, 'height': 844})
-        lessons.clock.install()
-        lessons.goto(f'{base}/pres/?deep=replay')
-        lessons.locator('#dmodal').wait_for(state='visible')
-        lessons.keyboard.press('Escape')
-        lessons.locator('.mobile-learning').evaluate('e => e.open = true')
-        topics = lessons.evaluate('KNOWLEDGE.map(t => ({slug:t.slug, count:t.steps.length, section:t.section}))')
-        for topic in topics:
-            lessons.locator('#mobile-topic-' + topic['slug']).click()
-            assert lessons.locator('#dmodal').is_visible()
-            lessons.locator('#lessonPlay').click()
-            lessons.clock.run_for(2700 * topic['count'])
-            assert lessons.locator('#lessonNext').is_disabled()
-            assert lessons.locator('#lessonCount').inner_text() == f"{topic['count']} / {topic['count']}"
-            assert lessons.locator('#lessonPlay').inner_text() == 'Play'
-            lessons.keyboard.press('Escape')
-            assert lessons.locator('#mobile-topic-' + topic['slug']).evaluate('e => e === document.activeElement')
-        lessons.close()
-        passed('all six deep dives run to completion on phones; mobile focus returns correctly')
+        # The six correctness deep dives are flows: old ?deep= links, desktop sidebar and phone list all reach them.
+        lessons = {'replay': 20, 'liveness': 21, 'incidents': 22, 'tenancy': 23, 'consistency': 24, 'upgrades': 25}
+        desk = context.new_page()
+        desk.set_default_timeout(8000)
+        desk.goto(f'{base}/pres/?deep=consistency')
+        desk.wait_for_function("document.querySelector('#stage iframe')?.src.includes('flow24.html')")
+        assert 'flow=consistency' in desk.url and 'deep=' not in desk.url and desk.locator('#dmodal').is_hidden()
+        for slug, v in lessons.items():
+            desk.locator(f'#deepTopics button[data-flow="{slug}"]').click()
+            desk.wait_for_function(f"document.querySelector('#stage iframe:last-of-type')?.src.includes('flow{v}.html')")
+            desk.wait_for_function("document.querySelector('#stage iframe:last-of-type')?.contentWindow.PRESENTER")
+            assert desk.evaluate("document.querySelector('#stage iframe:last-of-type').contentWindow.PRESENTER.PAUSES.length") > 1, slug
+        desk.close()
+        phone = context.new_page()
+        phone.set_viewport_size({'width': 390, 'height': 844})
+        phone.goto(f'{base}/pres/?deep=replay')
+        assert phone.locator('#vnote').inner_text().startswith('Delivery & replay') and phone.locator('.mobile-learning').evaluate('e => e.open')
+        assert phone.locator('#dmodal').is_hidden() and phone.locator('#stage iframe').count() == 0
+        for slug in lessons:
+            phone.locator('#mobile-flow-' + slug).click()
+            assert phone.locator('#vnote').is_visible() and f'flow={slug}' in phone.url, slug
+        phone.close()
+        passed('the six correctness deep dives open as flows: sidebar, old ?deep= links, phone list')
 
         page.set_viewport_size({'width': 1440, 'height': 900})
         page.goto(f'{base}/pres/?future=security')   # removed section: an old link falls back to the architecture
@@ -238,8 +241,7 @@ def run(output, playback=None):
         page.wait_for_timeout(1300)
         assert page.evaluate("!document.querySelector('iframe').contentDocument.getElementById('bPlay').classList.contains('on')")
         page.keyboard.press('Escape')
-        assert page.evaluate('lessonTimer === null')
-        passed('queued autoplay stays stopped on mobile/behind a modal; closing stops lesson timers')
+        passed('queued autoplay stays stopped on mobile/behind a modal')
 
         assert not errors, errors
         passed('no JavaScript exceptions across tested pages and interactions')

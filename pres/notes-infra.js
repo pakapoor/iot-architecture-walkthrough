@@ -113,6 +113,20 @@ registerFlow(6, {
       'Every reconnecting site <b>flushes at once</b>, on top of its live traffic.',
       'Gateway ingress rises from <b>200K</b> normal peak toward a <b>designed-for 500K</b> envelopes/sec.',
       'Flushed heartbeats are history: they do <b>not</b> refresh current health.'] }] },
+  2: { steps: [   // Cloud Gateway close-up (GW_SVG)
+    { h: 'Reconnecting sites flush at once.', hl: [[20, 46, 250, 194]], at: [240, 143], lab: [[34, 262, 'reconnect burst · spooled + live', '#B45309']], b: [
+      'About <b>2,000 site gateways</b> reconnect together, from many tenants.',
+      'Each envelope carries live readings plus hours of <b>spooled</b> history.'] },
+    { h: 'Every envelope still passes mTLS and tenant lookup.', hl: [[325, 46, 200, 194], [570, 46, 200, 194]], path: [[240, 143], [318, 143], [495, 210], [740, 210]], b: [
+      'A burst gets <b>no shortcut</b>: identity comes from the certificate, the tenant from the registry.',
+      'Every reading is tagged with its <b>tenant_id</b>.'] },
+    { h: 'Per-tenant quotas cap each tenant\'s flush.', hl: [[815, 30, 330, 226]], path: [[740, 210], [808, 143], [1115, 226]], b: [
+      'Each tenant has its own budget, so one tenant\'s flush <b>cannot crowd out</b> everyone else.',
+      'Heartbeat capacity is <b>reserved</b>, so the bulk backlog cannot starve liveness.',
+      'Budgets are shared across gateway replicas, so scaling the gateway does not raise them.'] },
+    { h: 'Quotas absorb only part of it.', hl: [[1190, 46, 150, 194], [1378, 40, 130, 206]], path: [[1115, 226], [1183, 143], [1310, 143], [1478, 135]], b: [
+      'The <b>legitimate backlog</b> still has to flow downstream.',
+      'Next, ingestion <b>scales out</b> and Kafka absorbs the rest as lag, not loss.'] }] },
   3: { steps: [
     { h: 'The burst arrives from the gateway.', hl: [[20, 120, 180, 110]], at: [170, 200], b: [
       'Envelopes arrive authenticated and <b>tenant-tagged</b>, many times the normal rate.',
@@ -157,7 +171,22 @@ registerFlow(6, {
     { h: 'The ClickHouse writer flushes on size or time.', hl: [[1104, 218, 300, 56]], path: [[1010, 238], [1036, 140], [1070, 140], [1070, 246], [1374, 246]], b: [
       'Raw telemetry is written to <b>ClickHouse hot</b> in chunks.',
       'The writer flushes every <b>1 s or 50K rows</b>, whichever comes first.',
-      'In a burst it hits 50K first, so chunks <b>grow on their own</b> and ClickHouse sees fewer, larger writes.'] }] }
+      'In a burst it hits 50K first, so chunks <b>grow on their own</b> and ClickHouse sees fewer, larger writes.'] }] },
+  6: { steps: [   // Datadog close-up (OBS_SVG)
+    { h: 'Datadog watches the pipeline itself.', hl: [[20, 30, 190, 300]], at: [180, 300], b: [
+      'Signals come from every stage: <b>gateway, ingestion, Kafka, Flink and actions</b>.',
+      'It watches the platform, not the devices: is the observer healthy?'] },
+    { h: 'Consumer lag climbs.', hl: [[240, 30, 310, 140]], path: [[180, 300], [236, 180], [520, 140]], lab: [[254, 136, '▲ lag climbing', '#DC2626']], b: [
+      'Lag counts the messages <b>waiting</b> for Flink.',
+      'The reconnect burst arrives faster than Flink can drain it.'] },
+    { h: 'Freshness slips, and gateway ingress jumps.', hl: [[570, 30, 310, 140], [240, 190, 310, 140]], path: [[520, 140], [850, 140]], lab: [[584, 136, '▲ freshness slipping', '#DC2626'], [254, 296, '▲ ingress spike', '#B45309']], b: [
+      '<b>Freshness</b> is how old an event is when Flink processes it.',
+      'Heartbeats are tracked <b>apart</b> from telemetry, so a telemetry backlog does not look like dead devices.',
+      'Ingress shows the flush arriving at the gateway.'] },
+    { h: 'A monitor fires; automation goes first.', hl: [[900, 190, 310, 140], [1250, 30, 250, 300]], path: [[850, 140], [880, 300], [1180, 300], [1240, 180], [1470, 300]], b: [
+      'A freshness or lag breach raises a <b>monitor</b>.',
+      'Autoscaling acts first; humans step in only <b>past the guardrails</b>.',
+      'Next, we zoom into that dashboard and watch the incident play out.'] }] }
 });
 
 // ---------- 16 · Alert storm ----------
@@ -233,6 +262,26 @@ registerFlow(16, {
       'The Cloud Gateway simply stops hearing from Site-07.',
       'Device timers and the gateway\'s own timer will all expire, <b>independently</b>.',
       'Without correlation, that becomes <b>200 pages</b>.'] }] },
+  2: { steps: [   // Cloud Gateway close-up (GW_SVG)
+    { h: 'Envelopes keep arriving from every other site.', hl: [[20, 116, 250, 124]], path: [[240, 143], [318, 143], [495, 210], [740, 210]], b: [
+      'Acme\'s other sites, and other tenants, send as normal.',
+      'They pass mTLS, tenant lookup and quotas as usual.'] },
+    { h: 'Nothing arrives from Site-07.', hl: [[20, 46, 250, 54]], lab: [[34, 262, 'Site-07 · no envelopes', '#DC2626']], b: [
+      'Site-07\'s connection <b>simply stops</b>: no envelopes, no errors.',
+      'There is nothing to reject or throttle, because there is <b>no traffic</b>.'] },
+    { h: 'The gateway does not flag silence.', hl: [[325, 46, 820, 210]], b: [
+      'Every check here acts on traffic that <b>arrives</b>; silence passes through unseen.',
+      'Detection happens in <b>Flink</b>, where per-device and gateway timers keep counting.'] }] },
+  3: { steps: [   // Kafka close-up (KAFKA_SVG)
+    { h: 'Heartbeats keep arriving for every other site.', hl: [[20, 130, 170, 100], [250, 44, 620, 100]], path: [[160, 200], [232, 180], [420, 126], [789, 126]], b: [
+      'The <b>heartbeats</b> topic keeps flowing for every other site and tenant.',
+      'Partitions fill as usual: nothing looks wrong in aggregate.'] },
+    { h: 'Site-07\'s device keys stop appearing.', hl: [[250, 44, 620, 100]], at: [789, 126], lab: [[880, 92, 'Site-07 · no new records', '#DC2626']], b: [
+      'Site-07\'s keys still hash to their usual partitions, but <b>no new records</b> arrive.',
+      'Kafka never stores an absence: there is <b>nothing to read</b>.'] },
+    { h: 'Nothing to consume, so timers decide.', hl: [[1110, 14, 370, 306]], path: [[789, 126], [866, 126], [1100, 126], [1440, 209]], b: [
+      'Flink\'s readers keep consuming every other site.',
+      'There is no message to react to, so detection depends on per-device <b>timers</b> in Flink: the next step.'] }] },
   4: { steps: [
     { h: 'No heartbeat from any Site-07 device.', hl: [[20, 40, 170, 90], [736, 20, 300, 240]], at: [1010, 238], lab: [[750, 186, 'Site-07 · silent {timer} / 20:00']], timer: [0, 1199], b: [
       'Heartbeats keep arriving for every other site.',
@@ -263,6 +312,38 @@ registerFlow(16, {
       '<b>One</b> SITE-DOWN incident pages on-call now; its ticket follows at minute 30.',
       'The 200 device candidates travel <b>under</b> it, not as their own pages.',
       'Trade-off: a small, bounded delay before the page.'] }] },
+  6: { steps: [   // Action Execution close-up (ACT_SVG): suppression
+    { h: 'One SITE-DOWN incident arrives from Flink.', hl: [[20, 120, 150, 110]], at: [140, 200], lab: [[24, 244, 'SITE-07 DOWN · 1 incident', '#DC2626']], b: [
+      'Flink emits <b>one</b> site incident; the 200 device alerts travel <b>under</b> it.',
+      'They are grouped, not thrown away.'] },
+    { h: 'SNS fans it out: one page to on-call.', hl: [[230, 120, 170, 90], [440, 24, 190, 82]], path: [[140, 200], [170, 160], [226, 160], [315, 120], [315, 70], [600, 76]], b: [
+      'On-call gets <b>one page</b>: Site-07 is down.',
+      'Paging is also <b>rate-limited</b> per on-call rotation; excess alerts batch into a summary.',
+      'A flooded pager is an <b>ignored pager</b>.'] },
+    { h: 'The same incident starts one workflow.', hl: [[440, 124, 190, 90], [670, 124, 170, 90], [898, 90, 354, 46]], path: [[400, 165], [436, 165], [600, 184], [666, 169], [810, 184], [876, 169], [1222, 120]], b: [
+      'SQS and the ticket starter open <b>one IncidentWorkflow</b> for the site incident.',
+      'Its durable timer runs toward a <b>ticket at minute 30</b>, if the site is still down.'] }] },
+  7: { steps: [   // Action Execution close-up (ACT_SVG): one ticket for the site
+    { h: 'Minute 30: the site is still down.', hl: [[898, 90, 354, 46]], at: [1222, 120], b: [
+      'The workflow\'s durable timer fires at <b>minute 30</b>.',
+      'Nothing has recovered, so the ticket goes ahead.'] },
+    { h: 'One ServiceNow ticket for the site.', hl: [[1310, 24, 190, 130]], path: [[1222, 120], [1270, 90], [1306, 90], [1470, 124]], b: [
+      '<b>One ticket per root cause</b>: a single SITE-DOWN ticket.',
+      'It is idempotent by <b>correlation ID</b>: a retry updates it, never duplicates it.'] },
+    { h: 'Device tickets are held.', hl: [[880, 14, 390, 300]], at: [1470, 124], b: [
+      'Device tickets are <b>held</b>, and released only if a device outlives the site outage.',
+      'The alternative is 200 tickets, <b>closed by hand</b> later.',
+      'Trade-off: a real device fault during a site outage is <b>noticed later</b>.'] }] },
+  8: { steps: [   // Dashboards close-up (DASH_SVG)
+    { h: 'Flink pushes one site status change.', hl: [[240, 14, 190, 54], [490, 64, 320, 96]], path: [[410, 41], [430, 41], [458, 41], [458, 100], [486, 100], [780, 130]], b: [
+      'Only <b>state changes</b> leave Flink: Site-07 is now SITE DOWN.',
+      'The SSE stream hub pushes it to every open dashboard.'] },
+    { h: 'RBAC scopes it to Acme.', hl: [[490, 284, 320, 90]], path: [[780, 130], [780, 344]], b: [
+      'Only Acme admins with access to <b>Site-07</b> receive the update.',
+      'Every subscription and query is scoped by <b>tenant and site</b>.'] },
+    { h: 'One site-level status, not a wall of red.', hl: [[1240, 116, 252, 40]], path: [[780, 344], [860, 330], [1196, 330], [1222, 136]], lab: [[1390, 124, 'SITE DOWN', '#DC2626']], b: [
+      'The tenant admin sees <b>SITE DOWN</b>, with 200 affected devices.',
+      'Not 200 red tiles: the screen tells the <b>same story</b> as the page and the ticket.'] }] },
   9: { steps: [
     { svg: 'small', h: 'Power returns: devices and gateways boot.', hl: [[40, 60, 230, 260], [490, 60, 300, 180]], at: [250, 88], b: [
       'Devices start sending heartbeats again.',
@@ -328,6 +409,16 @@ registerFlow(17, {
     '<b>Gate</b>: example recovery gates stop a restart from paging every overdue timer.',
     '<b>Idempotent effects</b>: the same incident ID means no duplicate pages or tickets.'] }
 }, {
+  1: { steps: [   // Flink close-up (FLINK_SVG)
+    { h: 'Flink runs as TaskManagers on Kubernetes.', hl: [[232, 40, 170, 200], [444, 30, 250, 220], [736, 20, 300, 240], [20, 360, 1010, 40]], at: [1010, 238], b: [
+      'Keyed state and timers for every device are spread across the <b>TaskManagers</b>.',
+      'Checkpoints snapshot all of it to <b>durable storage</b>.'] },
+    { h: 'A node dies, and the job fails.', hl: [[20, 360, 1010, 40]], at: [1010, 238], lab: [[40, 328, 'node lost · job failed', '#DC2626']], b: [
+      'When a node dies, its TaskManager goes with it.',
+      'The <b>job fails</b>, and processing stops.'] },
+    { h: 'Kafka keeps accepting data, so lag rises.', hl: [[20, 40, 170, 90], [20, 150, 170, 90]], lab: [[30, 104, 'lag rising', '#B45309'], [30, 214, 'lag rising', '#B45309']], b: [
+      'Ingestion and Kafka keep accepting data; it waits in Kafka as <b>lag</b>.',
+      'Nothing is lost yet, but a crashed job must not forget <b>100M devices\' timers</b>.'] }] },
   2: { steps: [
     { h: 'Kubernetes reschedules the TaskManager.', hl: [[20, 360, 1010, 40]], lab: [[40, 328, 'rescheduled · restoring', '#1D4ED8']], b: [
       'Kubernetes starts a replacement pod on a healthy node.',
@@ -369,7 +460,31 @@ registerFlow(17, {
     { h: 'Freshness recovers: the gate opens.', hl: [[20, 360, 1010, 40], [1104, 20, 300, 56]], path: [[1010, 238], [1036, 140], [1070, 140], [1070, 48], [1374, 48]], lab: [[40, 328, 'pipeline freshness OK', '#15803D']], b: [
       'Once the pipeline is fresh, a device that is <b>still silent</b> pages as normal.',
       'The gate is <b>bounded</b>: it must never hide a real outage indefinitely.',
-      'Repeated transitions reach Action Execution with the <b>same incident ID</b>.'] }] }
+      'Repeated transitions reach Action Execution with the <b>same incident ID</b>.'] }] },
+  5: { steps: [   // Action Execution close-up (ACT_SVG): idempotent effects
+    { h: 'A replayed transition arrives again.', hl: [[20, 120, 150, 110]], at: [140, 200], lab: [[24, 244, 'same incident ID', '#B45309']], b: [
+      'Replay re-emits a transition that was <b>already sent</b> before the crash.',
+      'It carries the <b>same incident ID</b>, restored from keyed state.'] },
+    { h: 'No second page.', hl: [[230, 120, 170, 90], [440, 24, 190, 82]], path: [[140, 200], [170, 160], [226, 160], [315, 120], [315, 70], [600, 76]], b: [
+      'The page carries the incident ID as its <b>dedup key</b>, so on-call is not paged twice.',
+      'Assume duplicates, and <b>make them harmless</b>.'] },
+    { h: 'The ticket starter finds the same workflow.', hl: [[440, 124, 190, 90], [670, 124, 170, 90], [880, 14, 390, 300]], path: [[400, 165], [436, 165], [600, 184], [666, 169], [810, 184], [876, 169], [1222, 66]], b: [
+      '<b>signalWithStart</b> on the same workflowId: the running workflow gets a signal, no second workflow starts.',
+      'workflowId = <b>tenant + device + outage generation</b>.'] },
+    { h: 'ServiceNow upserts, never duplicates.', hl: [[1310, 24, 190, 130]], path: [[1222, 66], [1270, 90], [1306, 90], [1470, 124]], b: [
+      'The unique <b>correlation ID</b> means the same ticket is updated.',
+      'Exactly-once state in Flink does not make external systems atomic; each needs its <b>own replay contract</b>.',
+      'Examples elsewhere: version-checked <b>Redis</b> transitions, stable <b>ClickHouse</b> event IDs.'] }] },
+  6: { steps: [   // Datadog close-up (OBS_SVG)
+    { h: 'Lag spiked while the job was down.', hl: [[240, 30, 310, 140]], at: [520, 140], lab: [[254, 136, '▲ lag spiked', '#DC2626']], b: [
+      '<b>Consumer lag</b> rose while no TaskManager was reading.',
+      'Freshness slipped with it.'] },
+    { h: 'Replay drains it in minutes.', hl: [[240, 30, 310, 140], [900, 30, 310, 140]], path: [[520, 140], [880, 160], [1180, 140]], lab: [[254, 136, '▼ draining', '#15803D'], [914, 136, '✓ checkpoints completing', '#15803D']], b: [
+      'Replay catches up and lag <b>drains</b>.',
+      'Checkpoints <b>complete</b> again, so the completed-checkpoint age falls back to normal.'] },
+    { h: 'A restart alert tells the team.', hl: [[900, 190, 310, 140], [1250, 30, 250, 300]], path: [[1180, 140], [1180, 300], [1240, 180], [1470, 300]], b: [
+      'Nobody had to act: <b>humans investigate</b>; machines recover.',
+      'A crash should cost a minute, not a morning.'] }] }
 });
 
 // ---------- 18 · Hot partition ----------
@@ -424,6 +539,30 @@ registerFlow(18, {
     '<b>One owner</b>: one reader per partition, one keyed owner per device.',
     '<b>Fix at the door</b>: a per-device limit at the gateway; the excess is dropped and counted.'] }
 }, {
+  1: { steps: [   // tenant view: the "+ 212 more sites" stack stands in for Site-12
+    { h: 'Site-12 is one of Acme\'s 214 sites.', hl: [[880, 60, 150, 300]], at: [1000, 330], lab: [[890, 290, 'Site-12 · CAM-77', '#DC2626']], b: [
+      'Acme is a <b>big tenant</b>: 214 sites, each behind its own edge pair.',
+      'Every site connects the same way; Site-12 is one of the stack here.'] },
+    { h: 'CAM-77 enters a crash loop: 1,000 msgs/sec.', hl: [[880, 60, 150, 300]], at: [1000, 330], lab: [[890, 290, 'CAM-77 · 1,000 msgs/sec', '#DC2626']], b: [
+      'One camera is stuck in a <b>crash loop</b>, sending <b>1,000 msgs/sec</b>.',
+      'The rest of Site-12 behaves normally; this is <b>one device</b>, not the site.'] },
+    { h: 'The edge pair forwards it like any other traffic.', hl: [[230, 374, 840, 34], [1080, 150, 200, 130]], path: [[1000, 330], [1000, 384], [1060, 384], [1060, 215], [1074, 215], [1180, 250]], b: [
+      'The edge pair batches CAM-77\'s messages with the rest of the site.',
+      'Nothing at the edge marks them as abnormal; they travel the <b>same uplink</b> to the Cloud Gateway.'] }] },
+  2: { steps: [   // Cloud Gateway close-up (GW_SVG), before the fix
+    { h: 'CAM-77\'s flood arrives from Acme Site-12.', hl: [[20, 116, 250, 54]], at: [240, 143], lab: [[34, 262, 'CAM-77 · 1,000 msgs/sec', '#DC2626']], b: [
+      'One crash-looping camera sends <b>1,000 msgs/sec</b> through Site-12\'s gateway.',
+      'The rest of the site, and every other tenant, behaves normally.'] },
+    { h: 'Identity and tenant checks pass.', hl: [[325, 46, 200, 194], [570, 46, 200, 194]], path: [[240, 143], [318, 143], [495, 210], [740, 210]], lab: [[582, 196, 'tenant = acme']], b: [
+      'The certificate is valid and CAM-77 is a <b>registered Acme device</b>.',
+      'Nothing about its identity is wrong; only its <b>volume</b> is.'] },
+    { h: 'Acme is big, so its tenant quota has room.', hl: [[815, 30, 330, 226]], path: [[740, 210], [808, 143], [1115, 226]], b: [
+      'Acme\'s <b>tenant bucket</b> is far from empty, so the flood passes.',
+      'A big tenant\'s quota is large enough to <b>hide one runaway device</b>.',
+      'Tenant quotas protect tenants from each other, not a <b>partition</b> from one device.'] },
+    { h: 'On to ingestion, and to a single partition.', hl: [[1190, 46, 150, 194], [1378, 40, 130, 206]], path: [[1115, 226], [1183, 143], [1310, 143], [1478, 135]], b: [
+      'Ingestion keys every message by <b>tenant + device</b>.',
+      'So all of CAM-77\'s traffic heads for <b>one Kafka partition</b>, as we see next.'] }] },
   3: { steps: [   // the diagram draws P0–P2; one telemetry row stands in for the hot partition
     { h: 'CAM-77\'s flood arrives with a single key.', hl: [[20, 130, 170, 100]], at: [160, 200], b: [
       'Ingestion keys every message by <b>tenant + device</b>: acme + CAM-77.',
@@ -455,6 +594,19 @@ registerFlow(18, {
       'The instinct is to add <b>TaskManagers</b>.',
       'Extra workers cannot split <b>one hot key</b>.',
       'The fix belongs at <b>admission</b>: limit the device at the gateway.'] }] },
+  5: { steps: [   // Datadog close-up (OBS_SVG)
+    { h: 'Consumer lag, shown by partition.', hl: [[240, 30, 310, 140]], at: [530, 50], lab: [[254, 120, 'P7 · lag climbing', '#DC2626']], b: [
+      'Datadog shows <b>consumer lag per partition</b>, not just the total.',
+      'One partition, <b>P7</b>, keeps climbing while the others stay flat.'] },
+    { h: 'The total can look fine while one partition burns.', hl: [[240, 346, 1260, 50]], path: [[530, 50], [530, 180], [1480, 180], [1480, 370]], b: [
+      '<b>Averages hide the outlier</b> you care about.',
+      'So lag is watched per partition, and freshness per tenant.'] },
+    { h: 'Ingress is normal, so this is not a capacity problem.', hl: [[240, 190, 310, 140]], path: [[1480, 370], [1480, 336], [530, 336], [530, 210]], lab: [[254, 280, 'ingress · normal', '#15803D']], b: [
+      'Gateway ingress per tenant is within its normal range.',
+      'One outlier partition points to a <b>hot key</b>, not to missing capacity.'] },
+    { h: 'Find the hot key before buying hardware.', hl: [[1250, 30, 250, 300]], path: [[530, 210], [1230, 180], [1480, 50]], b: [
+      'Autoscaling Flink would add workers that <b>cannot split one key</b>.',
+      'The fix belongs at <b>admission</b>: a per-device limit at the gateway.'] }] },
   6: { steps: [
     { h: 'CAM-77\'s traffic arrives from Acme Site-12.', hl: [[20, 116, 250, 54]], at: [240, 143], b: [
       'The flood comes in through Site-12\'s gateway, like any other envelope.',
@@ -472,7 +624,20 @@ registerFlow(18, {
     { h: 'Traffic under the cap flows on.', hl: [[1190, 46, 150, 194], [1378, 40, 130, 206]], path: [[990, 114], [1160, 143], [1310, 143], [1478, 135]], b: [
       'CAM-77\'s traffic <b>under the cap</b> still reaches ingestion.',
       'P7 is no longer flooded, so it can <b>drain</b>.',
-      'Flink still sees CAM-77, which is how the crash loop gets flagged next.'] }] }
+      'Flink still sees CAM-77, which is how the crash loop gets flagged next.'] }] },
+  7: { steps: [   // Flink close-up (FLINK_SVG)
+    { h: 'P7 drains.', hl: [[20, 40, 170, 200]], at: [160, 215], lab: [[30, 262, 'P7 · draining', '#15803D']], b: [
+      'With CAM-77 capped at the gateway, P7\'s backlog <b>shrinks</b>.',
+      'The devices that share P7 <b>catch up</b>.'] },
+    { h: 'CAM-77\'s capped stream still reaches its keyed owner.', hl: [[232, 40, 170, 200], [444, 30, 250, 220]], path: [[160, 215], [226, 195], [382, 222], [438, 140], [664, 238]], lab: [[456, 200, 'CAM-77 · capped', '#B45309']], b: [
+      'Traffic under the cap still flows, so Flink keeps <b>seeing CAM-77</b>.',
+      'Its keyed owner now has a load it can keep up with.'] },
+    { h: 'The rule engine flags a crash loop.', hl: [[736, 20, 300, 240]], path: [[664, 238], [730, 140], [1006, 238]], lab: [[750, 200, 'CAM-77 · crash loop', '#DC2626']], b: [
+      'The flood was a <b>symptom</b>; the cause is a camera stuck in a crash loop.',
+      'Flink raises an alert for <b>CAM-77 itself</b>.'] },
+    { h: 'Only that state change leaves Flink.', hl: [[1104, 20, 300, 122]], path: [[1006, 238], [1070, 140], [1070, 48], [1384, 48]], b: [
+      'The alert goes out through the action lanes, like any other device issue.',
+      'The platform contained the flood at the door, with <b>no new hardware</b>.'] }] }
 });
 
 // ---------- 19 · Sustained 10× traffic ----------
@@ -556,6 +721,69 @@ registerFlow(19, {
     '<b>Bound overload</b>: reserve heartbeats, throttle bulk, count drops.',
     '<b>Prove it</b>: soak and recovery gates before raising quotas.'] }
 }, {
+  1: { steps: [   // tenant view: every site sends more
+    { h: 'Every site sends more, and it is legitimate.', hl: [[40, 60, 400, 300], [460, 60, 400, 300], [880, 60, 150, 300]], at: [1000, 330], lab: [[560, 26, 'illustrative 10× · sustained', '#B45309']], b: [
+      'This is not a reconnect burst: the fleet\'s normal traffic <b>stays</b> ten times higher.',
+      'Small stores and flagships alike; the same pattern repeats across all sites.'] },
+    { h: 'One uplink per site carries ten times the batches.', hl: [[230, 374, 840, 34], [1080, 150, 200, 130]], path: [[1000, 330], [1000, 384], [1060, 384], [1060, 215], [1074, 215], [1180, 250]], b: [
+      'Site batching still applies; there are simply ten times as many envelopes.',
+      'The <b>200K</b> normal peak becomes an <b>illustrative 2M</b> envelopes/sec at the Cloud Gateway.'] },
+    { h: 'Queues buy time; sustained load never drains by itself.', hl: [[1300, 14, 200, 392]], at: [1180, 250], b: [
+      'The normal-peak math: 100M devices × 1/min ≈ 1.7M readings/sec, about 200K envelopes/sec.',
+      'At 10×, neither the original hardware nor ten times the workers is <b>assumed</b> to cope.',
+      'Arrivals above capacity <b>never drain</b> on their own; capacity has to change.'] }] },
+  2: { steps: [   // Datadog close-up (OBS_SVG)
+    { h: 'First, measure before scaling.', hl: [[20, 30, 190, 300]], at: [190, 50], b: [
+      'Every layer reports into Datadog: gateway, ingestion, Kafka, Flink, actions.',
+      'Scaling blindly moves the bottleneck without finding it.'] },
+    { h: 'Envelopes, readings, bytes and devices are different loads.', hl: [[240, 190, 310, 140]], path: [[190, 50], [220, 180], [530, 210]], lab: [[254, 280, '10× sustained (example)', '#B45309']], b: [
+      'Count <b>envelopes, bytes, readings and distinct devices</b> separately.',
+      'Ten times the readings is different from ten times the <b>devices and timers</b>.'] },
+    { h: 'Freshness and backlog slope show whether we keep up.', hl: [[240, 30, 310, 140], [570, 30, 310, 140]], path: [[530, 210], [530, 180], [860, 180], [860, 50]], lab: [[254, 120, '▲ growing steadily', '#DC2626'], [584, 120, '▲ freshness slipping', '#DC2626']], b: [
+      'Watch <b>p99 freshness</b>: how old events are when Flink processes them.',
+      'A steadily rising <b>backlog slope</b> means arrivals exceed capacity.'] },
+    { h: 'Checkpoint age shows whether Flink can still recover.', hl: [[900, 30, 310, 140]], path: [[860, 50], [880, 180], [1190, 50]], b: [
+      'Track the <b>age of the last completed checkpoint</b>, not just its duration.',
+      'If checkpoints fall behind, a crash would replay far more input.'] }] },
+  3: { steps: [   // Cloud Gateway close-up (GW_SVG): budgets and reservation
+    { h: 'Traffic is now ten times higher, and legitimate.', hl: [[20, 46, 250, 194]], at: [240, 143], lab: [[34, 262, 'illustrative 2M envelopes/sec', '#B45309']], b: [
+      'Every tenant\'s fleet is sending more: this is <b>sustained</b> load, not a burst.',
+      'The 2M figure is <b>illustrative</b>.'] },
+    { h: 'Tenant and device budgets bound bytes and readings.', hl: [[815, 30, 330, 226]], path: [[240, 143], [318, 143], [495, 210], [740, 210], [808, 143], [1115, 226]], b: [
+      'Distributed <b>tenant and device budgets</b> bound bytes and readings, not just envelopes.',
+      'They are shared across gateway replicas, so adding replicas does <b>not multiply</b> a quota.'] },
+    { h: 'Heartbeat capacity is reserved end to end.', hl: [[20, 280, 740, 110]], at: [1115, 226], b: [
+      'Reserved at <b>admission, Kafka, Flink and the action lane</b>.',
+      'A heartbeat topic alone gives <b>no reservation</b> on shared CPU, network or storage.'] },
+    { h: 'Queues buy time, not permanent capacity.', hl: [[1190, 46, 150, 194], [1378, 40, 130, 206]], path: [[1115, 226], [1183, 143], [1310, 143], [1478, 135]], b: [
+      'Whatever passes still needs <b>measured capacity</b> downstream.',
+      'Next we scale each bottleneck: ingestion, Kafka, Flink, storage, dashboards.'] }] },
+  4: { steps: [   // Ingestion close-up (ING_SVG)
+    { h: 'Ten times the envelopes arrive.', hl: [[20, 120, 180, 110]], at: [170, 200], lab: [[34, 262, 'illustrative 2M envelopes/sec', '#B45309']], b: [
+      'Each one is a <b>site batch</b>, authenticated and tenant-tagged by the gateway.',
+      'The figure is <b>illustrative</b>, not a fleet benchmark.'] },
+    { h: 'Each envelope unpacks into many readings.', hl: [[275, 142, 330, 58]], path: [[170, 200], [248, 175], [580, 95], [580, 171]], lab: [[620, 200, 'readings per envelope', '#1D4ED8']], b: [
+      'Every batch <b>unpacks</b> into device readings before routing by device key.',
+      'So measure <b>readings per envelope</b>, not just envelopes.'] },
+    { h: 'Scale the pool on measured signals.', hl: [[620, 70, 190, 110]], at: [580, 171], lab: [[630, 190, 'scaling out', '#1D4ED8']], b: [
+      'Scale on <b>measured</b> CPU, network and <b>Kafka produce latency</b>.',
+      'Pods hold no state, so new ones take traffic straight away.'] },
+    { h: 'More pods help only if Kafka can take the writes.', hl: [[905, 60, 300, 100], [905, 220, 300, 100]], path: [[580, 171], [580, 247], [605, 258], [860, 258], [860, 270], [900, 270], [1175, 290]], b: [
+      'Adding pods helps little if <b>Kafka disk</b> or ClickHouse is already saturated.',
+      'Heartbeats still go to their own topic, with capacity reserved <b>end to end</b>.'] }] },
+  5: { steps: [   // Kafka close-up (KAFKA_SVG)
+    { h: 'Ten times the writes reach the brokers.', hl: [[20, 130, 170, 100]], at: [160, 200], b: [
+      'Ingestion publishes far more readings, still keyed by <b>tenant + device</b>.',
+      'Every broker sees more bytes on disk and on the network.'] },
+    { h: 'Brokers need disk, network and recovery headroom.', hl: [[240, 14, 820, 306]], path: [[160, 200], [232, 180], [850, 126]], lab: [[880, 290, 'disk · network · headroom', '#B45309']], b: [
+      'Add broker <b>disk and network</b> for the higher write rate.',
+      'Keep headroom to <b>recover from a node failure</b> while new traffic keeps arriving.'] },
+    { h: 'More partitions allow more source readers.', hl: [[1128, 66, 334, 166]], path: [[850, 126], [1100, 126], [1440, 209]], b: [
+      'Source readers can never outnumber partitions.',
+      'So more Flink read parallelism needs <b>more partitions</b>.'] },
+    { h: 'But adding partitions can move device keys.', hl: [[250, 164, 620, 100]], path: [[1440, 209], [1100, 186], [850, 186]], lab: [[880, 172, 'e.g. a key moves P2 → P5', '#DC2626']], b: [
+      'A device\'s later events could land on a new partition while earlier ones are <b>still unread</b>.',
+      'That would break per-device order, so partition growth is a <b>planned migration</b>.'] }] },
   6: { steps: [   // example cutover on the Kafka close-up; the telemetry rows stand in for the old bulk topic
     { h: 'Fence the old producers.', hl: [[20, 130, 170, 100]], at: [160, 200], b: [
       'Example: ingestion stops writing to the old bulk topic.',
@@ -576,5 +804,80 @@ registerFlow(19, {
     { h: 'The heartbeat path stays available.', hl: [[250, 44, 620, 100]], at: [850, 126], lab: [[880, 60, 'stays available', '#15803D']], b: [
       'This example cutover is for the <b>bulk</b> topic.',
       'The separate <b>heartbeat path</b> keeps flowing, so DEAD detection is not interrupted.',
-      'Once the new route has accepted events, <b>re-plan recovery</b> around it.'] }] }
+      'Once the new route has accepted events, <b>re-plan recovery</b> around it.'] }] },
+  7: { steps: [   // Flink close-up (FLINK_SVG): savepoint across the topic change
+    { h: 'Take a savepoint.', hl: [[20, 360, 1010, 40]], at: [1000, 380], b: [
+      'A <b>savepoint</b> captures all keyed state and timers, like a checkpoint you control.',
+      'The job restarts from it on the new topology.'] },
+    { h: 'Keyed state carries over, with stable operator IDs.', hl: [[232, 40, 170, 200], [444, 30, 250, 220], [736, 20, 300, 240]], path: [[1000, 380], [1006, 238], [664, 238]], b: [
+      'Restore compatible <b>keyed state</b>: dedup windows, device state, timers.',
+      '<b>Stable operator IDs</b> let each piece of state find its operator again.'] },
+    { h: 'The new source starts at explicit new-topic offsets.', hl: [[20, 150, 170, 90]], path: [[664, 238], [438, 140], [382, 222], [160, 215]], lab: [[30, 262, 'new topic · explicit offsets', '#1D4ED8']], b: [
+      'Old-topic offsets do <b>not</b> identify positions in the new topic.',
+      'Replace the old source state deliberately; <b>initialize the new input explicitly</b>.'] }] },
+  8: { steps: [   // Flink close-up (FLINK_SVG): scaling the job
+    { h: 'Source readers and keyed operators scale separately.', hl: [[20, 40, 170, 200], [232, 40, 170, 200]], at: [160, 215], b: [
+      'Source readers are bounded by partitions; keyed operators by state and CPU.',
+      'Scale each <b>on its own</b> measured limit.'] },
+    { h: 'More devices means more state and timers.', hl: [[444, 30, 250, 220], [736, 20, 300, 240]], path: [[160, 215], [226, 195], [382, 222], [438, 140], [664, 238], [730, 140], [1006, 238]], lab: [[750, 200, 'more devices → more timers', '#B45309']], b: [
+      'Every new device brings <b>keyed state and a timer</b>.',
+      'So tune the state backend and checkpoints, not just CPU.'] },
+    { h: 'Add slots and nodes; checkpoints must keep up.', hl: [[20, 360, 1010, 40]], at: [1000, 380], b: [
+      'Add <b>slots and nodes</b> for TaskManager capacity.',
+      'Bigger state means longer checkpoints; watch completed-checkpoint age.'] },
+    { h: 'Liveness stays isolated from telemetry.', hl: [[20, 40, 170, 90], [1104, 20, 300, 56]], path: [[1000, 380], [1070, 140], [1070, 48], [1384, 48]], b: [
+      'Bulk load must not delay <b>DEAD detection</b>.',
+      'Extra workers still cannot split <b>one hot keyed owner</b>.'] }] },
+  9: { steps: [   // Storage close-up (STOR_SVG)
+    { h: 'Ten times the rows head for ClickHouse.', hl: [[20, 150, 170, 100], [272, 112, 250, 82]], path: [[170, 200], [230, 200], [230, 152], [255, 152]], b: [
+      'Raw telemetry lands in <b>ClickHouse hot</b>; it needs more writers and shards.',
+      'The 7-day hot window now holds ten times the rows.'] },
+    { h: 'Watch merge pressure and disk growth.', hl: [[272, 112, 250, 82], [272, 204, 250, 82]], at: [500, 152], lab: [[560, 200, 'merges · disk growth', '#B45309']], b: [
+      'Verify <b>merge pressure</b> and disk growth, not just the insert rate.',
+      'Grow the <b>retention budget</b> with the data, or retention breaks first.'] },
+    { h: 'Replayed writes deduplicate on read.', hl: [[272, 112, 250, 82]], at: [500, 152], b: [
+      'A migration or recovery can <b>replay</b> writes.',
+      'They carry <b>stable event IDs and versions</b>, so history reads deduplicate.'] },
+    { h: 'Tiered retention keeps hot cost bounded.', hl: [[272, 204, 250, 82], [272, 296, 250, 82]], path: [[500, 152], [500, 244], [500, 336]], b: [
+      'Rollups go warm for 6 months; sampled exports go to S3.',
+      'Hot-storage cost stays <b>bounded per device</b>, even at ten times the load.'] }] },
+  10: { steps: [   // Dashboards close-up (DASH_SVG)
+    { h: 'Budgets on queries and streams.', hl: [[490, 64, 320, 96], [490, 174, 320, 96]], at: [790, 84], b: [
+      'Dashboards get <b>bounded query concurrency</b> and a cap on SSE fan-out.',
+      'More traffic must not turn into unbounded load on ClickHouse.'] },
+    { h: 'Slow viewers get coalesced updates.', hl: [[490, 64, 320, 96], [1200, 20, 310, 370]], path: [[790, 84], [830, 120], [1196, 120], [1490, 300]], lab: [[1218, 300, 'slow viewer · coalesced', '#B45309']], b: [
+      'A slow page gets <b>coalesced</b> updates instead of every change.',
+      'Its queue stays <b>bounded</b>, so one viewer cannot back up the hub.'] },
+    { h: 'A reconnect resumes from shared replay, or a snapshot.', hl: [[490, 64, 320, 96], [20, 40, 180, 110]], path: [[1490, 300], [830, 120], [200, 95]], b: [
+      'A reconnect resumes from a <b>shared replay</b> buffer.',
+      'An expired cursor gets a new consistent <b>snapshot</b>.'] },
+    { h: 'Never pair an old snapshot with the latest cursor.', hl: [[490, 174, 320, 96]], path: [[200, 95], [486, 220], [790, 250]], lab: [[504, 262, 'old snapshot + new cursor = gap', '#DC2626']], b: [
+      'That combination <b>skips updates</b> in between.',
+      'Snapshot and cursor must come from the <b>same position</b>.'] }] },
+  11: { steps: [   // Cloud Gateway close-up (GW_SVG): bounded overload
+    { h: 'Arrivals still exceed capacity.', hl: [[20, 46, 250, 194]], at: [240, 143], lab: [[34, 262, 'arrivals > capacity', '#DC2626']], b: [
+      'Scaling has not caught up, and the declared edge and Kafka buffers are used.',
+      'Arrivals above capacity <b>never drain by themselves</b>.'] },
+    { h: 'Bulk traffic is rejected, with retry and backoff.', hl: [[815, 30, 330, 226]], path: [[240, 143], [318, 143], [495, 210], [740, 210], [808, 143], [1115, 226]], lab: [[833, 240, 'bulk · 429 · retry + backoff', '#DC2626']], b: [
+      'The gateway <b>rejects bulk traffic</b>; senders retry with backoff.',
+      'This starts only once the <b>declared buffer limits</b> are used.'] },
+    { h: 'Sample only eligible telemetry, and count every drop.', hl: [[815, 30, 330, 226], [780, 280, 728, 110]], at: [1115, 226], lab: [[833, 240, 'drops counted', '#B45309']], b: [
+      'Only telemetry <b>explicitly eligible</b> for loss is sampled.',
+      'Every drop is <b>counted</b>, so overload is visible, never silent.'] },
+    { h: 'Heartbeat admission stays reserved.', hl: [[20, 280, 740, 110], [1378, 40, 130, 206]], path: [[1115, 226], [1183, 143], [1310, 143], [1478, 135]], b: [
+      'Heartbeats keep flowing, so DEAD detection stays <b>accurate</b>.',
+      'Protect liveness and <b>make overload visible</b>.'] }] },
+  12: { steps: [   // Datadog close-up (OBS_SVG): soak and recovery gates
+    { h: 'Soak at the proposed rate.', hl: [[240, 190, 310, 140]], at: [530, 210], lab: [[254, 280, '2M/s scenario · verify', '#B45309']], b: [
+      'Run a <b>sustained soak</b>, reconnect bursts and <b>node-loss recovery</b> at the proposed rate.',
+      'A short peak test can pass while retention, recovery or one tenant\'s freshness fails later.'] },
+    { h: 'Gate on per-tenant freshness and backlog slope.', hl: [[240, 30, 310, 140], [570, 30, 310, 140], [240, 346, 1260, 50]], path: [[530, 210], [530, 180], [860, 180], [860, 50]], lab: [[254, 120, '✓ capacity gate', '#15803D'], [584, 120, '✓ freshness gate', '#15803D']], b: [
+      'Gate on <b>per-tenant p99 freshness</b>, not the fleet average.',
+      'The backlog slope must stay flat at the new rate.'] },
+    { h: 'Checkpoints and catch-up, before input expires.', hl: [[900, 30, 310, 140]], path: [[860, 50], [880, 180], [1190, 50]], b: [
+      'Completed-checkpoint age stays healthy under the soak.',
+      'After a node loss, the job must <b>catch up before Kafka retention</b> expires its input.'] },
+    { h: 'Raise quotas in stages.', hl: [[1250, 30, 250, 300]], path: [[1190, 50], [1230, 180], [1480, 50]], b: [
+      'Raise quotas <b>in stages</b>, only after the gates pass.',
+      'A soak is evidence for the tested conditions; it does not by itself prove <b>99.9%</b>.'] }] }
 });

@@ -174,6 +174,54 @@ for i,(t,ind) in enumerate([('Acme Retail',0),('Site-07 · Noida',1),('CAM-14 ·
 b.append(lab(1218,342,'tenant → site → device',fs=13.5)+lab(1218,364,'never sees another tenant',fs=13.5))
 b.append(arr('M830 120 H876','#16A34A','qg')+arr('M1180 330 H1196','#16A34A','qg'))
 OUT['DASH']=svg(1520,400,''.join(b))
+
+# ---------- ACTION EXECUTION (two lanes, Temporal, ServiceNow) ----------
+b=[]
+b.append(box(20,120,150,110,'v','Flink rules',['DEAD · SLOW · HOT','+ recovery'],fs=13.5,tfs=15))
+b.append(arr('M170 160 H226','#DC2626')+lab(174,150,'critical','#DC2626',12,800))
+b.append(box(230,120,170,90,'o','SNS',['alert fan-out','one event → many'],fs=13,tfs=15))
+b.append(arr('M315 120 V70 H436','#DC2626'))
+b.append(box(440,24,190,82,'r','PagerDuty',['pages on-call now','no batching'],fs=13,tfs=15))
+b.append(arr('M400 165 H436'))
+b.append(box(440,124,190,90,'o','SQS · tickets',['buffers bursts','at-least-once'],fs=13,tfs=15))
+b.append(arr('M630 169 H666'))
+b.append(box(670,124,170,90,'b','Ticket starter',['stateless worker','signalWithStart'],fs=13,tfs=15))
+b.append(arr('M535 214 V272 H666','#DC2626',dash='5 4')+lab(546,250,'poison msgs','#DC2626',12,800))
+b.append(box(670,236,170,72,'r','DLQ',['alarm + replay tool'],fs=13,tfs=15))
+b.append(arr('M840 169 H876'))
+b.append(f'<rect x="880" y="14" width="390" height="300" rx="14" fill="#F6F3FF" stroke="#C4B5FD" stroke-width="1.6"/>'+hd(898,40,'TEMPORAL · INCIDENT WORKFLOW','v'))
+b.append(f'<rect x="898" y="52" width="354" height="28" rx="7" fill="#0B1F3F"/>'+lab(910,71,'workflowId = tenant + device + outage generation','#FCD34D',12.5,700))
+for i,(t,d) in enumerate([('1 · Ticket at minute 30','10-min durable timer, then upsert'),('2 · Wait for ack','30-min deadline from the page'),('3 · Escalate','no ack → page L2, raise priority'),('4 · Resolve','recovery or fix → close the ticket')]):
+    y=90+i*54; b.append(f'<rect x="898" y="{y}" width="354" height="46" rx="9" fill="#fff" stroke="#C4B5FD"/>'+lab(912,y+20,t,'#3B2A8C',14,800)+lab(912,y+38,d,'#33465C',12.5,400))
+b.append(arr('M1270 90 H1306','#15803D','qg'))
+b.append(box(1310,24,190,130,'g','ServiceNow',['incident tickets','idempotent by','correlation ID'],fs=13,tfs=15))
+b.append(arr('M1306 250 H1274'))
+b.append(box(1310,184,190,130,'n','Signals in',['ack · recovery','ticket status','ops replay'],fs=13,tfs=15))
+b.append(arr('M95 230 V371 H226','#B45309')+lab(102,300,'minor','#B45309',12,800))
+b.append(box(230,334,170,74,'o','SQS · notify',['minor alerts'],fs=13,tfs=15))
+b.append(arr('M400 371 H436','#B45309'))
+b.append(box(440,334,400,74,'o','Notification service',['15-min site digest · quiet hours · email / Slack'],fs=13,tfs=15))
+b.append(box(880,334,620,74,'n',None,[])+hd(898,362,'WHY TWO LANES','n')+lab(898,386,'confirmed outages page now · minor issues are batched per site','#33465C',13.5,400))
+OUT['ACT']=svg(1520,420,''.join(b))
+
+# ---------- OBSERVABILITY (Datadog) ----------
+b=[]
+b.append(box(20,30,190,300,'n','Signals from',['edge gateways','gateway · ingestion','Kafka · Flink','Temporal · actions','dashboards'],fs=13.5,tfs=15))
+b.append(arr('M210 180 H236'))
+def spark(x,y,pts,c): return f'<polyline points="{" ".join(f"{x+i*28},{y-v}" for i,v in enumerate(pts))}" fill="none" stroke="{c}" stroke-width="2.4" stroke-linejoin="round"/>'
+tiles=[('Consumer lag','messages waiting for Flink','by partition, not just total','#F08A1C',[2,2,3,10,22,30,26,14,4,2]),
+       ('Freshness p99','event age when processed','alert > 2 min · heartbeats apart','#F08A1C',[2,2,2,8,18,24,20,10,3,2]),
+       ('Flink checkpoints','duration · failures','age of last completed','#7C5CFA',[6,6,7,6,6,7,6,6,7,6]),
+       ('Gateway ingress','envelopes/sec · per tenant','normal peak ≈ 200K','#2563EB',[10,10,11,24,26,25,12,10,11,10]),
+       ('Traces','one trace ID','edge → Kafka → Flink → ticket','#16A34A',[8,9,8,8,9,8,8,9,8,8])]
+for i,(t,a,c2,col,pts) in enumerate(tiles):
+    x=240+(i%3)*330; y=30+(i//3)*160
+    b.append(f'<rect x="{x}" y="{y}" width="310" height="140" rx="12" fill="#fff" stroke="#C9D5E5" stroke-width="1.6"/>'+lab(x+14,y+26,t,'#0B1F3F',15,800)+lab(x+14,y+46,a,'#56667C',12.5,400)+lab(x+14,y+64,c2,'#56667C',12.5,400)+spark(x+20,y+124,pts,col))
+b.append(box(900,190,310,140,'r','Monitors → page',['freshness or lag breach','checkpoint age too high','→ the pipeline owner'],fs=13.5,tfs=15))
+b.append(arr('M1210 180 H1246'))
+b.append(box(1250,30,250,300,'g','Automation first',['autoscale Flink + ingestion','annotate the dashboards','humans step in past','the guardrails'],fs=13.5,tfs=15))
+b.append(box(240,346,1260,50,'v',None,[])+hd(258,368,'PER TENANT AND PER PARTITION','v')+lab(258,388,'averages hide the outlier: freshness per tenant, lag per partition','#3B2A8C',13.5,400))
+OUT['OBS']=svg(1520,410,''.join(b))
 # ---------- STORAGE level 1 ----------
 b=[]
 b.append(box(20,150,170,100,'v','Flink',['writes in parallel'],fs=13,tfs=16))

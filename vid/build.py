@@ -302,6 +302,19 @@ END = {19: ('Measure. Expand. Prove it.', 'Bound admission until the new envelop
        3: ('Minor issues don\'t page anyone at 3 AM. 😴', 'Batched digests + live dashboard badges.'),
        4: ('From sensor to screen in near real time. ⚡', 'Kafka → Flink → live push (SSE).')}
 
+HOOK[20] = ('A crash after the write. 💥', 'Duplicate incident, or a missing one?')
+HOOK[21] = ('Many devices go silent at once. 🤔', 'Device failure, or pipeline failure?')
+HOOK[22] = ('Recovered, then failed again. 🔁', 'Which incident does a late signal belong to?')
+HOOK[23] = ('One platform, thousands of tenants. 🏢', 'Is a dashboard filter enough?')
+HOOK[24] = ('Live says one thing, history another. ⏱', 'Bridging the stream and the store.')
+HOOK[25] = ('Upgrade without a 3 AM rollback. 🚀', 'Compatible, gated, reversible.')
+END[20] = ('Retried, never duplicated. ✅', 'Committed decisions · stable IDs · reconcile.')
+END[21] = ('Silence is evidence only when the observer is healthy. ✅', 'Fresh heartbeats · healthy pipeline · bounded hold.')
+END[22] = ('One event, one incident. ✅', 'Outage generations · versions · reconcile first.')
+END[23] = ('Identity follows the data. ✅', 'Every hop is tenant-scoped and budgeted.')
+END[24] = ('Snapshot plus cursor. ✅', 'No gaps, no regressions.')
+END[25] = ('Shipped, gated, reversible. ✅', 'Compatibility first · canary · one-step rollback.')
+
 def page(v):
     scene = ''
     if v in (1, 2, 5):
@@ -325,7 +338,7 @@ def page(v):
     else:
         scene = f'<div id="sceneD" class="layer" style="width:1920px;height:1080px;opacity:0;background:radial-gradient(1200px 700px at 60% 30%,#fff 0%,#EEF3F9 70%)">{dash_markup(v)}</div>'
     h, e = HOOK[v], END[v]
-    STAGECLS = 'obs' if v in (6, 16, 17, 18, 19) else ''
+    STAGECLS = 'obs' if v in (6, 16, 17, 18, 19) or v >= 20 else ''
     architecture = arch
     return f'''<!doctype html><html><head><meta charset="utf-8"><style>{css}</style></head><body>
 <div id="stage" class="{STAGECLS}">
@@ -357,6 +370,6 @@ engine = open(f'{ROOT}/pres/timeline2p.js').read().split('// ================= p
 engine = engine.replace("const VER = 'pres';", "const VER = QS.get('ver') || 'int';")
 open(f'{ROOT}/vid/timeline2.js', 'w').write('// Generated from pres/timeline2p.js by vid/build.py.\n' + engine.rstrip() + '\n')
 
-for v in range(1, 20):
+for v in range(1, 26):
     open(f'{ROOT}/vid/v{v}.html', 'w').write(page(v))
 print('built')

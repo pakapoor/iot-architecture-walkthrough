@@ -313,6 +313,20 @@ registerFlow(3, {
     { h: 'The dashboard sees it live.', hl: [[1104, 152, 300, 56], [1110, 354, 300, 26]], path: [[1374, 114], [1070, 114], [1070, 180], [1374, 180]], b: [
       'The change is pushed <b>live</b> to the dashboard service, which updates open pages over SSE.',
       'Only <b>state changes</b> go downstream, not every slow reading.'] }] },
+  7: { steps: [   // Action Execution close-up (ACT_SVG)
+    { h: 'SLOW arrives as a minor alert.', hl: [[20, 120, 150, 110]], at: [150, 210], lab: [[240, 290, 'SNS-03 · SLOW · minor', '#B45309']], b: [
+      'Flink emits only the <b>transition</b>: SNS-03 is now SLOW.',
+      'SLOW is minor, so it never enters the critical lane.'] },
+    { h: 'The minor lane: SQS, not PagerDuty.', hl: [[230, 334, 170, 74]], path: [[150, 210], [95, 240], [95, 371], [380, 371]], b: [
+      'Minor alerts go over <b>SQS</b> to the notification service.',
+      'Nothing here talks to PagerDuty, so <b>nobody is paged</b>.'] },
+    { h: 'One 15-minute digest per site.', hl: [[440, 334, 400, 74]], path: [[380, 371], [436, 371], [810, 390]], b: [
+      'Alerts roll into one <b>15-minute digest per site</b>, with repeats folded and <b>quiet hours</b> respected.',
+      'Fifty minor alerts from one site become <b>one message</b>, not fifty pings.'] },
+    { h: 'Why two lanes.', hl: [[880, 334, 620, 74], [440, 24, 190, 82]], at: [810, 390], b: [
+      'A DEAD device would take the critical lane: SNS → PagerDuty, <b>at once</b>.',
+      'Trade-off: up to <b>15 minutes of delay</b> on minor issues.',
+      'The cheapest alert is the one nobody gets at 3 AM.'] }] },
   8: { steps: [
     { h: 'Flink pushes SNS-03\'s change to the dashboard service.', hl: [[240, 14, 190, 54], [490, 64, 320, 96]], path: [[458, 41], [458, 100], [780, 140]], lab: [[215, 140, 'SNS-03 → DEGRADED', '#B45309']], b: [
       'Flink sends the <b>live update</b> straight to the dashboard service.',
