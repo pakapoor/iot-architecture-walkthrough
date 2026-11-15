@@ -60,7 +60,7 @@ def run(output, playback=None):
             page.wait_for_timeout(100)
             return page.frames[-1]
 
-        for v in range(1, 24):
+        for v in range(1, 20):
             page.goto(f'{base}/pres/flow{v}.html?embed=1&obs=1&why=1&caps=1')
             page.wait_for_function('window.PRESENTER')
             result = page.evaluate('''() => {
@@ -68,34 +68,53 @@ def run(output, playback=None):
               return {pauses:PRESENTER.PAUSES.length, finite:Number.isFinite(window.TOTAL)};
             }''')
             assert result['finite'] and result['pauses'] > 5, (v, result)
-        passed('all 23 timelines render every pause without runtime errors')
+        passed('all 19 timelines render every pause without runtime errors')
 
         frame = shell()
-        assert page.locator('#flows button[data-flow]').count() == 14
+        assert page.locator('#flows button[data-flow]').count() == 7
         assert page.locator('#issues button[data-flow]').count() == 5
+        assert page.locator('#deepTopics button[data-topic]').count() == 6
+        assert page.locator('#deploy button[data-flow]').count() == 7
         assert page.locator('#deepToggle').get_attribute('aria-expanded') == 'false'
-        assert page.locator('#futureToggle').get_attribute('aria-expanded') == 'false'
-        page.locator('#issueToggle').click()
+        assert page.locator('#deployToggle').get_attribute('aria-expanded') == 'false'
+        page.locator('#deepToggle').click()
         page.locator('#issues button[data-flow="growth"]').click()
         page.wait_for_function("document.querySelector('#stage iframe')?.src.includes('flow19.html')")
         page.wait_for_timeout(500)
-        page.locator('#issueToggle').click()
-        assert page.locator('#issueToggle').evaluate("e => e.classList.contains('has-active')")
+        page.locator('#deepToggle').click()
+        assert page.locator('#deepToggle').evaluate("e => e.classList.contains('has-active')")
         page.keyboard.press('9')
-        assert page.locator('#issueToggle').get_attribute('aria-expanded') == 'true'
+        assert page.locator('#deepToggle').get_attribute('aria-expanded') == 'true'
+        page.keyboard.press('4')
+        page.wait_for_function("document.querySelector('#stage iframe')?.src.includes('flow9.html')")
+        assert page.locator('#deployToggle').get_attribute('aria-expanded') == 'true'
         assert page.locator('select').count() == 0
-        passed('section headers reveal direct item lists; selection, links and shortcuts are preserved')
+        passed('sections: Flows, Deep dives (infra issues + lessons), Deployment; selection, links and shortcuts preserved')
+
+        page.locator('#roleBtn').click()
+        page.locator('#dmodal').wait_for(state='visible')
+        assert 'Chief architect' in page.locator('#dtitle').inner_text() and 'Team' in page.locator('#dtext').inner_text()
+        page.keyboard.press('Escape')
+        assert page.locator('#roleBtn').evaluate('e => e === document.activeElement')
+        page.locator('body').press('r')
+        page.locator('#dmodal').wait_for(state='visible')
+        page.keyboard.press('Escape')
+        passed('My role dialog opens from the sidebar and the R key; focus returns')
 
         frame = shell()
-        page.locator('#tWhy').check()
-        frame.locator('#ddc-0').click()
-        assert not page.locator('#dmodal').evaluate('e => e.hidden')
+        # fixed layout: observability always shown, no design-decision cards or switches, panel in every flow
+        assert frame.locator('#a-obsp').is_visible() and frame.locator('#xpanel').is_visible()
+        assert not frame.locator('.cards').is_visible() and page.locator('.toggles, #tObs, #tWhy, #tCap').count() == 0
+        page.locator('#deepToggle').click()
+        page.locator('#topic-replay').click()
+        page.locator('#dmodal').wait_for(state='visible')
         assert page.locator('#dclose').evaluate('e => e === document.activeElement')
-        page.keyboard.press('Tab')
-        assert page.locator('#dclose').evaluate('e => e === document.activeElement')
+        for _ in range(6):
+            page.keyboard.press('Tab')
+            assert page.evaluate("document.getElementById('dmodal').contains(document.activeElement)")
         page.keyboard.press('Escape')
-        assert frame.locator('#ddc-0').evaluate('e => e === document.activeElement')
-        frame.locator('#ddc-0').press('Enter')
+        assert page.locator('#topic-replay').evaluate('e => e === document.activeElement')
+        page.locator('#topic-replay').press('Enter')
         page.locator('#dmodal').wait_for(state='visible')
         page.keyboard.press('Escape')
         frame.locator('#a-gw').focus()
@@ -108,7 +127,7 @@ def run(output, playback=None):
         page.keyboard.press('Escape')
         frame.locator('#cucard').wait_for(state='hidden')
         assert frame.locator('#a-gw').evaluate('e => e === document.activeElement')
-        passed('mouse/keyboard decision modal and close-up: focus, trap, Escape, restoration; no icon freeze')
+        passed('fixed layout; deep-dive dialog and close-up: focus, trap, Escape, restoration; no icon freeze')
 
         # Complete a manually stepped flow using the actual keyboard handler.
         frame = shell('health')
@@ -129,24 +148,14 @@ def run(output, playback=None):
           let clock = performance.now();
           window.requestAnimationFrame = fn => setTimeout(() => { clock += 100; fn(clock); }, 0);
         })()''')
-        for slug in (playback if playback is not None else ['cicd-svc', 'cicd-dash', 'telemetry', 'storm', 'red-snow', 'growth', 'predictive', 'security', 'root-cause', 'runbook']):
-            proposal = slug in ['predictive', 'security', 'root-cause', 'runbook']
-            route = ('?future=' if proposal else '?flow=') + slug
-            auto.goto(f'{base}/pres/{route}')
+        for slug in (playback if playback is not None else ['cicd-svc', 'cicd-dash', 'telemetry', 'storm', 'red-snow', 'growth']):
+            auto.goto(f'{base}/pres/?flow={slug}')
             auto.wait_for_function("document.querySelector('#stage iframe')?.contentWindow.PRESENTER")
             fr = auto.frames[-1]
             before = auto.evaluate('location.search')
-            if proposal:
-                assert fr.locator('.proposal-box').count() == 4
-                assert fr.locator('#a-edge').is_visible() and fr.locator('#a-stor').is_visible()
-                assert 'GenAI' in fr.locator('#a-ai3').inner_text()
-                auto.locator('#proposalInfo').click()
-                auto.locator('#dmodal').wait_for(state='visible')
-                assert 'future-' + slug + '.png' in auto.locator('#dsnap img').get_attribute('src')
-                auto.keyboard.press('Escape')
             fr.locator('#bPlay').click()
             auto.locator('#upnext').wait_for(state='visible', timeout=60000)
-            assert ('future-' + slug if proposal else slug) in auto.evaluate("JSON.parse(localStorage.getItem('explored'))")
+            assert slug in auto.evaluate("JSON.parse(localStorage.getItem('explored'))")
             auto.wait_for_function('s => location.search !== s', arg=before, timeout=8000)
             passed(f'automatic playback: {slug}, completed end card, countdown and advance')
         auto.close()
@@ -165,48 +174,17 @@ def run(output, playback=None):
             page.screenshot(path=str(output / f'phone-{theme}.png'))
             page.set_viewport_size({'width': 1440, 'height': 900})
             page.wait_for_function("document.querySelector('#stage iframe')?.src.includes('flow16.html')")
-            for slug in ['predictive', 'security', 'root-cause', 'runbook']:
-                page.goto(f'{base}/pres/?future={slug}')
-                page.wait_for_function("document.querySelector('#stage iframe')?.contentWindow.PRESENTER")
-                proposal_frame = page.frames[-1]
-                assert 'Jev' in proposal_frame.locator('#a-ai2').inner_text()
-                # Fit checks use rendered bounds, including the stage's transform.
-                clipped = proposal_frame.locator('.proposal-box').evaluate_all('''boxes => boxes.flatMap(box => {
-                  const b = box.getBoundingClientRect();
-                  return [...box.children].filter(child => {
-                    const r = child.getBoundingClientRect();
-                    return r.right > b.right + 1 || r.bottom > b.bottom + 1;
-                  }).map(child => ({box:box.id, text:child.textContent}));
-                })''')
-                assert not clipped, (theme, slug, clipped)
-                proposal_frame.evaluate('setT(PRESENTER.PAUSES[2].t)')
-                proposal_frame.locator('#a-ai2').focus()
-                page.keyboard.press('Enter')
-                proposal_frame.locator('#cucard').wait_for(state='visible')
-                proposal_frame.wait_for_function("new DOMMatrix(getComputedStyle(document.getElementById('cucard')).transform).isIdentity")
-                assert 'Jev' in proposal_frame.locator('#cucard').inner_text()
-                assert proposal_frame.locator('#cucard').evaluate('e => e.scrollHeight <= e.clientHeight + 1')
-                page.screenshot(path=str(output / f'{slug}-decision-{theme}.png'))
-                page.keyboard.press('Escape')
-                proposal_frame.locator('#cucard').wait_for(state='hidden')
-                assert proposal_frame.locator('#a-ai2').evaluate('e => e === document.activeElement')
-                page.locator('#proposalInfo').click()
-                page.locator('#dmodal').wait_for(state='visible')
-                page.locator('.reasoning summary').click()
-                assert 'Jev' in page.locator('#dtext').inner_text()
-                assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
-                page.keyboard.press('Escape')
             page.set_viewport_size({'width': 390, 'height': 844})
             page.goto(f'{base}/pres/?flow=telemetry')
             assert page.locator('#v-telemetry').evaluate("e => e.classList.contains('hl')")
             assert page.locator('#v-telemetry').evaluate('e => e.getBoundingClientRect().top < innerHeight')
-        passed('light/dark layouts, four Jev close-ups/details and box fit, narrow desktop, phone links/resizing')
+        passed('light/dark layouts, narrow desktop, phone links/resizing')
 
         # Lesson playback on mobile has no hidden iframe and can use a virtual clock.
         lessons = context.new_page()
         lessons.set_viewport_size({'width': 390, 'height': 844})
         lessons.clock.install()
-        lessons.goto(f'{base}/pres/?future=predictive')
+        lessons.goto(f'{base}/pres/?deep=replay')
         lessons.locator('#dmodal').wait_for(state='visible')
         lessons.keyboard.press('Escape')
         lessons.locator('.mobile-learning').evaluate('e => e.open = true')
@@ -219,21 +197,17 @@ def run(output, playback=None):
             assert lessons.locator('#lessonNext').is_disabled()
             assert lessons.locator('#lessonCount').inner_text() == f"{topic['count']} / {topic['count']}"
             assert lessons.locator('#lessonPlay').inner_text() == 'Play'
-            if topic['section'] == 'future':
-                assert 'future-' + topic['slug'] + '.png' in lessons.locator('#dsnap img').get_attribute('src')
             lessons.keyboard.press('Escape')
             assert lessons.locator('#mobile-topic-' + topic['slug']).evaluate('e => e === document.activeElement')
         lessons.close()
-        passed('all six deep dives and four AI proposals run to completion; mobile focus returns correctly')
+        passed('all six deep dives run to completion on phones; mobile focus returns correctly')
 
         page.set_viewport_size({'width': 1440, 'height': 900})
-        page.goto(f'{base}/pres/?future=security')
+        page.goto(f'{base}/pres/?future=security')   # removed section: an old link falls back to the architecture
         page.wait_for_function("document.querySelector('iframe')?.contentWindow.PRESENTER")
-        page.screenshot(path=str(output / 'future-architecture.png'))
-        page.locator('#proposalInfo').click()
-        page.locator('#dmodal').wait_for(state='visible')
-        page.screenshot(path=str(output / 'security-proposal.png'))
-        page.keyboard.press('Escape')
+        assert 'flow4.html' in page.locator('#stage iframe').get_attribute('src') and 'future' not in page.url
+        page.goto(f'{base}/pres/?flow=storm')
+        page.wait_for_function("document.querySelector('iframe')?.contentWindow.PRESENTER")
         frame = page.frames[-1]
         page.evaluate('''() => {
           window.__unsafe = false;
@@ -241,11 +215,11 @@ def run(output, playback=None):
         }''')
         page.wait_for_timeout(100)
         assert not page.evaluate('__unsafe')
-        assert frame.locator('.ddc img, .ddc script').count() == 0
+        assert frame.locator('.cards img, .cards script').count() == 0   # option messages no longer render HTML
         shell('telemetry')
         page.evaluate("postMessage({type:'home'},location.origin)")
         page.wait_for_timeout(100)
-        assert 'flow=telemetry' in page.url  # close removed only the proposal parameter
+        assert 'flow=telemetry' in page.url  # an unrelated 'home' message from the page itself is ignored
         passed('trusted message text is escaped and shell ignores unrelated senders')
 
         page.evaluate("select(ALL.find(f => f.slug === 'telemetry'), true, true)")
@@ -254,10 +228,8 @@ def run(output, playback=None):
         assert page.evaluate("!document.querySelector('iframe').contentDocument.getElementById('bPlay').classList.contains('on')")
         page.set_viewport_size({'width': 1440, 'height': 900})
         page.evaluate("select(ALL.find(f => f.slug === 'telemetry'), true, true)")
-        page.locator('#futureToggle').click()
-        page.locator('#topic-predictive').click()
         page.wait_for_function("document.querySelector('#stage iframe:last-of-type')?.contentWindow.PRESENTER")
-        page.locator('#proposalInfo').click()
+        page.locator('#roleBtn').click()
         page.wait_for_timeout(1300)
         assert page.evaluate("!document.querySelector('iframe').contentDocument.getElementById('bPlay').classList.contains('on')")
         page.keyboard.press('Escape')

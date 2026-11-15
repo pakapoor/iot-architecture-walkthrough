@@ -11,9 +11,7 @@ An interactive, click-to-advance walkthrough of a commercial IoT monitoring plat
 ![Commercial IoT Monitoring System architecture](docs/architecture.svg)
 
 ## How to use it
-Expand **Flows** or **Infra issues** and click a walkthrough directly, then press play or step through with the arrow keys. Each section reveals its items immediately; opening another section closes the previous one. Direct links open the selected section. Click or keyboard-activate a component for a close-up. In Tiered Storage, select a store to inspect its example schema. Two toggles add extra layers:
-- **Observability** overlays the Datadog view.
-- **Design decisions** adds the trade-offs behind each step.
+Open **My role** for the presenter's role, scope, decisions and outcomes. Expand **Flows**, **Deep dives** or **Deployment & upgrades** and click a walkthrough directly, then press play or step through with the arrow keys. Each section reveals its items immediately; opening another section closes the previous one. Direct links open the selected section. Click or keyboard-activate a component for a close-up. In Tiered Storage, select a store to inspect its example schema; in Edge Site, select a site to open its example network. While a flow plays, the left panel explains each step with a heading and spoken bullets; clicking the component the ball rests on opens an animated view of what happens inside it (Critical alert · field fix so far). Play runs at a presenter-friendly pace and ■ Stop holds the current step. The Datadog observability tiles are always shown. Clicking Edge Site opens the tenant view; click a site for an example small-store or flagship network.
 
 ## Flows
 | Group | Flow | What it shows |
@@ -25,13 +23,8 @@ Expand **Flows** or **Infra issues** and click a walkthrough directly, then pres
 | | Critical · ServiceNow down | bounded retries → parked workflow → human replay → one ticket |
 | | Minor · digest | SLOW → minor lane → 15-min digest per site |
 | Multi-tenancy | Noisy neighbour | tenant throttled at its own quota, bounded tenant budgets; scoped identities and RBAC |
-| Deployment & upgrades | Device firmware | canary 1% → health gates → waves → auto-halt + A/B rollback |
-| | Gateway + Ingestion | stateless services, canary by traffic |
-| | Flink jobs | stateful jobs upgraded via savepoints |
-| | Temporal + Action services | new workflow versions never break running workflows |
-| | Dashboard service + UI | feature flags, CDN and graceful SSE reconnects |
-| | Data stores | zero-downtime schema change: expand → migrate → contract |
-| | Kafka + platform | infrastructure as code, rolled one broker at a time |
+
+**Deep dives · when things break**
 
 | Infra issue | What it shows |
 |---|---|
@@ -41,9 +34,19 @@ Expand **Flows** or **Infra issues** and click a walkthrough directly, then pres
 | Hot partition | contained at the door: per-device limits · lag by partition |
 | Sustained 10× traffic | measure the bottleneck → scale each layer → ordered Kafka migration → bounded admission → recovery/soak gates |
 
-**Deep dives** contains six runnable visual answers: delivery/replay, device versus pipeline health, incident races, tenant isolation, live/history consistency, and safe rollback. **Future enhancements** opens four updated architecture walkthroughs: predictive maintenance, fleet security triage, cross-site root-cause analysis, and a runbook copilot. Choose a future scenario to see its proposed components connected to the existing architecture, then use the main Play/Next controls. Click a new component for a close-up, or open Problem & trade-offs for supporting details. Each proposal follows Flink candidates → internal decision service / official Jev API → grounded GenAI → human review or a restricted diagnostic gate. The UI explains rule fallback, API/data boundaries and validation. Deep dives retain their focused dialog playback. These are browser simulations, with no AI service or infrastructure commands connected.
+**Deep dives** also contains six runnable visual answers on correctness and trade-offs: delivery/replay, device versus pipeline health, incident races, tenant isolation, live/history consistency, and safe rollback. They run in a focused dialog with Play/Next controls, including on phones.
 
-Flows use keys 1–4 for their groups; infra issues use 5–9. Automatic playback offers a five-second Up next countdown after the final card. Manual stepping records explored progress without advancing. Phones highlight linked videos or show a desktop note for interactive-only flows; deep dives and future proposal details also run on phones, using the full updated architecture preview with the active component highlighted.
+| Deployment & upgrades | What it shows |
+|---|---|
+| Device firmware | canary 1% → health gates → waves → auto-halt + A/B rollback |
+| Gateway + Ingestion | stateless services, canary by traffic |
+| Flink jobs | stateful jobs upgraded via savepoints |
+| Temporal + Action services | new workflow versions never break running workflows |
+| Dashboard service + UI | feature flags, CDN and graceful SSE reconnects |
+| Data stores | zero-downtime schema change: expand → migrate → contract |
+| Kafka + platform | infrastructure as code, rolled one broker at a time |
+
+Flows use keys 1–3 for their groups, deployment uses 4 and infra issues use 5–9; R opens My role. Automatic playback offers a five-second Up next countdown after the final card. Manual stepping records explored progress without advancing. Phones highlight linked videos or show a desktop note for interactive-only flows; deep dives also run on phones.
 
 ## Videos
 Walkthrough videos of the first eight flows (720p), in [`videos/`](videos):
@@ -58,10 +61,12 @@ Walkthrough videos of the first eight flows (720p), in [`videos/`](videos):
 ## Repository layout
 ```
 index.html                entry point for GitHub Pages (opens pres/)
-pres/index.html           the one-page shell: side panel, toggles, design decisions, phone layout
+pres/index.html           the one-page shell: side panel, My role, deep-dive dialogs, phone layout
 pres/timeline2p.js        presenter engine: stops, camera, controls, close-ups, reflow
 pres/icons.js             SVG line icons (replace emoji at runtime)
-pres/deep-dives.js        visual interview answers and illustrative AI proposals
+pres/deep-dives.js        visual interview answers (Deep dives · correctness & trade-offs)
+pres/notes.js             explanation-panel notes and inside-view sequences per step
+pres/role.js              content of the My role dialog
 pres/flow*.html           one page per flow (generated)
 iot.html, svcnow.html     the architecture diagram and ServiceNow/Temporal scene (source of truth)
 vid/build.py              assembles each flow page; vid/cicd_data.py holds the CI/CD scenes
@@ -69,9 +74,7 @@ vid/render.py             renders a flow to MP4:  python3 vid/render.py <1-8> li
 tools/build.sh            regenerates pres/flow*.html
 tools/svgs.py             generator for the graphical close-ups (embedded in timeline2p.js)
 tools/browser_check.py    browser regression suite, including every new scenario
-tools/render_assets.py    refresh PNG previews, future architectures and vector diagram
-vid/proposal_data.py      proposed component definitions and integrated walkthrough data
-pres/proposals.js         generated future-scenario metadata
+tools/render_assets.py    refresh PNG previews and the vector diagram
 docs/architecture.svg     vector diagram for this README
 videos/                   rendered walkthrough videos
 ```
@@ -88,6 +91,6 @@ It's plain static files, so it runs on GitHub Pages, Netlify or any web server, 
 ## Notes
 - Operational scenarios are the failure modes the system was **designed for**.
 - Database schemas, keys, role permissions and CI/CD tooling in the close-ups are **examples**, labelled as such.
-- Additional recovery policies and AI components are design examples/proposals, not assertions that these exact implementations ran in production. The 500K recovery burst and sustained 10× growth are designed-for scenarios, not measured throughput benchmarks.
+- Additional recovery policies are design examples, not assertions that these exact implementations ran in production. The 500K recovery burst and sustained 10× growth are designed-for scenarios, not measured throughput benchmarks.
 - The existing eight MP4s are earlier rendered snapshots. Current accuracy explanations and new scenarios are available in the interactive UI; regenerate videos separately when publishing a new video edition.
-- `tools/build.sh` embeds generated close-ups, updates all 23 flow pages and derives the video timeline from the same interactive timeline definitions.
+- `tools/build.sh` embeds generated close-ups, updates all 19 flow pages and derives the video timeline from the same interactive timeline definitions.

@@ -2,21 +2,20 @@
 
 Validated on 27 October 2026 against a local HTTP server mounted at the GitHub Pages project path, `/iot-architecture-walkthrough/`.
 
-This is a static educational presentation. Recovery mechanisms introduced during review are explicitly examples; future AI scenarios are simulations and proposals. Browser checks do not verify the production IoT platform, service configurations, model calibration or advertised fleet throughput.
+This is a static educational presentation. Recovery mechanisms introduced during review are explicitly examples. The Future enhancements section and its four AI scenarios were removed on 15 November 2026; the build now produces 19 timelines. Browser checks do not verify the production IoT platform, service configurations, model calibration or advertised fleet throughput.
 
 ## Browser coverage
 
 Run `python3 tools/browser_check.py` after `./tools/build.sh`. Results and inspection screenshots are written to `/tmp/iot-browser-checks/` by default.
 
-- Every pause in all 23 architecture timelines renders without JavaScript exceptions.
-- Flow and infrastructure section headers reveal direct item lists, preserving selection, shortcuts and direct links. No nested selection dropdown is required. Opening a section closes the other sidebar sections.
+- Every pause in all 19 architecture timelines renders without JavaScript exceptions.
+- The sidebar has three sections: Flows, Deep dives (infra issues plus correctness lessons) and Deployment & upgrades. Section headers reveal direct item lists, preserving selection, shortcuts and direct links; opening a section closes the others. Old `?future=` links fall back to the architecture.
 - Design-decision cards open with a real mouse click and Enter. Dialog focus, Tab/Shift+Tab containment, Escape and focus restoration are checked.
 - The Cloud Gateway close-up exercises the previous icon/check-mark freeze case.
 - Manual arrow stepping records completion without automatic navigation.
-- Automatic playback reaches the final card, displays a real five-second countdown and advances for `cicd-svc`, `cicd-dash`, `telemetry`, `storm`, `red-snow`, `growth`, and the four future architecture scenarios. Timeline frame time is accelerated in this regression check; countdown time is not.
+- Automatic playback reaches the final card, displays a real five-second countdown and advances for `cicd-svc`, `cicd-dash`, `telemetry`, `storm`, `red-snow` and `growth`. Timeline frame time is accelerated in this regression check; countdown time is not.
 - Light and dark themes are checked at desktop, narrow desktop and phone sizes. Phone links highlight/scroll videos or show a desktop note, and widening initializes the selected interactive flow.
-- All six deep dives and four future AI scenarios run through their UI steps. Future scenarios open the existing architecture with four proposed components, data/action connectors and main-stage playback; their detail dialogs retain problem/alternative/trade-off explanations. Future diagrams explicitly identify GenAI components. Playback ends, stops on close and returns focus to its triggering item.
-- All four Jev decision-service close-ups and supporting dialogs are checked in light/dark themes, including component text bounds, keyboard opening/closing and focus restoration. The UI uses Noul for binary probability, Choice for supplied alternatives and advisory Score for an ordered rubric; production approvals remain outside the models.
+- All six deep dives run through their UI steps on phones; playback ends, stops on close and returns focus to its triggering item. The My role dialog opens from the sidebar and the R key.
 - Sender checks reject unrelated shell messages; dynamic design-card text escapes executable HTML.
 - Raw/warm storage schemas, Redis and the S3 detail SVGs were inspected for text beyond their view boxes. Architecture typography and refreshed images were visually inspected.
 
@@ -54,10 +53,10 @@ Run `python3 tools/browser_check.py` after `./tools/build.sh`. Results and inspe
 | 28 — Responsive stage | Breakpoint changes initialize the frame and stop hidden playback. |
 | 29 — Mobile links | Video highlighting/scrolling, interactive-only notes and mobile topic playback are available. |
 | 30 — Keyboard access | Diagram activation, modal focus containment and exact triggering-card restoration are checked. |
-| 31 — Build permission | `tools/build.sh` remains executable and regenerates all 23 flows. |
+| 31 — Build permission | `tools/build.sh` remains executable and regenerates all 19 flows. |
 
 ## Assets and repeatability
 
-`tools/render_assets.py` refreshes `pres/arch_snapshot.png`, `pres/actions_detail.png`, `docs/og.png`, the four `pres/future-*.png` architecture previews, and the vector `docs/architecture.svg` from HTML. Social services may cache older previews until their crawler refreshes them. The repository's earlier MP4 snapshots have not been re-rendered; current explanations and all new scenarios are available in the UI.
+`tools/render_assets.py` refreshes `pres/arch_snapshot.png`, `pres/actions_detail.png`, `docs/og.png`, and the vector `docs/architecture.svg` from HTML. Social services may cache older previews until their crawler refreshes them. The repository's earlier MP4 snapshots have not been re-rendered; current explanations and all new scenarios are available in the UI.
 
 The build embeds close-ups from `tools/svgs.py` and derives the video timeline from the interactive source. A second build must produce no changes. HTML references, duplicate IDs, JavaScript/Python syntax and `git diff --check` are checked separately before syncing.

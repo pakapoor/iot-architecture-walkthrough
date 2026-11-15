@@ -45,23 +45,63 @@ for yy,l in [(66,'Reader 1 ← P0'),(126,'Reader 2 ← P1'),(186,'Reader 3 ← P
 b.append(lab(1128,262,'source readers ≤ partitions','#5B3FD9',13.5)+lab(1128,284,'downstream keyed parallelism is separate',fs=13.5,wgt=400))
 b.append(box(1110,334,370,58,'g',None,[])+hd(1128,358,'REPLAY','g')+lab(1128,380,'bug or outage → rewind the offset → reprocess','#166534',13.5,400))
 OUT['KAFKA']=svg(1500,400,''.join(b))
-# ---------- EDGE ----------
+# ---------- EDGE (tenant level: two example sites; click a site for its network) ----------
 b=[]
-b.append(f'<rect x="20" y="14" width="900" height="380" rx="16" fill="#F0FDFA" stroke="#99F6E4" stroke-width="1.6"/>'+hd(40,42,'RETAIL SITE · SITE-07','t'))
-for i,(ic,n) in enumerate([('📷','Cameras'),('🌡','Thermostats'),('👣','Footfall sensors'),('🖥','Displays')]):
-    y=64+i*76; b.append(f'<rect x="40" y="{y}" width="210" height="60" rx="12" fill="#fff" stroke="#99F6E4"/><text x="58" y="{y+38}" font-size="22">{ic}</text>'+lab(92,y+37,n,'#0B1F3F',15.5,700))
-    b.append(arr(f'M250 {y+30} H338'))
-b.append(lab(262,52,'MQTT / CoAP','#0F766E',13,800))
-b.append(box(345,64,280,170,'t','Gateway A · ACTIVE',['Batches per site','(1 heartbeat / device / min)','Local spool on disk + retry','Firmware agent: apply / rollback'],fs=14))
-b.append(box(345,250,280,120,'n','Gateway B · STANDBY',['Takes over if A fails','Recoverable spool (e.g.)'],fs=14))
-b.append(arr('M485 234 V248','#7A8BA0')+lab(495,246,'failover',fs=12))
-b.append(box(650,64,250,150,'o','When the cloud is down',['Spool fills on disk','Bounded capacity + alarms','Flush on reconnect →','a burst (see queue depth)'],fs=13.5,tfs=15))
-b.append(box(650,230,250,140,'p','Firmware',['Canary % first','Status back via telemetry','Auto-rollback on failure'],fs=13.5,tfs=15))
-b.append(arr('M625 150 H640 V150','#7A8BA0'))
-b.append(arr('M920 200 H1010','#1D4ED8')+lab(930,190,'mTLS · batches','#1D4ED8',13,800))
-b.append(box(1015,120,240,160,'b','Cloud Gateway',['Device identity check','Per-tenant quotas'],fs=14))
-b.append(box(1280,14,220,380,'n','Why batch here',['100M devices × 1/min','≈ 1.7M heartbeats/sec','per-site batching →','200K envelopes/sec','gateway normal peak','','Durability is bounded','by spool + failover'],fs=14))
-OUT['EDGE']=svg(1520,410,''.join(b))
+b.append(f'<rect x="20" y="14" width="1010" height="392" rx="16" fill="#F0FDFA" stroke="#99F6E4" stroke-width="1.6"/>'+hd(40,42,'TENANT · ACME RETAIL · 214 SITES','t'))
+# small store
+o=f'<rect x="40" y="60" width="400" height="300" rx="14" fill="#fff" stroke="#99F6E4" stroke-width="1.6"/>'+lab(58,88,'Site-07 · Noida','#0B1F3F',17,800)+lab(58,110,'Small store · e.g. 48 devices','#0F766E',13.5,600)
+for i,(ic,n) in enumerate([('📷','12 cameras'),('🖥','8 displays'),('🌡','12 thermo.'),('👣','16 sensors')]):
+    x=58+i*94; o+=f'<rect x="{x}" y="128" width="86" height="60" rx="10" fill="#F0FDFA" stroke="#99F6E4"/><text x="{x+10}" y="156" font-size="18">{ic}</text>'+lab(x+10,178,n,'#0F766E',11.5,700)
+o+=arr('M240 192 V226')+lab(252,214,'LAN · Wi-Fi · Zigbee/BLE bridge',fs=11.5)
+o+=box(110,230,260,76,'t','Edge pair',['A active · B standby'],fs=13,tfs=15)+lab(420,344,'Open site →','#2563EB',13,800,'end')
+b.append(f'<g data-site="small" style="cursor:pointer">{o}</g>')
+# large flagship
+o=f'<rect x="460" y="60" width="400" height="300" rx="14" fill="#fff" stroke="#99F6E4" stroke-width="1.6"/>'+lab(478,88,'Flagship store','#0B1F3F',17,800)+lab(478,110,'Large store · e.g. ~500 devices','#0F766E',13.5,600)
+for i,n in enumerate(['Sales floor','Aisles','Cold rooms']):
+    x=478+i*128; o+=f'<rect x="{x}" y="128" width="116" height="40" rx="10" fill="#F0FDFA" stroke="#99F6E4"/>'+lab(x+58,153,n,'#0F766E',12,700,'middle')+f'<path d="M{x+58} 168 V182" stroke="#7A8BA0" stroke-width="2"/>'
+o+='<path d="M536 196 H664" stroke="#1D4ED8" stroke-width="2.5"/><path d="M664 196 H792" stroke="#1D4ED8" stroke-width="2.5" stroke-dasharray="6 5"/>'
+for cx in (536,664,792): o+=f'<circle cx="{cx}" cy="196" r="14" fill="#fff" stroke="#1D4ED8" stroke-width="2"/>'+lab(cx,201,'R','#1D4ED8',12,800,'middle')
+o+=arr('M664 210 V226')+box(530,230,260,76,'t','Edge pair',['A active · B standby'],fs=13,tfs=15)
+o+=lab(478,330,'Wired backbone + Wi-Fi mesh',fs=11.5)+lab(840,344,'Open site →','#2563EB',13,800,'end')
+b.append(f'<g data-site="large" style="cursor:pointer">{o}</g>')
+# the other sites
+for x,y in [(896,60),(888,68),(880,76)]: b.append(f'<rect x="{x}" y="{y}" width="130" height="284" rx="14" fill="#fff" stroke="#B9C6D8" stroke-width="1.4"/>')
+b.append(lab(945,214,'+ 212 more sites','#56667C',14,700,'middle')+lab(945,236,'same pattern',fs=12,wgt=400,anchor='middle'))
+# one uplink per site
+b.append(arr('M240 306 V384 H1060 V215 H1074','#1D4ED8')+'<path d="M660 306 V384" fill="none" stroke="#1D4ED8" stroke-width="2"/>'+lab(470,400,'WAN · mTLS · one uplink per site','#1D4ED8',12.5,800))
+b.append(box(1080,150,200,130,'b','Cloud Gateway',['mTLS identity','Per-tenant quotas'],fs=14))
+b.append(box(1300,14,200,392,'n','One edge pair per site',['Devices never reach','the cloud directly','','The edge pair batches,','spools and runs the','firmware agent','','100M devices × 1/min','≈ 1.7M readings/sec','→ ~200K envelopes/sec'],fs=13.5,tfs=15))
+OUT['EDGE']=svg(1520,420,''.join(b))
+# ---------- EDGE site details (level 2): example topologies ----------
+ED={}
+b=[f'<rect x="20" y="14" width="800" height="392" rx="16" fill="#F0FDFA" stroke="#99F6E4" stroke-width="1.6"/>'+hd(40,42,'SITE-07 · NOIDA · SMALL STORE · EXAMPLE TOPOLOGY','t')]
+for i,(ic,n,sub) in enumerate([('📷','Cameras','e.g. 12 · PoE Ethernet'),('🖥','Displays','e.g. 8 · Wi-Fi'),('🌡','Thermostats','e.g. 12 · Zigbee'),('👣','Footfall sensors','e.g. 16 · BLE')]):
+    y=60+i*68; b.append(f'<rect x="40" y="{y}" width="230" height="56" rx="12" fill="#fff" stroke="#99F6E4"/><text x="54" y="{y+36}" font-size="20">{ic}</text>'+lab(88,y+24,n,'#0B1F3F',15,700)+lab(88,y+44,sub,'#0F766E',12.5,600))
+b.append(lab(292,78,'MQTT / CoAP over IP','#0F766E',12,700))
+b.append(arr('M270 88 H484')+arr('M270 156 H484')+arr('M270 224 H296')+arr('M270 292 H296')+arr('M450 258 H484'))
+b.append(box(300,196,150,124,'o','Zigbee / BLE',['bridge → IP','MQTT over LAN'],fs=12.5,tfs=14))
+b.append(box(490,60,300,180,'t','Gateway A · ACTIVE',['Batches heartbeats per site','Local spool on disk + retry','Firmware agent: apply / rollback','mTLS client certificate'],fs=14))
+b.append(box(490,262,300,110,'n','Gateway B · STANDBY',['Takes over if A fails','Recoverable spool (e.g.)'],fs=14))
+b.append(arr('M640 240 V258')+lab(650,254,'failover',fs=12))
+b.append(arr('M790 150 H904','#1D4ED8')+lab(800,140,'WAN · mTLS · batches','#1D4ED8',12.5,800))
+b.append(box(910,90,220,130,'b','Cloud Gateway',['Device identity check','Per-tenant quotas'],fs=14))
+b.append(arr('M790 200 H850 V300 H904','#B45309',dash='5 4'))
+b.append(box(910,240,220,132,'o','If the WAN drops',['Gateway A spools to disk','Bounded, with alarms','Flushes as a burst'],fs=13,tfs=15))
+b.append(box(1160,14,340,392,'n','Small site · example',['e.g. 48 devices, one edge pair','IP devices speak MQTT / CoAP','BLE and Zigbee need a bridge to IP','1 heartbeat / device / min','→ one batch per interval','Durability is bounded by','spool size + failover'],fs=14,tfs=16))
+ED['small']=('Site-07 · small store',svg(1520,420,''.join(b)))
+b=[f'<rect x="20" y="14" width="880" height="392" rx="16" fill="#F0FDFA" stroke="#99F6E4" stroke-width="1.6"/>'+hd(40,42,'FLAGSHIP STORE · LARGE SITE · EXAMPLE TOPOLOGY','t')]
+for i,(n,cnt,link) in enumerate([('Sales floor','e.g. 140 cameras · 80 displays','PoE Ethernet · Wi-Fi'),('Aisles & entrances','e.g. 160 footfall sensors','BLE → bridge'),('Cold rooms & HVAC','e.g. 120 thermostats','Zigbee → bridge')]):
+    y=60+i*112; b.append(f'<rect x="40" y="{y}" width="240" height="96" rx="12" fill="#fff" stroke="#99F6E4"/>'+lab(56,y+26,n,'#0B1F3F',15,700)+lab(56,y+48,cnt,'#33465C',12.5,400)+lab(56,y+70,link,'#0F766E',12.5,600))
+    b.append(arr(f'M280 {y+48} H316')+f'<rect x="320" y="{y+20}" width="130" height="56" rx="10" fill="#fff" stroke="#B9C6D8" stroke-width="1.6"/>'+lab(336,y+44,f'Router R{i+1}','#33465C',14,700)+lab(336,y+64,'non-edge · relays','#56667C',12,400))
+b.append('<path d="M450 108 H500 V220" fill="none" stroke="#1D4ED8" stroke-width="2.5"/><path d="M450 220 H500" fill="none" stroke="#1D4ED8" stroke-width="2.5"/><path d="M450 332 H500 V220" fill="none" stroke="#1D4ED8" stroke-width="2.5" stroke-dasharray="6 5"/>')
+b.append(arr('M500 220 H574','#1D4ED8'))
+b.append(box(580,120,300,200,'t','Edge pair · A active / B standby',['Only box with the WAN uplink','Batches the whole site','Spool on disk + retry','Firmware agent'],fs=14,tfs=15))
+b.append('<path d="M40 394 H70" stroke="#1D4ED8" stroke-width="2.5"/>'+lab(78,398,'wired Ethernet backbone (IoT VLAN)',fs=12)+'<path d="M330 394 H360" stroke="#1D4ED8" stroke-width="2.5" stroke-dasharray="6 5"/>'+lab(368,398,'Wi-Fi mesh where cabling is impractical',fs=12))
+b.append(arr('M880 220 H974','#1D4ED8')+lab(888,210,'WAN · mTLS','#1D4ED8',12.5,800))
+b.append(box(980,150,200,130,'b','Cloud Gateway',['Device identity check','Per-tenant quotas'],fs=14))
+b.append(box(1210,14,290,392,'n','Large site · example',['e.g. ~500 devices, 3 zones','Non-edge routers relay','inside the site only','Wired backbone first;','Wi-Fi mesh where no cable','Still one edge pair,','one uplink, one batch stream'],fs=14,tfs=16))
+ED['large']=('Flagship store · large site',svg(1520,420,''.join(b)))
+OUT_ED=ED
 # ---------- GATEWAY ----------
 b=[]
 b.append(hd(20,30,'MANY SITES · MANY TENANTS','n'))

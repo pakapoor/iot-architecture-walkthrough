@@ -6,7 +6,6 @@ const lerp = (a, b, f) => a + (b - a) * f;
 const prog = (t, a, b) => b <= a ? (t >= b ? 1 : 0) : Math.max(0, Math.min(1, (t - a) / (b - a)));
 function env(t, a, b, r = 0.3) { if (t < a || t > b) return 0; return Math.min(1, (t - a) / r, (b - t) / r); }
 const QS = new URLSearchParams(location.search);
-const PROPOSAL = window.PROPOSAL || null;
 const VER = QS.get('ver') || 'int';
 const P = VER === 'pres'
   ? { hold: { pass: 0.45, core: 0.55, deep: 1.4 }, hop: 1.3, hopPx: 1100, zoom: 2.4, intro: 0.6, recap: 1.2, endHold: 1.0 }
@@ -18,7 +17,7 @@ const COL = { g: ['#16A34A', 'rgba(22,163,74,.55)'], r: ['#EF4444', 'rgba(239,68
 const BASE = { arch: [1.08, 96, 0], sceneB: [1.125, 60, 0], sceneD: [1, 0, 0], sceneW: [1, 0, 0], sceneM: [1, 0, 0], sceneC: [1, 0, 0] };
 const LAYER = { a: 'arch', b: 'sceneB', w: 'sceneW', d: 'sceneD', m: 'sceneM', c: 'sceneC' };
 const BALL = { a: 40, b: 40, w: 48, d: 48, m: 48, c: 48 };
-let SW = 1920, SH = 1080, OX = 0, OY = 0;   // reflowed stage size + offset of the 1920×1080 viewport     // local diameter
+let SW = 1920, SH = 1080, OX = 0, OY = 0, VS = 1;   // reflowed stage size, offset and scale of the 1920×1080 viewport
 
 // ---------- anchors (measured once, layers are untransformed at load) ----------
 const STG = E('stage').getBoundingClientRect();
@@ -293,18 +292,6 @@ if (VID === 19) {
   TRS = [];
 }
 
-if (PROPOSAL) {
-  st('a', 'a-edge', 'br', 'core', 'b', 'Future proposal: ' + PROPOSAL.name + ' · follow one example from existing telemetry to an operator decision');
-  st('a', 'a-ing', 'br', 'core', 'b', 'Existing ingestion checks gateway identity and device/tenant scope. Authentication identifies the sender; it does not prove that every reading is true.');
-  st('a', 'a-kafka', 'br', 'core', 'b', 'Reuse retained telemetry for a separately budgeted Flink candidate job. Its compute and broker read/write quotas protect reserved critical capacity; bound candidate age and backlog.');
-  st('a', 'a-flink', 'br', 'deep', 'b', 'Flink filters candidates into a durable topic; a separate consumer starts the decision workflow. Publish failures retry within that optional branch. Critical DEAD/thermal alerts never wait for candidate publication, Jev or GenAI.');
-  st('a', 'a-stor', 'tr', 'deep', 'b', 'Reuse authorized ' + PROPOSAL.input.toLowerCase() + '. ' + PROPOSAL.new_source + ' must be integrated separately; these records are not assumed to exist in the current stores.', null, { via: [[1514, 425], [1082, 425]] });
-  PROPOSAL.components.forEach((c, i) => st('a', 'a-ai' + (i + 1), 'br', 'deep', 'b', c[3]));
-  st('a', 'a-act', 'br', 'deep', 'b', PROPOSAL.output + '. Carry a stable case/action key into an externally enforced idempotent write; reconcile ambiguous results before retrying external work.', null, { via: [[1570, 932], [1570, 700], [1350, 700]] });
-  st('a', 'a-dash', 'br', 'core', 'g', 'Show authorized evidence, its age, the recommendation and review outcome. Expire stale suggestions; never display an unavailable AI assessment as a healthy device.');
-  RECAP = { cap: 'Existing platform → proposed evidence/model/GenAI components → reviewed action · simulated future design', badge: null, boxes: ['a-flink', 'a-stor', 'a-ai1', 'a-ai2', 'a-ai3', 'a-ai4', 'a-act', 'a-dash'] };
-  TRS = [];
-}
 
 // ---------- compile timeline ----------
 const T0 = HOOK_R + P.intro;            // first stop arrival
@@ -363,7 +350,7 @@ const devRects = {}; document.querySelectorAll('.dev').forEach(d => { const r = 
 // ---------- camera ----------
 function camP(tr, t) { if (tr.c === undefined || t < tr.c) return ease(prog(t, tr.a, tr.b)); return ease(1 - prog(t, tr.c, tr.d)); }
 function camera(t) {
-  const chain = ['arch'].concat(TRS.map(x => x.child)); let outer = [OX, OY, 1]; const alphas = [];
+  const chain = ['arch'].concat(TRS.map(x => x.child)); let outer = [OX, OY, VS]; const alphas = [];
   chain.forEach((lv, i) => {
     const [Sb, Tx, Ty] = BASE[lv]; let own = [Tx, Ty, Sb]; const tr = TRS[i]; let nextOuter = null, a2 = 0;
     if (tr) { const p = camP(tr, t); const [cx, cy, w] = tr.box; const z = 1920 / (Sb * w); const k = Math.pow(z, p);
