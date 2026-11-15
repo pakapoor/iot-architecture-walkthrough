@@ -283,7 +283,7 @@ html,body{margin:0;background:#EEF3F9}
 <div class="t"><span class="ic">🧠</span>Stream Processing · Flink on K8s</div>
 <div class="ops">
 <div class="op"><b>Dedup + enrich</b> · keyed state, metadata join</div>
-<div class="op rule"><b>⏱ Rule engine</b> · DEAD · SLOW · HOT via device timers</div>
+<div class="op rule"><b>⏱ Rule engine</b> · SILENT · DEAD · SLOW · HOT via device timers</div>
 <div class="op"><b>Rollups</b> · 1-hour aggregates for history</div>
 </div>
 <span class="chip" id="a-chip">↻ per-tenant rules pushed live from Control Plane</span>
@@ -317,8 +317,8 @@ html,body{margin:0;background:#EEF3F9}
 
 <div class="rhead">WHY IT'S BUILT THIS WAY</div>
 <div class="cards">
-<div class="card"><div class="h">⏱ Timers, not polling</div><div class="p">"Device down &gt; X min" is a per-device timer in Flink state. No scanning 100M rows in a DB — why Flink beat Kinesis + Lambda.</div></div>
-<div class="card"><div class="h">🚨 Two alert lanes</div><div class="p">Critical pages on-call instantly. Minor issues roll into 15-min site digests. No alert storms, no 3 AM pings.</div></div>
+<div class="card"><div class="h">⏱ Timers, not polling</div><div class="p">"Silent 10 min → SILENT, 20 min → DEAD" is one per-device timer in Flink state. No scanning 100M rows in a DB — why Flink beat Kinesis + Lambda.</div></div>
+<div class="card"><div class="h">🚨 Two alert lanes</div><div class="p">Critical pages on-call the moment a device is DEAD. Minor issues roll into 15-min site digests. No alert storms, no 3 AM pings.</div></div>
 <div class="card"><div class="h">🔁 Idempotent actions</div><div class="p">Incident ID = tenant + device + outage generation. Retries upsert the same ticket; failures go to a DLQ with alarms. No duplicate tickets.</div></div>
 <div class="card"><div class="h">💰 Pay for what's hot</div><div class="p">7 days hot for live views, 6-month rollups, sampled cold archive. Tiered retention bounds hot-storage cost per device.</div></div>
 <div class="card"><div class="h">🛟 Degrade, don't die</div><div class="p">Edge buffers through outages, standby gateway takes over, Kafka replays. Bounded buffering + failover; recovery is monitored.</div></div>
@@ -381,7 +381,7 @@ html,body{margin:0;background:#EEF3F9}
 <div id="b-tmp" class="box violet" style="left:1030px;top:190px;width:510px;height:370px;border-top-width:6px">
 <div class="t"><span class="ic">⏳</span>Temporal · Incident Workflow</div>
 <div class="wid">workflowId = <b>tenant + device + outage generation</b></div>
-<div class="step" id="st1"><div class="n">1</div><div class="x"><b>Upsert ticket</b><br>Bounded retries; park ticketing while ack/recovery signals remain active.</div></div>
+<div class="step" id="st1"><div class="n">1</div><div class="x"><b>Ticket at minute 30</b><br>Still DEAD after a 10-min durable timer → idempotent upsert; bounded retries.</div></div>
 <div class="step" id="st2"><div class="n">2</div><div class="x"><b>Wait for ack</b><br>Ack signal or 30-min deadline from the original page.</div></div>
 <div class="step" id="st3"><div class="n">3</div><div class="x"><b>Escalate</b> 📟<br>Timer fired → page L2, raise ticket priority.</div></div>
 <div class="step" id="st4"><div class="n">4</div><div class="x"><b>Auto-resolve</b> ✅<br>"Device recovered" signal → close ticket with full timeline.</div></div>
@@ -408,7 +408,7 @@ html,body{margin:0;background:#EEF3F9}
 <div class="hd" style="position:absolute;left:100px;top:34px"><div style="font-size:16px;letter-spacing:4px;color:#E07A10;font-weight:700">ZOOM-IN · TEMPORAL WORKFLOW ↔ OUTSIDE WORLD</div>
 <h1 style="font-size:42px;font-weight:800;color:#0B1F3F;margin-top:4px">Inside the workflow <span style="color:#2563EB;font-weight:700">· durable, coordinating the outside world</span></h1></div>
 <svg width="1920" height="1080" style="position:absolute;left:0;top:0;z-index:1"><g fill="none" stroke="#B9C6D8" stroke-width="2.4" stroke-dasharray="7 6"><path d="M1150 360 H1205 V305 H1290" /><path d="M1150 672 H1230 V545 H1290" /><path d="M1150 672 H1255 V305 H1290" /><path d="M1150 828 H1270 V305 H1290" /><path d="M1150 828 H1215 V785 H1290" /></g></svg>
-<div class="wf"><div class="wh"><span style="font-size:26px">⏳</span><b>IncidentWorkflow</b><code>workflowId = "acme:cam-14:outage-42"</code><span class="wstat" id="wstat">● Running</span></div><div class="wst" id="ws1" style="top:130px"><div class="n">1</div><div class="bd"><div class="tt">Upsert ticket</div><div class="dd">Create the ServiceNow incident — idempotent by workflowId</div><div class="lv" id="wl1"></div></div><div class="tg">ACTIVITY · RETRY + BACKOFF</div></div><div class="wst" id="ws2" style="top:286px"><div class="n">2</div><div class="bd"><div class="tt">Wait for on-call ack</div><div class="dd">30-min deadline from paging; ack/recovery stays active during retries</div><div class="lv" id="wl2"></div></div><div class="tg">DURABLE TIMER</div></div><div class="wst" id="ws3" style="top:442px"><div class="n">3</div><div class="bd"><div class="tt">Escalate</div><div class="dd">Page L2 on-call · raise ticket to P1</div><div class="lv" id="wl3"></div></div><div class="tg">ACTIVITY</div></div><div class="wst" id="ws4" style="top:598px"><div class="n">4</div><div class="bd"><div class="tt">Auto-resolve</div><div class="dd">"Device recovered" signal → resolve ticket · stand down on-call</div><div class="lv" id="wl4"></div></div><div class="tg">SIGNAL → ACTIVITY</div></div></div>
+<div class="wf"><div class="wh"><span style="font-size:26px">⏳</span><b>IncidentWorkflow</b><code>workflowId = "acme:cam-14:outage-42"</code><span class="wstat" id="wstat">● Running</span></div><div class="wst" id="ws1" style="top:130px"><div class="n">1</div><div class="bd"><div class="tt">Ticket at minute 30</div><div class="dd">Still DEAD after a 10-min timer → upsert, idempotent by workflowId</div><div class="lv" id="wl1"></div></div><div class="tg">TIMER → ACTIVITY · RETRIES</div></div><div class="wst" id="ws2" style="top:286px"><div class="n">2</div><div class="bd"><div class="tt">Wait for on-call ack</div><div class="dd">30-min deadline from the page (minute 20 → 50); ack/recovery stays active</div><div class="lv" id="wl2"></div></div><div class="tg">DURABLE TIMER</div></div><div class="wst" id="ws3" style="top:442px"><div class="n">3</div><div class="bd"><div class="tt">Escalate</div><div class="dd">Page L2 on-call · raise ticket to P1</div><div class="lv" id="wl3"></div></div><div class="tg">ACTIVITY</div></div><div class="wst" id="ws4" style="top:598px"><div class="n">4</div><div class="bd"><div class="tt">Auto-resolve</div><div class="dd">"Device recovered" signal → resolve ticket · stand down on-call</div><div class="lv" id="wl4"></div></div><div class="tg">SIGNAL → ACTIVITY</div></div></div>
 <div class="box wact" id="act-sn" style="left:1290px;top:200px;width:530px;height:210px"><div class="t" style="font-size:24px"><span class="ic" style="width:40px;height:40px;font-size:22px;background:#EEF2F7">🎫</span>ServiceNow</div><div class="s" style="font-size:17px">Incident tickets</div><div class="ast" id="s-act-sn">no ticket</div></div><div class="box wact" id="act-oc" style="left:1290px;top:440px;width:530px;height:210px"><div class="t" style="font-size:24px"><span class="ic" style="width:40px;height:40px;font-size:22px;background:#EEF2F7">📟</span>On-call (L2)</div><div class="s" style="font-size:17px">Pager rotation</div><div class="ast" id="s-act-oc">idle</div></div><div class="box wact" id="act-x" style="left:1290px;top:680px;width:530px;height:210px"><div class="t" style="font-size:24px"><span class="ic" style="width:40px;height:40px;font-size:22px;background:#EEF2F7">📷</span>Device CAM-14</div><div class="s" style="font-size:17px">Recovery seen by Flink → signal</div><div class="ast" id="s-act-x">🔴 offline</div></div>
 <img src="sdi_logo.png" style="mix-blend-mode:multiply;position:absolute;right:100px;top:46px;height:54px">
 <div id="w-pk" class="pk" style="width:18px;height:18px;margin:-9px 0 0 -9px"></div>
@@ -420,5 +420,5 @@ html,body{margin:0;background:#EEF3F9}
 <div id="cap"></div>
 </div>
 <script>const VID=2;</script>
-<script src="icons.js"></script><script src="notes.js"></script><script src="timeline2p.js"></script>
+<script src="icons.js"></script><script src="notes.js"></script><script src="notes-alerts.js"></script><script src="notes-device.js"></script><script src="notes-infra.js"></script><script src="notes-deploy.js"></script><script src="timeline2p.js"></script>
 </body></html>

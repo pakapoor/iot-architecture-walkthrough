@@ -11,7 +11,7 @@ An interactive, click-to-advance walkthrough of a commercial IoT monitoring plat
 ![Commercial IoT Monitoring System architecture](docs/architecture.svg)
 
 ## How to use it
-Open **My role** for the presenter's role, scope, decisions and outcomes. Expand **Flows**, **Deep dives** or **Deployment & upgrades** and click a walkthrough directly, then press play or step through with the arrow keys. Each section reveals its items immediately; opening another section closes the previous one. Direct links open the selected section. Click or keyboard-activate a component for a close-up. In Tiered Storage, select a store to inspect its example schema; in Edge Site, select a site to open its example network. While a flow plays, the left panel explains each step with a heading and spoken bullets; clicking the component the ball rests on opens an animated view of what happens inside it (Critical alert · field fix so far). Play runs at a presenter-friendly pace and ■ Stop holds the current step. The Datadog observability tiles are always shown. Clicking Edge Site opens the tenant view; click a site for an example small-store or flagship network.
+Open **My role** for the presenter's role, scope, decisions and outcomes. Expand **Flows**, **Deep dives** or **Deployment & upgrades** and click a walkthrough directly, then press play or step through with the arrow keys. Each section reveals its items immediately; opening another section closes the previous one. Direct links open the selected section. Click or keyboard-activate a component for a close-up. In Tiered Storage, select a store to inspect its example schema; in Edge Site, select a site to open its example network. While a flow plays, the left panel explains each step with a heading and spoken bullets; clicking the component the ball rests on opens an animated view of what happens inside it. Play runs at a presenter-friendly pace and ■ Stop holds the current step. The Datadog observability tiles are always shown. Clicking Edge Site opens the tenant view; click a site for an example small-store or flagship network.
 
 ## Flows
 | Group | Flow | What it shows |
@@ -65,7 +65,8 @@ pres/index.html           the one-page shell: side panel, My role, deep-dive dia
 pres/timeline2p.js        presenter engine: stops, camera, controls, close-ups, reflow
 pres/icons.js             SVG line icons (replace emoji at runtime)
 pres/deep-dives.js        visual interview answers (Deep dives · correctness & trade-offs)
-pres/notes.js             explanation-panel notes and inside-view sequences per step
+pres/notes.js             explanation-panel notes + inside views: flow 1 and registerFlow()
+pres/notes-*.js           the other flows' notes: alerts, device, infra, deploy
 pres/role.js              content of the My role dialog
 pres/flow*.html           one page per flow (generated)
 iot.html, svcnow.html     the architecture diagram and ServiceNow/Temporal scene (source of truth)

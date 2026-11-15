@@ -210,15 +210,15 @@ def dash_markup(v):
 
 def wf_markup(v):
     if v == 5:
-        steps = [('Upsert ticket', 'Create the ServiceNow incident — retries with exponential backoff', 'ACTIVITY · RETRY POLICY'),
+        steps = [('Ticket at minute 30', 'Still DEAD after a 10-min timer → upsert · retries with backoff', 'TIMER → ACTIVITY · RETRIES'),
                  ('Park the incident', 'Retries exhausted → status PARKED · ops alerted', 'DLQ · PARKED INCIDENTS'),
                  ('Wait for ops replay', 'Durable wait for a human "replay" signal — minutes or days', 'SIGNAL · HUMAN IN LOOP'),
                  ('Replay → continue', 'Reconcile signals + original ack deadline; retry idempotently', 'ACTIVITY')]
         actors = [('act-sn', '🎫', 'ServiceNow', 'Incident tickets', 'no ticket', 200), ('act-oc', '🧑‍💻', 'Ops engineer', 'Parked list · Replay button', 'idle', 440), ('act-x', '📟', 'On-call (L2)', 'Paged via PagerDuty', 'idle', 680)]
         pairs = [(360, 305, 1205), (516, 545, 1230), (672, 545, 1255), (828, 305, 1270)]
         return wf_render(steps, actors, pairs)
-    steps = [('Upsert ticket', 'Create the ServiceNow incident — idempotent by workflowId', 'ACTIVITY · RETRY + BACKOFF'),
-             ('Wait for on-call ack', '30-min deadline from paging; ack/recovery stays active during retries', 'DURABLE TIMER'),
+    steps = [('Ticket at minute 30', 'Still DEAD after a 10-min timer → upsert, idempotent by workflowId', 'TIMER → ACTIVITY · RETRIES'),
+             ('Wait for on-call ack', '30-min deadline from the page (minute 20 → 50); ack/recovery stays active', 'DURABLE TIMER'),
              ('Escalate', 'Page L2 on-call · raise ticket to P1', 'ACTIVITY'),
              (('Wait for field fix', 'Sleep until ServiceNow signals "ticket closed" — even for days', 'SIGNAL · DAYS-LONG WAIT') if v == 1 else
               ('Auto-resolve', '"Device recovered" signal → resolve ticket · stand down on-call', 'SIGNAL → ACTIVITY'))]

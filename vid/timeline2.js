@@ -51,20 +51,25 @@ if (isRed) {
   ARCH_HEAD(['Edge site: camera <b>CAM-14</b> heartbeats every minute · the gateway batches them per site']);
   st('a', 'a-flink', 'br', 'deep', 'g', 'Flink: a per-device timer resets on every heartbeat — no polling 100M rows');
   st('a', 'a-flink', 'br', 'deep', 'g', 'Then <b>CAM-14</b> goes silent… its per-device timer keeps counting', (S, t, s) => {
-    S.aBadge = ['📷 CAM-14 · no heartbeat', ...red]; const el = Math.min(299, Math.floor(300 * prog(t, s.ta, s.te)));
-    S.chip = [`⏱ CAM-14 · silent for ${Math.floor(el / 60)}:${String(el % 60).padStart(2, '0')} / 5:00`, '#FFF7ED', '#C2620A', '#F08A1C']; }, { stay: true });
-  st('a', 'a-flink', 'br', 'core', 'r', '5 min with no heartbeat → timer fires → <b>DEAD</b> · incident emitted', (S) => { S.chip = ['🔴 CAM-14 → DEAD · incident emitted', ...red]; }, { stay: true });
-  st('a', 'a-act', 'tr', 'core', 'r', 'Action Execution: <b>critical</b> lane — skips batching, straight to paging + ticketing', (S) => { S.laneR = 1; });
+    S.aBadge = ['📷 CAM-14 · no heartbeat', ...red]; const el = Math.min(599, Math.floor(600 * prog(t, s.ta, s.te)));
+    S.chip = [`⏱ CAM-14 · silent for ${Math.floor(el / 60)}:${String(el % 60).padStart(2, '0')} · SILENT at 10:00`, '#FFF7ED', '#C2620A', '#F08A1C']; }, { stay: true });
+  st('a', 'a-flink', 'br', 'core', 'y', '10 min silent → 🟡 <b>SILENT</b> · shown on dashboards only · no page, no ticket', (S, t, s) => {
+    const el = 600 + Math.min(599, Math.floor(600 * prog(t, s.ta, s.te)));
+    S.chip = [`🟡 CAM-14 · SILENT · ${Math.floor(el / 60)}:${String(el % 60).padStart(2, '0')} · DEAD at 20:00`, ...yel]; }, { stay: true });
+  st('a', 'a-flink', 'br', 'core', 'r', '20 min silent → timer fires again → <b>DEAD</b> · incident emitted', (S) => { S.chip = ['🔴 CAM-14 → DEAD · incident emitted', ...red]; }, { stay: true });
+  st('a', 'a-act', 'tr', 'core', 'r', 'Action Execution: <b>critical</b> lane — pages on-call now · the ticket follows at minute 30 if still DEAD', (S) => { S.laneR = 1; });
   zoomIn(0, 'Zooming in: ServiceNow + Temporal 🔍');
   st('b', 'b-flink', 'br', 'pass', 'r', 'Flink publishes the DEAD incident event', null, { li: false, pop: true });
-  if (VID === 5) st('b', 'b-sns', 'br', 'core', 'r', 'SNS fans it out · <b>PagerDuty pages on-call now</b> — the page never waits on ServiceNow', (S) => { S.bBadge = ['📟 On-call paged via PagerDuty', ...red]; S.act['act-x'] = ['📟 paged at minute 1', red[0], red[1]]; }, { popIfFirst: true });
-  else st('b', 'b-sns', 'br', 'core', 'r', 'SNS fans it out · <b>PagerDuty pages on-call now</b> · the ticket path follows', null, { popIfFirst: true });
+  if (VID === 5) st('b', 'b-sns', 'br', 'core', 'r', 'SNS fans it out · <b>PagerDuty pages on-call now</b>, at minute 20 — the page never waits on ServiceNow', (S) => { S.bBadge = ['📟 On-call paged via PagerDuty', ...red]; S.act['act-x'] = ['📟 paged at minute 20', red[0], red[1]]; }, { popIfFirst: true });
+  else st('b', 'b-sns', 'br', 'core', 'r', 'SNS fans it out · <b>PagerDuty pages on-call now</b>, at minute 20 · the ticket path follows', null, { popIfFirst: true });
   st('b', 'b-sqs', 'br', VID === 5 ? 'core' : 'pass', 'r', VID === 5 ? 'SQS: if the starter fails, it redelivers after the visibility timeout · SQS DLQ after N receives' : 'SQS buffers it · at-least-once delivery');
   st('b', 'b-start', 'br', 'core', 'v', 'Ticket starter: signalWithStart(<b>tenant + device + outage generation</b>) → one workflow per incident');
   st('b', 'b-tmp', 'tr', 'deep', 'v', 'Temporal: one durable workflow now owns the whole incident');
   zoomIn(1, 'Zooming in: inside the Temporal workflow 🔍');
   if (VID === 5) {
-  st('w', 'ws1', 'br', 'deep', 'v', 'Step 1 · Activity: upsert the ServiceNow ticket — idempotent by incident ID (unique correlation_id)', (S) => { S.wSteps[0] = 'on'; }, { pop: true });
+  st('w', 'ws1', 'br', 'deep', 'v', 'Step 1 · Durable 10-min timer before the ticket · if CAM-14 recovers first, it is cancelled and no ticket is raised', (S, t, s) => {
+    S.wSteps[0] = 'on'; const m = 20 + Math.min(10, Math.floor(11 * prog(t, s.ta, s.te - 0.2))); S.wl[0] = m < 30 ? [`⏱ minute ${m} · ticket at minute 30 unless CAM-14 recovers`, '#C2620A'] : ['⌛ minute 30 · still DEAD → raise the ticket', '#DC2626']; }, { pop: true });
+  st('w', 'ws1', 'br', 'deep', 'v', 'Minute 30, still DEAD → upsert the ServiceNow ticket — idempotent by incident ID (unique correlation_id)', (S) => { S.wSteps[0] = 'on'; S.wl[0] = null; }, { stay: true });
   st('w', 'act-sn', 'tr', 'core', 'r', 'Attempt 1 → <b>503</b> · Temporal backs off, retries in 2 s', (S) => {
     S.act['act-sn'] = ['503 · unavailable', red[0], red[1]]; S.wl[0] = ['⚠ attempt 1 · 503 · retry in 2 s', '#DC2626']; });
   st('w', 'act-sn', 'tr', 'core', 'r', 'Attempt 2 → <b>timeout</b> · the ticket <b>may</b> have been created anyway', (S) => {
@@ -90,14 +95,16 @@ if (isRed) {
     S.wstat = ['● Running · escalated', '#EDE7FF', '#5B3FD9']; S.bChip = ['INC-1042 · Open', org[0], org[1]]; });
   RECAP = { cap: 'ServiceNow outage → retries → parked → human replay → one ticket ✅', badge: ['📷 CAM-14 · INC-1042 open', ...red], boxes: ['a-edge', 'a-gw', 'a-ing', 'a-kafka', 'a-flink', 'a-act'] };
   } else {
-  st('w', 'ws1', 'br', 'deep', 'v', 'Step 1 · Activity: upsert the ServiceNow ticket — idempotent by incident ID (unique correlation_id)', (S) => { S.wSteps[0] = 'on'; }, { pop: true });
+  st('w', 'ws1', 'br', 'deep', 'v', 'Step 1 · Durable 10-min timer before the ticket · if CAM-14 recovers first, it is cancelled and no ticket is raised', (S, t, s) => {
+    S.wSteps[0] = 'on'; const m = 20 + Math.min(10, Math.floor(11 * prog(t, s.ta, s.te - 0.2))); S.wl[0] = m < 30 ? [`⏱ minute ${m} · ticket at minute 30 unless CAM-14 recovers`, '#C2620A'] : ['⌛ minute 30 · still DEAD → raise the ticket', '#DC2626']; }, { pop: true });
+  st('w', 'ws1', 'br', 'deep', 'v', 'Minute 30, still DEAD → upsert the ServiceNow ticket — idempotent by incident ID (unique correlation_id)', (S) => { S.wSteps[0] = 'on'; S.wl[0] = null; }, { stay: true });
   st('w', 'act-sn', 'tr', 'core', 'v', 'ServiceNow is down (503) → Temporal retries with backoff', (S) => {
     S.act['act-sn'] = ['503 · unavailable', red[0], red[1]]; S.wl[0] = ['⚠ ServiceNow 503 · retry 1 in 2 s (backoff)', '#DC2626']; });
   st('w', 'act-sn', 'tr', 'core', 'v', 'Retry succeeds → <b>INC-1042</b> created · idempotent by incident ID', (S) => {
     S.act['act-sn'] = ['INC-1042 · Open · P3', org[0], org[1]]; S.wl[0] = ['✓ INC-1042 created on attempt 2', '#15803D']; }, { stay: true });
-  st('w', 'ws2', 'br', 'deep', 'v', 'Step 2 · Durable ack deadline: 30 min from the original page; retries do not reset it', (S, t, s) => {
+  st('w', 'ws2', 'br', 'deep', 'v', 'Step 2 · Durable ack deadline: 30 min from the original page (minute 20 → 50); the ticket and its retries do not reset it', (S, t, s) => {
     S.wSteps[0] = 'done'; S.wSteps[1] = 'on'; S.act['act-oc'] = ['waiting for ack…', org[0], org[1]];
-    const m = Math.floor(30 * prog(t, s.ta, s.te - 0.3)); S.wl[1] = m < 30 ? [`⏱ waiting for ack · ${m} / 30 min`, '#C2620A'] : ['⌛ no ack in 30 min → timer fired', '#DC2626'];
+    const m = 10 + Math.floor(20 * prog(t, s.ta, s.te - 0.3)); S.wl[1] = m < 30 ? [`⏱ waiting for ack · ${m} / 30 min since the page`, '#C2620A'] : ['⌛ no ack 30 min after the page → timer fired', '#DC2626'];
   });
   st('w', 'ws3', 'br', 'core', 'v', 'Step 3 · No ack → escalate', (S) => { S.wSteps[1] = 'done'; S.wSteps[2] = 'on'; });
   st('w', 'act-oc', 'tr', 'core', 'v', 'L2 on-call paged · ticket raised to <b>P1</b>', (S) => {
@@ -179,14 +186,14 @@ if (VID === 6) {
 if (VID === 7) {
   ARCH_HEAD(['Edge site: camera <b>CAM-11</b> sends a heartbeat every minute · the gateway batches them per site']);
   STOPS[STOPS.length - 2].cap = 'Ingestion: heartbeats go to their own <b>priority topic</b> — never stuck behind bulk telemetry';
-  st('a', 'a-flink', 'br', 'deep', 'g', 'Flink: the heartbeat <b>resets CAM-11\'s 5-min timer</b> · status stays ONLINE', (S) => { S.chip = ['✓ CAM-11 · timer reset · 0:00 / 5:00', ...grn]; });
+  st('a', 'a-flink', 'br', 'deep', 'g', 'Flink: the heartbeat <b>resets CAM-11\'s silence timer</b> (SILENT at 10 min · DEAD at 20) · status stays ONLINE', (S) => { S.chip = ['✓ CAM-11 · timer reset · 0:00', ...grn]; });
   st('a', 'a-flink', 'br', 'core', 'g', 'No status change → no incident emitted · freshness updates continue separately; only transitions enter incident lanes', null, { stay: true });
   st('a', 'a-stor', 'tr', 'core', 'g', 'Latest status and counts land in <b>Redis</b> (live state)', null, { via: [[1514, 425], [1082, 425]] });
   st('a', 'a-dash', 'tr', 'core', 'g', 'Dashboard service reads Redis · Flink pushes changes live → SSE to every open page');
   zoomIn(0, 'Zooming in: the tenant dashboard 🔍');
   st('d', 'd-CAM-11', 'br', 'core', 'g', 'Site-07: <b>CAM-11 ONLINE</b> · last heartbeat just now', null, { pop: true });
   st('d', 't-on', 'br', 'core', 'g', 'Tiles come from the Redis cache — no counting 100M rows on every page load');
-  st('d', 'livepill', 'bl', 'core', 'g', 'If CAM-11 ever goes quiet for 5 min, this card turns red — that\'s the red-alert flow', null, { pt: () => { const r = rectOf('livepill'); return [r.x - 26, r.y + r.h / 2, r.x + r.w / 2, r.y + r.h / 2]; } });
+  st('d', 'livepill', 'bl', 'core', 'g', 'If CAM-11 ever goes quiet: 🟡 yellow at 10 min, 🔴 red at 20 — that\'s the red-alert flow', null, { pt: () => { const r = rectOf('livepill'); return [r.x - 26, r.y + r.h / 2, r.x + r.w / 2, r.y + r.h / 2]; } });
   RECAP = { cap: 'Full loop: heartbeat → priority topic → Flink timer reset → Redis → live status 💓', badge: null, boxes: ['a-edge', 'a-gw', 'a-ing', 'a-kafka', 'a-flink', 'a-stor', 'a-dash'] };
   TRS = [{ child: 'sceneD', box: [570, 559, 300] }];
 }
@@ -198,7 +205,7 @@ if (VID === 8) {
   st('a', 'a-gw', 'br', 'core', 'b', 'Acme stays within its budget · distributed quotas bound Beta; shared resources still need capacity headroom');
   st('a', 'a-ing', 'br', 'core', 'b', 'Ingestion tags every message with its <b>tenant</b>');
   st('a', 'a-kafka', 'br', 'deep', 'b', 'Kafka: shared topics, partitioned by <b>tenant + device</b> · every message carries its tenant tag');
-  st('a', 'a-flink', 'br', 'deep', 'b', 'Flink applies <b>Acme\'s rules</b>: DEAD after 5 min · another tenant can use 10', (S) => { S.chip = ['🏢 Acme rule · DEAD after 5:00', '#E5EDFF', '#1D4ED8', '#93B4F5']; });
+  st('a', 'a-flink', 'br', 'deep', 'b', 'Flink applies <b>Acme\'s rules</b>: SILENT at 10 min, DEAD at 20 · another tenant can use 15 / 30', (S) => { S.chip = ['🏢 Acme · SILENT 10:00 · DEAD 20:00', '#E5EDFF', '#1D4ED8', '#93B4F5']; });
   st('a', 'a-ctrl', 'tr', 'core', 'b', 'Control plane: tenants, sites, RBAC · rule overrides pushed live to Flink · China tenants in an isolated region', null, { via: [[1350, 425], [215, 425]] });
   st('a', 'a-stor', 'tr', 'core', 'b', 'Storage is shared too: every row has <b>tenant_id</b> · every query is scoped by tenant', null, { via: [[215, 690], [940, 690]] });
   st('a', 'a-dash', 'tr', 'core', 'b', 'Dashboards: <b>RBAC</b> · an admin only ever sees their own tenant');
@@ -244,10 +251,10 @@ if (VID === 16) {   // alert storm
   st('a', 'a-edge', 'br', 'core', 'r', 'Power cut at Acme <b>Site-07</b>: 200 devices go silent at once — gateways too', (S) => { S.aBadge = ['⚡ Site-07 · power cut · 200 devices', ...red]; S.obsT = { 3: ['▼ −200 devices', 1] }; });
   st('a', 'a-gw', 'br', 'pass', 'r', 'The cloud sees the whole site go quiet');
   st('a', 'a-kafka', 'br', 'pass', 'r', 'No heartbeats arrive for any Site-07 device');
-  st('a', 'a-flink', 'br', 'deep', 'r', 'After 5 min, device and gateway timers produce failure candidates; arrival order can differ', (S) => { S.chip = ['🔴 200 × DEAD · Site-07', ...red]; });
+  st('a', 'a-flink', 'br', 'deep', 'r', 'Site-07 turns 🟡 SILENT at 10 min · at 20 min, device and gateway timers produce DEAD candidates; arrival order can differ', (S) => { S.chip = ['🔴 200 × DEAD · Site-07', ...red]; });
   st('a', 'a-flink', 'br', 'deep', 'r', 'Example: a bounded site correlation window joins gateway state and device candidates before paging', (S) => { S.chip = ['🧩 root cause: SITE-07 DOWN', ...org]; }, { stay: true });
   st('a', 'a-act', 'tr', 'deep', 'r', 'Suppression: <b>one</b> SITE-DOWN incident pages on-call · the 200 device alerts are grouped under it', (S) => { S.laneR = 1; });
-  st('a', 'a-act', 'tr', 'core', 'r', 'One ServiceNow ticket for the site · device tickets are held while the site is down', null, { stay: true });
+  st('a', 'a-act', 'tr', 'core', 'r', 'Minute 30, still down → one ServiceNow ticket for the site · device tickets are held while the site is down', null, { stay: true });
   st('a', 'a-dash', 'tr', 'core', 'y', 'Dashboard: Site-07 shows SITE DOWN · 200 affected devices · no wall of red', null, { via: [[1350, 690], [570, 690]] });
   st('a', 'a-edge', 'br', 'deep', 'g', 'Power returns → gateways reconnect · fresh heartbeats stay stable → the site incident auto-resolves; devices still silent get their own alerts', (S) => { S.aBadge = ['✅ Site-07 back · auto-resolved', ...grn]; S.chip = null; S.laneR = 0; S.obsT = {}; }, { via: [[570, 430], [175, 430]] });
   RECAP = { cap: 'Power cut → 200 DEAD → correlated to one site → one page, one ticket → auto-resolves ⚡', badge: ['✅ Site-07 back online', ...grn], boxes: ['a-edge', 'a-flink', 'a-act', 'a-dash'] };
@@ -379,7 +386,7 @@ function setT(t) {
 
   // state = base + effects of every stop already reached
   const S = BASE_STATE(); let cur = null;
-  for (const s of STOPS) { if (s.zoom) continue; if (t >= s.h0) cur = s; if (t >= (s.early ? s.h0 : s.ta) && s.fx) s.fx(S, t, s); }
+  for (const s of STOPS) { if (s.zoom) continue; if (t >= s.h0) cur = s; if ((s.early ? t >= s.h0 : t > s.ta) && s.fx) s.fx(S, t, s); }   // > : a stay stop starts exactly at the previous pause
   { const cs = STOPS.find(s => s.id === 'd-TH-05'); if (cs && t >= cs.h0) S.cursor = cs; }
   if (t >= RECAP_T - P.zoom) { if (RECAP.badge) S.aBadge = RECAP.badge; S.chip = null; S.laneR = S.laneY = 0; }
 

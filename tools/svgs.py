@@ -146,7 +146,7 @@ b.append(box(232,40,170,200,'v','keyBy(identity)',['tenant + device','keys own s
 b.append(arr('M402 140 H438'))
 b.append(box(444,30,250,220,'v','Dedup + enrich',['keyed state per device:','boot/session + stream + seq','bounded seen-event window','join device metadata','(type, tenant, site)'],fs=13.5,tfs=15))
 b.append(arr('M694 140 H730'))
-b.append(box(736,20,300,240,'v','Rule engine (CEP)',['per-device TIMER:','reset on every heartbeat','fires after 5 min → DEAD','SLOW: below threshold N min','OVERHEATING: temp rising fast','tenant overrides applied'],fs=13.5,tfs=15))
+b.append(box(736,20,300,240,'v','Rule engine (CEP)',['per-device TIMER:','reset on every heartbeat','10 min → SILENT · 20 → DEAD','SLOW: below threshold N min','OVERHEATING: temp rising fast','tenant overrides applied'],fs=13.5,tfs=15))
 b.append(box(444,268,250,74,'p',None,[])+lab(458,294,'Control plane → rules','#BE185D',14,800)+lab(458,316,'broadcast live, no redeploy','#33465C',13,400))
 b.append(arr('M694 300 H760 V262','#BE185D'))
 outs=[('Critical lane → paging','r',20),('Minor lane → digest','o',86),('Live → dashboard service','g',152),('Raw → ClickHouse hot','b',218),('1-hour rollups → warm','b',284)]
@@ -255,7 +255,7 @@ for i,t in enumerate(['Flink: CAM-14 → DEAD','Lua: state + site counts','PUBLI
 b.append(lab(38,384,"E.g. dev:{acme:site-07}:CAM-14 + cnt:{acme:site-07} share a slot; tenant totals are eventually consistent.",fs=14,c='#0F766E',wgt=600))
 D['redis']=('Redis · live state and counts',svg(1520,410,''.join(b)))
 b=[code(20,10,620,['{','  "_id": "CAM-14",','  "tenant_id": "acme",','  "site_id": "site-07",','  "type": "camera",','  "firmware": "4.2.1",','  "location": "Aisle 4",','  "created": "2025-03-14"','}'],'EXAMPLE DOCUMENT · devices'),
-   code(20,270,620,['{ "tenant_id": "acme",','  "device_type": "camera",','  "rule": "DEAD", "after_min": 10 }'],'EXAMPLE DOCUMENT · rule_overrides'),
+   code(20,270,620,['{ "tenant_id": "beta",','  "device_type": "camera",','  "silent_min": 15, "dead_min": 30 }'],'EXAMPLE DOCUMENT · rule_overrides'),
    f'<rect x="680" y="10" width="830" height="230" rx="12" fill="#F6F3FF" stroke="#C4B5FD"/>'+hd(698,38,'INDEXES (EXAMPLE)','v')]
 for i,(ix,why) in enumerate([('{ _id }','device lookup by id (unique)'),('{ tenant_id: 1, site_id: 1 }','"all devices of a site" for dashboards'),('{ tenant_id: 1, type: 1 }','rule targeting + firmware rollouts'),('{ tenant_id: 1, device_type: 1 } on rule_overrides','Flink loads overrides per tenant')]):
     y=58+i*44; b.append(f'<rect x="698" y="{y}" width="794" height="36" rx="8" fill="#fff" stroke="#C4B5FD"/><text x="712" y="{y+24}" font-size="13.5" fill="#3B2A8C" font-family="IBM Plex Mono,Consolas,monospace">{e(ix)}</text>'+lab(1480,y+24,why,'#56667C',13,400,'end'))

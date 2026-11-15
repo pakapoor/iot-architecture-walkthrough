@@ -17,12 +17,12 @@ const ROLE = {
       'Late, duplicate and out-of-order telemetry handled by design.',
       'A global region plus an <b>isolated China region</b>.'] },
     { h: 'How the architecture evolved', ordered: true, items: [
-      '<b>RabbitMQ microservices</b>: the first generation.',
-      '<b>Managed Kafka + Flink</b>: device-partitioned streams and per-device state.',
+      '<b>RabbitMQ + Docker microservices</b>: the first generation. Separate telemetry, heartbeat and rules services, with device state and timestamps in MongoDB.',
+      '<b>Managed Kafka + Flink</b>: we moved for <b>higher scale</b>, <b>replay</b> from Kafka\'s durable log, and <b>better out-of-order handling</b> with Flink\'s event time and keyed state.',
       '<b>Self-managed Kafka + Flink on Kubernetes</b>: the platform in this walkthrough.'] },
     { h: 'Decisions I made, and what they cost', items: [
       '<b>Per-device Flink timers over Kinesis + Lambda.</b> No scanning 100M last-seen rows, no lock-in to one cloud. The cost: we took on running stateful stream processing, with checkpoints and savepoints.',
-      '<b>Two alert lanes.</b> Critical issues page immediately; minor ones become 15-minute site digests. The cost: two paths to build, test and operate.',
+      '<b>Graded alerts, in two lanes.</b> A silent device turns yellow at 10 minutes, pages on-call at 20 and opens a ticket at 30; minor issues become 15-minute site digests. The cost: two paths to build, test and operate, and thresholds to tune per device type.',
       '<b>One incident identity, end to end</b> (tenant + device + outage generation), with idempotent upserts. The cost: every integration must honour that key, and recovery needs reconciliation.',
       '<b>Temporal for the incident lifecycle</b>, replacing handlers and cron jobs. The cost: workflow versioning discipline, with replay tests and versioned workers.',
       '<b>Shared topics, with fairness enforced at the gateway</b>, instead of a topic per tenant. The cost: shared capacity needs measured headroom and per-tenant freshness monitoring.'] },
@@ -32,10 +32,11 @@ const ROLE = {
       '<b>Designed for failure up front.</b> Bursts, crashes, hot partitions and alert storms were designed for, not discovered in a post-mortem.'] },
     { h: 'Outcomes', items: [
       '<b>200K messages/sec at 99.9% uptime</b>, for 100M+ devices.',
-      '<b>Alert floods ended</b>: critical issues page on-call instantly; minor issues arrive as 15-minute site summaries.',
+      '<b>Alert floods ended</b>: short blips stay yellow on dashboards, confirmed outages page on-call, and minor issues arrive as 15-minute site summaries.',
       '<b>No duplicate tickets</b>: ServiceNow tickets created reliably, with retries and a DLQ.',
       '<b>Tenants isolated</b> by quotas, tenant-scoped data and RBAC.'] },
     { h: 'In hindsight', items: [
-      'I would start on this streaming architecture from day one, instead of beginning with RabbitMQ microservices.'] }
+      'I would start on Kafka + Flink from day one, instead of RabbitMQ microservices.',
+      'Scale, replay and out-of-order handling were the reasons we migrated. For a fleet like this they are <b>day-one needs</b>, so starting there would have saved a full migration.'] }
   ]
 };

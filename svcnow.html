@@ -137,7 +137,7 @@ svg .flow{animation-duration:1.5s}
 <div id="b-tmp" class="box violet" style="left:1030px;top:190px;width:510px;height:370px;border-top-width:6px">
 <div class="t"><span class="ic">⏳</span>Temporal · Incident Workflow</div>
 <div class="wid">workflowId = <b>tenant + device + outage generation</b></div>
-<div class="step" id="st1"><div class="n">1</div><div class="x"><b>Upsert ticket</b><br>Bounded retries; park ticketing while ack/recovery signals remain active.</div></div>
+<div class="step" id="st1"><div class="n">1</div><div class="x"><b>Ticket at minute 30</b><br>Still DEAD after a 10-min durable timer → idempotent upsert; bounded retries.</div></div>
 <div class="step" id="st2"><div class="n">2</div><div class="x"><b>Wait for ack</b><br>Ack signal or 30-min deadline from the original page.</div></div>
 <div class="step" id="st3"><div class="n">3</div><div class="x"><b>Escalate</b> 📟<br>Timer fired → page L2, raise ticket priority.</div></div>
 <div class="step" id="st4"><div class="n">4</div><div class="x"><b>Auto-resolve</b> ✅<br>"Device recovered" signal → close ticket with full timeline.</div></div>
@@ -177,11 +177,11 @@ const hops=[ // [start,end,points,color]
 const focus={ 'b-flink':[[0,0.9],[10.9,11.5]], 'b-sns':[[1.5,2.4]], 'b-sqs':[[3.1,4.0]], 'b-start':[[4.7,5.6]],
  'b-tmp':[[6.3,14.4]], 'b-sn':[[7.6,8.3],[10.4,10.9],[13.7,14.4]] };
 const steps=[[6.3,8.3],[8.3,9.5],[9.5,10.9],[13.0,14.4]];
-const narr=[[0,1.5,'1','Flink rule engine: no heartbeats for X min → <b>DEVICE DOWN</b> incident'],
+const narr=[[0,1.5,'1','Flink rule engine: SILENT at 10 min · no heartbeat for 20 min → <b>DEAD</b> incident'],
  [1.5,3.1,'2','SNS fans the alert out to every consumer'],
  [3.1,4.7,'3','SQS buffers it · at-least-once delivery'],
  [4.7,6.3,'4','Ticket starter: signalWithStart(tenant + device + outage generation)'],
- [6.3,8.3,'5','Temporal workflow upserts the ServiceNow ticket · retries if ServiceNow is down'],
+ [6.3,8.3,'5','Minute 30, still DEAD → Temporal upserts the ServiceNow ticket · retries if ServiceNow is down'],
  [8.3,9.5,'6','Waiting for on-call ack · durable 30-min timer'],
  [9.5,10.9,'7','No ack → timer fires → escalate to L2, raise priority'],
  [10.9,13.0,'8','Device back online → Flink signals the <b>same</b> workflow'],

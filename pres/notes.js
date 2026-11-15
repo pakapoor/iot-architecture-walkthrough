@@ -9,6 +9,7 @@ const NOTES = {
       'We follow one camera, <b>CAM-14</b> at Acme Retail Site-07, from going silent to a closed ticket.',
       'Three stages: <b>detect</b> the silence, <b>page</b> the right person, and <b>manage the incident</b> until the fix.',
       'The fix needs a technician on site, so the incident stays open for <b>two days</b>.',
+      'The alert is <b>graded</b>: yellow at 10 minutes, a page at 20, a ticket at 30.',
       'Watch for three things: no polling, exactly <b>one ticket</b>, and escalation written as code.'] },
     steps: [
       ['a-edge', 'Every device checks in once a minute.', [
@@ -46,15 +47,21 @@ const NOTES = {
         'There is no polling job and no query: the <b>absence of an event</b> is what we detect.',
         'Silence only means something if the observer is healthy, so <b>pipeline freshness</b> is monitored separately.',
         'If the pipeline itself were behind, devices would show <b>UNKNOWN</b> instead of paging on-call for every device.']],
-      ['a-flink', 'Five minutes of silence: the timer fires, CAM-14 is DEAD.', [
-        'The rule engine moves CAM-14 from ONLINE to <b>DEAD</b>.',
+      ['a-flink', 'Ten minutes of silence: CAM-14 turns yellow, SILENT.', [
+        'At <b>10 minutes</b> the timer fires, moves CAM-14 to <b>SILENT</b>, and re-arms for minute 20.',
+        'SILENT shows on <b>dashboards only</b>: no page, no ticket.',
+        'Why: most short silences are a <b>network blip</b> or a reboot, and they recover on their own.',
+        'If a heartbeat arrives now, CAM-14 is back to ONLINE and <b>nobody was woken</b>.',
+        'SILENT is not DEGRADED: a DEGRADED device is still talking, just slowly.']],
+      ['a-flink', 'Twenty minutes of silence: the timer fires again, CAM-14 is DEAD.', [
+        'The rule engine moves CAM-14 from SILENT to <b>DEAD</b>.',
+        'The ladder: <b>10 min SILENT</b> on dashboards, <b>20 min DEAD</b> and a page, <b>30 min</b> a ticket.',
         'Only <b>state transitions</b> leave Flink; a healthy heartbeat that changes nothing is not forwarded.',
         'The transition gets a stable <b>incident ID: tenant + device + outage generation</b>.',
-        'A later outage of the same camera gets a new generation, so the two are never confused.',
         'Thresholds are rules per device type, with <b>per-tenant overrides</b> pushed live from the control plane.']],
       ['a-act', 'Critical incidents take the fast lane.', [
         'Action Execution has <b>two lanes</b>: critical and minor.',
-        '<b>Critical</b> skips batching and goes straight to paging and ticketing.',
+        '<b>Critical</b> skips batching: on-call is paged <b>now</b>, and a ticket follows at minute 30 if CAM-14 is still DEAD.',
         '<b>Minor</b> issues roll into a 15-minute digest per site, with quiet hours.',
         'Why two lanes: urgent problems must page now; minor ones must never wake anyone at 3 AM.',
         'Let\'s zoom in on what happens inside the critical lane.']],
@@ -64,7 +71,7 @@ const NOTES = {
         'Design example: publication is tied to Flink\'s checkpoint, so a crash cannot silently lose a decision.']],
       ['b-sns', 'SNS fans it out, and on-call is paged now.', [
         '<b>SNS</b> delivers one event to many consumers.',
-        '<b>PagerDuty pages on-call immediately</b>, straight off SNS.',
+        '<b>PagerDuty pages on-call now</b>, at minute 20, straight off SNS.',
         'The page never waits for ServiceNow: a ticketing outage only delays the <b>ticket</b>, never the alarm.',
         'The ticket path continues separately.']],
       ['b-sqs', 'SQS buffers the ticket request.', [
@@ -84,7 +91,13 @@ const NOTES = {
         '<b>Before</b>: SQS, DLQ, a handler and cron jobs for retries and escalation.',
         '<b>After</b>: one workflow owns the lifecycle, from first page to closed ticket.',
         'Let\'s look inside the workflow.']],
-      ['ws1', 'Step 1: upsert the ServiceNow ticket.', [
+      ['ws1', 'Step 1: a durable 10-minute timer before the ticket.', [
+        'The workflow starts at minute 20, when CAM-14 is DEAD and on-call has been paged.',
+        'It waits <b>10 more minutes</b> on a <b>durable timer</b> before raising a ticket.',
+        'If CAM-14 recovers first, the recovery signal <b>cancels the timer</b>: the page resolves and <b>no ticket</b> is ever raised.',
+        'Why: a ticket is work for a team, so we raise it only for an outage that persists.',
+        'The timer lives in the workflow, so a crash or a deploy cannot lose it.']],
+      ['ws1', 'Minute 30, still DEAD: upsert the ServiceNow ticket.', [
         'The first activity creates the ticket as an <b>idempotent upsert</b>.',
         'It uses a unique, tenant-qualified <b>correlation_id</b> equal to the incident ID.',
         'Every retry sends the <b>same key</b>, so retries cannot create a second ticket.',
@@ -101,8 +114,8 @@ const NOTES = {
         'Temporal cannot cancel a remote request already in flight, so the external uniqueness contract matters.']],
       ['ws2', 'Step 2: a durable 30-minute acknowledgement deadline.', [
         'The workflow waits for on-call to acknowledge, with a <b>durable timer</b>.',
-        'The 30 minutes run from the <b>original page</b>, not from when the ticket was created.',
-        'Ticket retries do not reset the clock.',
+        'The 30 minutes run from the <b>original page</b> at minute 20, so the deadline is minute 50.',
+        'The ticket at minute 30, and its retries, do not reset the clock.',
         'The timer lives inside the workflow, so it survives restarts and deploys.',
         'An acknowledgement signal stops the clock.']],
       ['ws3', 'Step 3: no acknowledgement, so the workflow escalates.', [
@@ -139,7 +152,7 @@ const NOTES = {
     ],
     recap: { h: 'The fix took two days. The workflow just waited.', b: [
       '<b>Detect</b>: a per-device Flink timer, no polling of 100M rows.',
-      '<b>Alert</b>: the critical lane pages through PagerDuty immediately, independent of ticketing.',
+      '<b>Grade the alert</b>: SILENT at 10 minutes, a page at 20, a ticket at 30; paging never waits on ticketing.',
       '<b>Own the incident</b>: one durable Temporal workflow per incident ID.',
       '<b>Survive failure</b>: bounded retries, idempotent upserts and timers that survive restarts.',
       '<b>No cron jobs, no duplicate tickets.</b>'] }
@@ -255,9 +268,9 @@ const INSIDE = {
         'A duplicate check uses <b>boot/session + stream + sequence</b>, within a bounded window.',
         'Device metadata is joined in: <b>type, tenant, site</b>.',
         'The heartbeat\'s event age is checked: an old one flushed from a spool <b>does not refresh</b> current health.'] },
-      { h: 'Rule engine: CAM-14\'s 5-minute timer is reset.', hl: [[736, 20, 300, 240]], path: [[664, 238], [730, 140], [1006, 230]], lab: [[750, 186, 'CAM-14 · timer 0:00 / 5:00 · ONLINE']], b: [
+      { h: 'Rule engine: CAM-14\'s silence timer is reset.', hl: [[736, 20, 300, 240]], path: [[664, 238], [730, 140], [1006, 230]], lab: [[750, 186, 'CAM-14 · timer reset · ONLINE']], b: [
         'Every heartbeat <b>resets</b> the device\'s timer; the timer fires only if the device goes quiet.',
-        'The threshold is a rule per device type, with <b>tenant overrides</b> pushed live.',
+        'The thresholds, SILENT at 10 minutes and DEAD at 20, are rules per device type, with <b>tenant overrides</b> pushed live.',
         'No scan, no polling: <b>100M timers</b>, each owned by its device\'s key.'] },
       { h: 'No change, so nothing goes downstream.', hl: [[1104, 20, 300, 320], [1110, 354, 300, 26]], at: [1006, 230], b: [
         'CAM-14 was ONLINE and is still ONLINE: <b>no transition</b>, nothing for the lanes.',
@@ -269,7 +282,7 @@ const INSIDE = {
         'Other devices keep sending; CAM-14\'s partition keeps flowing.',
         'Only CAM-14\'s heartbeats have stopped.',
         'There is nothing to process, and that is the point: the <b>timer</b> notices.'] },
-      { h: 'CAM-14\'s timer keeps counting.', hl: [[736, 20, 300, 240]], at: [1006, 230], lab: [[750, 186, 'CAM-14 · silent {timer} / 5:00']], timer: [0, 299], b: [
+      { h: 'CAM-14\'s timer keeps counting.', hl: [[736, 20, 300, 240]], at: [1006, 230], lab: [[750, 186, 'CAM-14 · silent {timer} / 10:00']], timer: [0, 599], b: [
         'The timer runs inside Flink\'s keyed state; <b>no job polls</b> a database.',
         'Flink fires it automatically when the deadline passes.',
         'Timers are part of every <b>checkpoint</b>, so a restart does not lose them.'] },
@@ -278,23 +291,41 @@ const INSIDE = {
         'Consumer freshness and checkpoint age are monitored <b>separately</b>.',
         'If the pipeline were behind, devices would show <b>UNKNOWN</b> and the pipeline owner would be paged, not on-call for every device.'] }] },
     7: { steps: [
-      { h: 'Five minutes: the timer fires.', hl: [[736, 20, 300, 240]], at: [1006, 230], lab: [[750, 186, 'CAM-14 · 5:00 · timer fired', '#DC2626']], b: [
-        'CAM-14 has been silent for <b>five minutes</b>, so its timer fires.',
+      { h: 'Ten minutes: the timer fires, CAM-14 is SILENT.', hl: [[736, 20, 300, 240]], at: [1006, 230], lab: [[750, 186, 'CAM-14 → SILENT · 10:00', '#B7791F']], b: [
+        'The first rung: CAM-14 moves to <b>SILENT</b>, and the timer re-arms for minute 20.',
+        'Still no incident: no incident ID, no page, no ticket.'] },
+      { h: 'SILENT goes to the dashboard only.', hl: [[1104, 152, 300, 56]], path: [[1006, 230], [1036, 140], [1070, 140], [1070, 180], [1374, 180]], b: [
+        'The change is pushed <b>live</b> to the dashboard service, and CAM-14 turns yellow over SSE.',
+        'The <b>critical lane</b> is not touched: nobody is paged.',
+        'A heartbeat now returns CAM-14 to ONLINE, and the episode ends there.'] },
+      { h: 'The timer keeps counting toward DEAD.', hl: [[736, 20, 300, 240]], at: [1006, 230], lab: [[750, 186, 'CAM-14 · SILENT {timer} / 20:00', '#B7791F']], timer: [600, 1199], b: [
+        'Same timer, next deadline: <b>20 minutes</b>.',
+        'The ladder thresholds are rules per device type, with <b>tenant overrides</b>.'] }] },
+    8: { steps: [
+      { h: 'Twenty minutes: the timer fires again.', hl: [[736, 20, 300, 240]], at: [1006, 230], lab: [[750, 186, 'CAM-14 · 20:00 · timer fired', '#DC2626']], b: [
+        'CAM-14 has been silent for <b>twenty minutes</b>, so its timer fires again.',
         'Pipeline freshness is healthy, so the silence counts as evidence.'] },
-      { h: 'ONLINE → DEAD: a new incident identity.', hl: [[736, 20, 300, 240]], at: [1006, 230], lab: [[750, 186, 'CAM-14 → DEAD · outage-42', '#DC2626']], b: [
-        'The rule engine moves CAM-14 from ONLINE to <b>DEAD</b>.',
+      { h: 'SILENT → DEAD: a new incident identity.', hl: [[736, 20, 300, 240]], at: [1006, 230], lab: [[750, 186, 'CAM-14 → DEAD · outage-42', '#DC2626']], b: [
+        'The rule engine moves CAM-14 from SILENT to <b>DEAD</b>.',
         'It allocates the incident ID: <b>tenant + device + outage generation</b>, here acme:cam-14:outage-42.',
         'The ID is kept in CAM-14\'s state; the recovery signal later carries the <b>same ID</b>.',
         'A future outage of the same camera gets a new generation.'] },
       { h: 'The transition goes to the critical lane.', hl: [[1104, 20, 300, 56]], path: [[1006, 230], [1036, 140], [1070, 140], [1070, 48], [1374, 48]], b: [
-        'DEAD is critical, so it goes to the <b>critical lane</b> for paging and ticketing.',
+        'DEAD is critical, so it goes to the <b>critical lane</b>: an immediate page, then a ticket at minute 30.',
         'A SLOW device would go to the minor lane and the 15-minute digest instead.',
         'Design example: publication is tied to Flink\'s checkpoint, so a crash cannot lose the decision.'] },
       { h: 'The dashboard and history see it too.', hl: [[1104, 152, 300, 56], [1104, 218, 300, 56]], path: [[1374, 48], [1070, 48], [1070, 180], [1374, 180]], b: [
         'The change is pushed <b>live</b> to the dashboard service, which updates open pages over SSE.',
         'Redis gets the new state and <b>site counts</b>.',
         'The event is also written to ClickHouse for history.'] }] },
-    8: { handoff: true }   // Action Execution: the flow itself zooms into the ServiceNow + Temporal scene next
+    9: { handoff: true }   // Action Execution: the flow itself zooms into the ServiceNow + Temporal scene next
   }
 };
 for (const [flow, byStep] of Object.entries(INSIDE)) for (const [n, v] of Object.entries(byStep)) if (NOTES[flow] && NOTES[flow].steps[n - 1]) NOTES[flow].steps[n - 1][3] = v;
+
+// Other flows register themselves from pres/notes-<group>.js (loaded after this file):
+//   registerFlow(7, { name, intro, steps: [[id, heading, [bullets]], ...], recap }, { 1: { steps: [...] }, ... });
+function registerFlow(flow, notes, inside) {
+  NOTES[flow] = notes;
+  for (const [n, v] of Object.entries(inside || {})) if (notes.steps[n - 1]) notes.steps[n - 1][3] = v;
+}
