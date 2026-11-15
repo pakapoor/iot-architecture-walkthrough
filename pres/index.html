@@ -263,6 +263,19 @@ aside{transition:visibility 0s .25s}
 .dcard.textonly figure,.dcard.textonly #lessonControls,.dcard.textonly #lessonCaption{display:none}
 .ddesc{border-top:1px solid var(--line);margin-top:18px;padding-top:16px}
 .ddesc h4{font-family:var(--display);font-size:17px;font-weight:600;margin:0 0 10px}
+.rolesec{border-top:1px solid var(--line,#E2E8F0);padding:2px 0}
+.rolesec:last-child{border-bottom:1px solid var(--line,#E2E8F0)}
+.rolesec summary{display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;padding:11px 2px;font-size:15.5px;font-weight:600;color:var(--ink)}
+.rolesec summary::-webkit-details-marker{display:none}
+.rolesec summary::before{content:'';width:7px;height:7px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);transition:transform .15s;flex:none;margin-right:2px}
+.rolesec[open] summary::before{transform:rotate(45deg)}
+.rolesec summary em{margin-left:auto;font-style:normal;font-size:12px;font-weight:500;color:var(--muted);background:var(--hover);border-radius:999px;padding:2px 9px}
+.rolesec summary:hover span{color:var(--accent)}
+.rolesec summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.rolesec ul,.rolesec ol{margin:0 0 12px;padding-left:22px}.rolesec li{margin:0 0 8px;font-size:15px;line-height:1.5}
+.roletools{display:flex;justify-content:flex-end;margin:-6px 0 6px}
+.roletools button{font:500 13px var(--body);color:var(--accent);background:none;border:0;cursor:pointer;padding:4px 2px}
+.roletools button:hover{text-decoration:underline}
 .dsec ol{margin:4px 0 0;padding-left:20px}.dsec li{margin:0 0 8px;font-size:15px;line-height:1.5}
 .dnote{font-size:13px;color:var(--muted);margin:14px 0 0}
 @media (prefers-reduced-motion:reduce){.sectiontoggle .chev{transition:none}}
@@ -405,13 +418,19 @@ function openDetail(t, from) {
 // "My role": the presenter's role, scope, decisions and outcomes (pres/role.js)
 function openRole(from) {
   const esc = v => String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/&lt;(\/?)(b|i)&gt;/g, '<$1$2>');
-  const list = sec => `<div class="dsec"><h3>${esc(sec.h)}</h3><${sec.ordered ? 'ol' : 'ul'}>${sec.items.map(x => `<li>${esc(x)}</li>`).join('')}</${sec.ordered ? 'ol' : 'ul'}></div>`;
+  // Each section is collapsed by default (heading + item count); the lead and facts stay visible.
+  const list = (sec, i) => `<details class="rolesec"${sec.open ? ' open' : ''}><summary><span>${esc(sec.h)}</span><em>${sec.items.length}</em></summary><${sec.ordered ? 'ol' : 'ul'}>${sec.items.map(x => `<li>${esc(x)}</li>`).join('')}</${sec.ordered ? 'ol' : 'ul'}></details>`;
   lastFocus = from || null; activeKnowledge = null; stopLesson();
   hideUpNext(); if (frame) { pauseFrame(frame); frame.inert = true; }
   $('panel').inert = true; $('paneltoggle').inert = true;
   const card = $('dmodal').querySelector('.dcard'); card.classList.remove('knowledge'); card.classList.add('textonly');
   $('dkick').textContent = ROLE.kicker; $('dtitle').textContent = ROLE.title;
-  $('dtext').innerHTML = `<p class="dlead">${esc(ROLE.lead)}</p><div class="rolefacts">${ROLE.facts.map(([k, v]) => `<span>${esc(k)} <b>${esc(v)}</b></span>`).join('')}</div>` + ROLE.sections.map(list).join('');
+  $('dtext').innerHTML = `<p class="dlead">${esc(ROLE.lead)}</p><div class="rolefacts">${ROLE.facts.map(([k, v]) => `<span>${esc(k)} <b>${esc(v)}</b></span>`).join('')}</div>`
+    + `<div class="roletools"><button type="button" id="roleAll" aria-pressed="false">Expand all</button></div>` + ROLE.sections.map(list).join('');
+  const all = $('roleAll'), secs = [...$('dtext').querySelectorAll('.rolesec')];
+  const sync = () => { const open = secs.every(d => d.open); all.textContent = open ? 'Collapse all' : 'Expand all'; all.setAttribute('aria-pressed', String(open)); };
+  all.addEventListener('click', () => { const open = !secs.every(d => d.open); secs.forEach(d => { d.open = open; }); sync(); });
+  secs.forEach(d => d.addEventListener('toggle', sync)); sync();
   $('dsnap').innerHTML = ''; $('dcap').textContent = '';
   $('dmodal').hidden = false; card.scrollTop = 0; $('dclose').focus();
 }

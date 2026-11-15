@@ -94,12 +94,17 @@ def run(output, playback=None):
         page.locator('#roleBtn').click()
         page.locator('#dmodal').wait_for(state='visible')
         assert 'Chief architect' in page.locator('#dtitle').inner_text() and 'Team' in page.locator('#dtext').inner_text()
+        assert page.evaluate("[...document.querySelectorAll('#dtext .rolesec')].every(d => !d.open)"), 'role sections start collapsed'
+        page.locator('#roleAll').click()
+        assert page.evaluate("[...document.querySelectorAll('#dtext .rolesec')].every(d => d.open)") and page.locator('#roleAll').inner_text() == 'Collapse all'
+        page.locator('#dtext .rolesec summary').first.click()
+        page.wait_for_function("document.getElementById('roleAll').textContent === 'Expand all'")   # toggle fires async
         page.keyboard.press('Escape')
         assert page.locator('#roleBtn').evaluate('e => e === document.activeElement')
         page.locator('body').press('r')
         page.locator('#dmodal').wait_for(state='visible')
         page.keyboard.press('Escape')
-        passed('My role dialog opens from the sidebar and the R key; focus returns')
+        passed('My role dialog opens from the sidebar and the R key; sections start collapsed, expand/collapse all; focus returns')
 
         frame = shell()
         # fixed layout: observability always shown, no design-decision cards or switches, panel in every flow
