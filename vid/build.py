@@ -109,6 +109,12 @@ html,body{margin:0;background:#EEF3F9}
 .mev .e.ok.on{border-color:#16A34A;background:#ECFDF3;color:#15803D}
 .mev .e.bad.on{border-color:#EF4444;background:#FEF2F2;color:#DC2626}
 
+/* multi-instance services: two ghost cards behind the box + a badge */
+.box.multi{--mc:#B9C6D8;box-shadow:6px 6px 0 -1.5px #fff,6px 6px 0 0 var(--mc),12px 12px 0 -1.5px #fff,12px 12px 0 0 var(--mc),0 10px 26px rgba(15,30,51,.10)}
+.box.multi.blue{--mc:#93B4F5}.box.multi.green{--mc:#86EFAC}.box.multi.violet{--mc:#C4B5FD}.box.multi.cyan{--mc:#99E3EC}#a-act.multi{--mc:#FCA5A5}
+
+.box .mi{position:absolute;right:12px;top:-12px;font-size:11.5px;font-weight:800;letter-spacing:.3px;color:#33465C;background:#fff;border:1.5px solid var(--mc,#B9C6D8);border-radius:999px;padding:2px 9px;white-space:nowrap;z-index:2}
+#a-dash .mi,#a-act .mi{top:auto;bottom:-12px}
 /* observability panel (replaces design cards when shown) */
 #a-obsp{position:absolute;left:60px;right:60px;top:712px;display:none;z-index:6}
 #a-obsp .oh{font-size:14px;letter-spacing:3px;font-weight:800;color:#632CA6}
@@ -156,13 +162,18 @@ for k, pos in {'edge': 'left:60px;top:190px', 'gw': 'left:350px;top:190px', 'ing
     arch = re.sub(r'<div class="box([^"]*)" style="' + pos, f'<div id="a-{k}" class="box\\1" style="' + pos, arch, count=1)
     if f'id="a-{k}"' not in arch:
         arch = arch.replace('<div class="box" style="' + pos, f'<div id="a-{k}" class="box" style="' + pos, 1)
+# multi-instance services: stacked cards + an instance badge (the LLD shows what runs as many copies)
+for k, n in [('gw', '×N pods'), ('ing', '×N pods · HPA'), ('kafka', '3 brokers · 3 AZs'), ('flink', 'JobManager HA + ×N TaskManagers'), ('dash', '×N pods'), ('act', '×N workers')]:
+    i = arch.index(f'id="a-{k}"'); j = arch.index('>', i) + 1
+    arch = arch[:j] + f'<span class="mi">{n}</span>' + arch[j:]
+    arch = arch.replace(f'<div id="a-{k}" class="box', f'<div id="a-{k}" class="box multi', 1)
 arch = arch.replace('<div class="obs">', '<div class="obs" id="a-obs">')
 arch = arch.replace('<span class="chip">', '<span class="chip" id="a-chip">')
 arch = arch.replace('<div class="lane r">', '<div class="lane r" id="a-laneR" style="animation:none">')
 arch = arch.replace('<div class="lane y">', '<div class="lane y" id="a-laneY">')
 arch = arch.replace('src="sdi_logo_v2_crop.png"', 'src="../sdi_logo_v2_crop.png"')
 arch += '<div id="a-obsp"><div class="oh">OBSERVABILITY · DATADOG</div><div class="tiles"><div class="otile" id="a-ob0"><div class="ot">Consumer lag</div><div class="ov" id="a-ov0">● OK</div><div class="on">Kafka messages waiting for Flink</div></div><div class="otile" id="a-ob1"><div class="ot">Freshness p99</div><div class="ov" id="a-ov1">● OK</div><div class="on">event age when processed · alert > 2 min</div></div><div class="otile" id="a-ob2"><div class="ot">Flink checkpoints</div><div class="ov" id="a-ov2">● OK</div><div class="on">duration + failures · state health</div></div><div class="otile" id="a-ob3"><div class="ot">Gateway ingress</div><div class="ov" id="a-ov3">● 200K/s</div><div class="on">gateway envelopes/sec · per tenant</div></div><div class="otile" id="a-ob4"><div class="ot">Traces</div><div class="ov" id="a-ov4">● OK</div><div class="on">one trace ID: edge → ticket</div></div></div></div>'
-arch += '<style>.plat{position:absolute;top:886px;height:64px;box-sizing:border-box;background:#fff;border-radius:14px;padding:8px 16px;cursor:pointer;box-shadow:0 6px 18px rgba(15,30,51,.06)}.plat .rt{font-size:16px;font-weight:800;color:#0B1F3F;display:flex;align-items:center;gap:8px}.plat .rs{font-size:13px;color:#4A5B70;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#a-k8s{left:60px;width:1010px;border:1.5px solid #93C5FD}#a-reg{left:1090px;width:450px;border:1.5px solid #C4B5FD}.plat .tag{font-size:11px;font-weight:800;letter-spacing:1.2px;color:#1D4ED8;background:#EFF6FF;border-radius:999px;padding:2px 8px}#a-reg .tag{color:#5B3FD9;background:#F6F3FF}</style><div class="phead" style="position:absolute;left:60px;top:866px;font-size:13px;letter-spacing:3px;font-weight:800;color:#6E6E73">PLATFORM · EVERYTHING ABOVE RUNS ON THIS</div><div id="a-k8s" class="plat"><div class="rt">📦 Kubernetes · EKS<span class="tag">ONE CLUSTER PER REGION</span></div><div class="rs">node pools per workload · HPA + KEDA scale pods · Karpenter adds nodes · Strimzi (Kafka) + Flink Operator · Argo CD</div></div><div id="a-reg" class="plat"><div class="rt">🌐 Regions<span class="tag">HOME REGION PER TENANT</span></div><div class="rs">EU · US · China isolated · paired standby per region</div></div>'
+arch += '<style>.plat{position:absolute;top:886px;height:64px;box-sizing:border-box;background:#fff;border-radius:14px;padding:8px 16px;cursor:pointer;box-shadow:0 6px 18px rgba(15,30,51,.06)}.plat .rt{font-size:16px;font-weight:800;color:#0B1F3F;display:flex;align-items:center;gap:8px}.plat .rs{font-size:13px;color:#4A5B70;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#a-k8s{left:60px;width:1010px;border:1.5px solid #93C5FD}#a-reg{left:1090px;width:450px;border:1.5px solid #C4B5FD}.plat .tag{font-size:11px;font-weight:800;letter-spacing:1.2px;color:#1D4ED8;background:#EFF6FF;border-radius:999px;padding:2px 8px}#a-reg .tag{color:#5B3FD9;background:#F6F3FF}</style><div class="phead" style="position:absolute;left:60px;top:866px;font-size:13px;letter-spacing:3px;font-weight:800;color:#6E6E73">PLATFORM · EVERYTHING ABOVE RUNS ON THIS</div><div id="a-k8s" class="plat"><div class="rt">📦 Kubernetes · EKS<span class="tag">ONE CLUSTER PER REGION</span></div><div class="rs">node pools per workload · HPA + KEDA scale pods · Karpenter adds nodes · Strimzi (Kafka) + Flink Operator · Argo CD</div></div><div id="a-reg" class="plat"><div class="rt">🌐 Regions<span class="tag">HOME REGION PER TENANT</span></div><div class="rs">US East ↔ US West · Frankfurt ↔ Ireland · China on Alibaba Cloud</div></div>'
 arch += '<div id="a-badge" class="badge" style="left:72px;top:372px"></div><div id="a-pk" class="pk"></div><div id="a-streams"></div>'
 for k in ['edge','gw','ing','kafka','flink','ctrl','dash','stor','act']:
     assert f'id="a-{k}"' in arch, k

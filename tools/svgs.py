@@ -244,22 +244,22 @@ OUT['OBS']=svg(1520,410,''.join(b))
 
 # ---------- REGIONS (design extension: residency zones, home cells, paired standby) ----------
 b=[]
-b.append(box(380,14,760,64,'v','Global control plane · routing metadata only',['tenant → home region · one writable primary, read replicas in every region'],fs=13.5,tfs=15))
+b.append(box(380,14,760,64,'v','Global control plane · routing metadata, config, aggregates',['primary in US East · read replicas in every AWS region · China keeps its own copy'],fs=13.5,tfs=15))
 b.append(arr('M440 78 V96','#5B3FD9',dash='5 4')+arr('M760 78 V96','#5B3FD9',dash='5 4'))
-for zx,name,h,s in [(20,'EU ZONE','EU-1','EU-2'),(510,'US ZONE','US-1','US-2')]:
+for zx,name,h,s in [(20,'EU ZONE · AWS · GDPR','Frankfurt','Ireland'),(510,'US ZONE · AWS · CCPA','US East','US West')]:
     b.append(f'<rect x="{zx}" y="100" width="470" height="248" rx="14" fill="#F4F8FF" stroke="#93B4F5" stroke-width="1.6"/>'+hd(zx+18,124,name,'b'))
     b.append(box(zx+18,136,190,156,'b',f'{h} · home',['gateway · ingestion','Kafka · Flink','Temporal · storage','dashboards'],fs=13,tfs=15))
     b.append(box(zx+262,136,190,156,'n',f'{s} · standby',['warm · same stack','replicated topics','checkpoints, history','scales up on failover'],fs=13,tfs=15))
     b.append(arr(f'M{zx+208} 214 H{zx+258}','#15803D','qg',dash='5 4'))
     b.append(lab(zx+18,318,'replicated: Kafka topics · Flink checkpoints · Temporal history','#15803D',12.5,600))
     b.append(lab(zx+18,338,'Redis is rebuilt from the log after a failover','#56667C',12.5,400))
-b.append('<rect x="1000" y="100" width="500" height="248" rx="14" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="1.6" stroke-dasharray="7 5"/>'+hd(1018,124,'CHINA · ISOLATED','r'))
+b.append('<rect x="1000" y="100" width="500" height="248" rx="14" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="1.6" stroke-dasharray="7 5"/>'+hd(1018,124,'CHINA · ALIBABA CLOUD · PIPL','r'))
 b.append(box(1018,136,464,44,'r',None,[])+lab(1032,164,'own control plane copy · nothing replicates out','#DC2626',13.5,700))
-b.append(box(1018,192,220,100,'b','CN-1 · home',['full stack, in China'],fs=13,tfs=15))
-b.append(box(1262,192,220,100,'n','CN-2 · standby',['DR stays in China'],fs=13,tfs=15))
+b.append(box(1018,192,220,100,'b','Shanghai · home',['full stack, in China'],fs=13,tfs=15))
+b.append(box(1262,192,220,100,'n','Beijing · standby',['DR stays in China'],fs=13,tfs=15))
 b.append(arr('M1238 242 H1258','#15803D','qg',dash='5 4'))
 b.append(lab(1018,318,'deployed from the same Git repo, run separately','#56667C',12.5,400))
-b.append(box(20,362,1480,50,'n',None,[])+hd(38,384,'SITES CONNECT TO THEIR HOME CELL','n')+lab(38,404,"registry + DNS route each tenant's gateways · e.g. Acme → EU-1, Beta → US-1 · telemetry, state, incidents and tickets stay in the zone",'#33465C',13,400))
+b.append(box(20,362,1480,50,'n',None,[])+hd(38,384,'SITES CONNECT TO THEIR HOME CELL','n')+lab(38,404,"registry + DNS route each tenant's gateways · e.g. Acme → Frankfurt, Beta → US East · telemetry, state, incidents and tickets stay in the zone",'#33465C',13,400))
 OUT['REG']=svg(1520,420,''.join(b))
 # ---------- STORAGE level 1 ----------
 b=[]
@@ -429,14 +429,14 @@ b.append(box(20,360,730,96,'g','Why EKS won',['One platform for stateful + state
 b.append(box(770,360,730,96,'o','When ECS is the right call',['A few stateless services, a small team, AWS only:','ECS + Fargate is simpler. Not our workload.'],fs=14.5,tfs=16))
 XD['ecs']=('EKS vs ECS · the decision',svg(1520,470,''.join(b)))
 # ---------- multi-region edge path ----------
-b=[f'<rect x="20" y="14" width="330" height="420" rx="16" fill="#F0FDFA" stroke="#99F6E4" stroke-width="1.6"/>'+hd(40,42,'ACME SITE · HOME = EU-1','t')]
+b=[f'<rect x="20" y="14" width="330" height="420" rx="16" fill="#F0FDFA" stroke="#99F6E4" stroke-width="1.6"/>'+hd(40,42,'ACME SITE · HOME = Frankfurt','t')]
 b.append(box(40,58,290,64,'n','Devices → Filtering',['allow-list · quotas'],fs=13,tfs=15))
 b.append(arr('M185 122 V142'))
-b.append(box(40,146,290,150,'t','Edge pair',['cert: acme · site-07 · EU','endpoints, in order:','1. EU-1 (home)','2. EU-2 (same-zone standby)'],fs=13,tfs=15))
+b.append(box(40,146,290,150,'t','Edge pair',['cert: acme · site-07 · EU','endpoints, in order:','1. Frankfurt (home)','2. Ireland (same-zone standby)'],fs=13,tfs=15))
 b.append(box(40,312,290,104,'o','Region unreachable?',['spool to disk, keep retrying','switch only when told'],fs=13,tfs=15))
-b.append(box(380,150,240,150,'v','DNS · tenant-pinned',['acme.eu.ingest…','→ EU-1 today','never "nearest region"'],fs=13,tfs=15))
+b.append(box(380,150,240,150,'v','DNS · tenant-pinned',['acme.eu.ingest…','→ Frankfurt today','never "nearest region"'],fs=13,tfs=15))
 b.append(arr('M330 220 H376','#1D4ED8'))
-for k,(x,name,c,st) in enumerate([(650,'EU-1 · home','b','serving'),(1080,'EU-2 · standby','n','warm')]):
+for k,(x,name,c,st) in enumerate([(650,'Frankfurt · home','b','serving'),(1080,'Ireland · standby','n','warm')]):
     fg,bg,bd=P[c]
     b.append(f'<rect x="{x}" y="14" width="410" height="420" rx="16" fill="{bg}" stroke="{bd}" stroke-width="1.6"/>'+hd(x+18,42,name.upper()+' · '+st.upper(),c))
     b.append(box(x+18,58,374,84,c,'Cloud Gateway',['mTLS · trusts the EU issuing CA','admits EU-homed tenants only'],fs=13,tfs=15))
@@ -445,10 +445,10 @@ for k,(x,name,c,st) in enumerate([(650,'EU-1 · home','b','serving'),(1080,'EU-2
     b.append(arr(f'M{x+205} 226 V242'))
     b.append(box(x+18,246,374,64,c,'Ingestion pool',['validate · tag · publish'],fs=13,tfs=15))
     b.append(arr(f'M{x+205} 310 V326'))
-    b.append(box(x+18,330,374,84,c,'Kafka',['keyed tenant + device'] + (['→ replicated to EU-2'] if k==0 else ['replica of EU-1 topics']),fs=13,tfs=15))
-b.append(arr('M620 200 H646','#1D4ED8')+arr('M620 260 H636 V448 H1286 V438','#7A8BA0',dash='6 5')+lab(660,462,'failover: DNS + endpoint list move Acme to EU-2 · same certs, same tenant identity','#56667C',13,600))
+    b.append(box(x+18,330,374,84,c,'Kafka',['keyed tenant + device'] + (['→ replicated to Ireland'] if k==0 else ['replica of Frankfurt topics']),fs=13,tfs=15))
+b.append(arr('M620 200 H646','#1D4ED8')+arr('M620 260 H636 V448 H1286 V438','#7A8BA0',dash='6 5')+lab(660,462,'failover: DNS + endpoint list move Acme to Ireland · same certs, same tenant identity','#56667C',13,600))
 b.append(arr('M1060 372 H1094','#15803D','qg',dash='5 4'))
-b.append(box(20,484,600,90,'r','Wrong region? Refused, not stored',['A US tenant\'s gateway reaching EU-1 is refused at the','gateway and pointed at its home endpoint.'],fs=13.5,tfs=15))
+b.append(box(20,484,600,90,'r','Wrong region? Refused, not stored',['A US tenant\'s gateway reaching Frankfurt is refused at the','gateway and pointed at its home endpoint.'],fs=13.5,tfs=15))
 b.append(box(650,484,850,90,'v','PKI per region',['One offline root CA; an issuing CA per region. The cert carries tenant +','region, so a gateway can verify the home region without a cross-region call.'],fs=13.5,tfs=15))
 XD['edgepath']=('Multi-region · edge to ingestion',svg(1520,590,''.join(b)))
 OUT_XD=XD

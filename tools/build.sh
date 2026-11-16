@@ -8,4 +8,5 @@ for v in $(seq 1 31); do
       -e 's|<script src="timeline2.js"></script>|<script src="icons.js"></script><script src="notes.js"></script><script src="notes-alerts.js"></script><script src="notes-device.js"></script><script src="notes-infra.js"></script><script src="notes-deploy.js"></script><script src="notes-lessons-a.js"></script><script src="notes-lessons-b.js"></script><script src="notes-regions.js"></script><script src="notes-k8s-a.js"></script><script src="notes-k8s-b.js"></script><script src="timeline2p.js"></script>|' \
       "v$v.html" > "$ROOT/pres/flow$v.html"
 done
+python3 "$ROOT/tools/hld.py"
 echo "pres/ updated: open pres/index.html"

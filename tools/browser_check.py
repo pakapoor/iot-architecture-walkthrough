@@ -254,9 +254,18 @@ def run(output, playback=None):
         passed('the correctness, Kubernetes and region deep dives open as flows: sidebar, ?flow= and old ?deep= links, phone list')
 
         page.set_viewport_size({'width': 1440, 'height': 900})
-        page.goto(f'{base}/pres/?future=security')   # removed section: an old link falls back to the architecture
-        page.wait_for_function("document.querySelector('iframe')?.contentWindow.PRESENTER")
-        assert 'flow4.html' in page.locator('#stage iframe').get_attribute('src') and 'future' not in page.url
+        page.goto(f'{base}/pres/?future=security')   # removed section: an old link falls back to the home view (global HLD)
+        page.wait_for_function("document.querySelector('#stage iframe')?.src.includes('hld.html')")
+        assert 'future' not in page.url
+        hld = page.frame_locator('#stage iframe')
+        hld.locator('[data-dep="euc1"]').click()             # region → regional HLD → Show detail → LLD
+        hld.locator('#detail').click()
+        page.wait_for_function("document.querySelector('#stage iframe:last-of-type')?.contentWindow.PRESENTER")
+        assert 'flow4.html' in page.locator('#stage iframe').last.get_attribute('src') and page.locator('#toGlobal').is_visible()
+        page.locator('#toGlobal').click()
+        page.wait_for_function("document.querySelector('#stage iframe:last-of-type')?.src.includes('hld.html')")
+        assert page.locator('#toGlobal').is_hidden()
+        passed('home is the global HLD: region → regional HLD → Show detail → LLD → Global view')
         page.goto(f'{base}/pres/?flow=storm')
         page.wait_for_function("document.querySelector('iframe')?.contentWindow.PRESENTER")
         frame = page.frames[-1]

@@ -154,6 +154,8 @@ aside{order:-1;border-left:0!important;border-right:1px solid var(--line)}
 aside{transition:visibility 0s .25s}
 .app:not(.collapsed) aside{transition:none}
 .app.collapsed aside{visibility:hidden}
+.toglobal{position:absolute;right:22px;top:16px;z-index:5;font:700 15px inherit;font-family:inherit;color:#0B1F3F;background:#fff;border:1.5px solid #0B1F3F;border-radius:999px;padding:9px 18px;cursor:pointer;box-shadow:0 6px 18px rgba(15,30,51,.12)}
+.toglobal:hover{background:#EEF3F9}
 .paneltoggle{position:fixed;top:14px;left:272px;z-index:30;display:grid;place-items:center;width:34px;height:34px;border:0;border-radius:999px;background:var(--hover);color:var(--ink);cursor:pointer;transition:left .25s ease}
 .paneltoggle:hover{background:var(--line)}
 .paneltoggle:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -307,6 +309,7 @@ aside{transition:visibility 0s .25s}
 
 <div class="app">
   <main class="stagewrap" id="stage" aria-label="Architecture walkthrough">
+    <button class="toglobal" id="toGlobal" type="button" hidden>← Global view</button>
     <div class="dmodal" id="dmodal" hidden><div class="dcard" role="dialog" aria-modal="true" aria-labelledby="dtitle">
       <div class="dhead"><div><div class="kick" id="dkick"></div><h2 id="dtitle"></h2></div><button class="dclose" id="dclose" type="button">Close · Esc</button></div>
       <div class="dbody"><div id="dtext"></div></div>
@@ -326,7 +329,7 @@ aside{transition:visibility 0s .25s}
       <h1>Commercial IoT Monitoring System</h1>
       <p class="explored" id="explored" hidden></p>
       <div class="inforow"><button class="home rolebtn" id="roleBtn" type="button" title="My role on this project (R)"><svg class="emi" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.125em;margin-right:6px"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>My role</button><button class="home" id="reqBtn" type="button" title="Functional and non-functional requirements (Q)"><svg class="emi" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.125em;margin-right:6px"><path d="M9 5h10M9 12h10M9 19h10"/><path d="m4 5 1 1 2-2M4 12l1 1 2-2M4 19l1 1 2-2"/></svg>Requirements</button><button class="home" id="glossBtn" type="button" title="Glossary of terms (G)"><svg class="emi" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.125em;margin-right:6px"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 21.5V4.5"/></svg>Glossary</button></div>
-      <div class="navrow"><button class="home" id="home" type="button" hidden><svg class="emi" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.125em;margin-right:6px"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Back to architecture</button><button class="share" id="share" type="button" hidden aria-label="Copy link to this flow" title="Copy link to this flow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></button><span class="copied" id="copied" role="status" aria-live="polite"></span></div>
+      <div class="navrow"><button class="home" id="home" type="button" hidden><svg class="emi" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.125em;margin-right:6px"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Back to global view</button><button class="share" id="share" type="button" hidden aria-label="Copy link to this flow" title="Copy link to this flow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></button><span class="copied" id="copied" role="status" aria-live="polite"></span></div>
     </div>
     <section class="grp" aria-labelledby="g1"><h2 id="g1"><button class="sectiontoggle" id="flowToggle" type="button" aria-expanded="true" aria-controls="flowNav">Flows<span class="chev" aria-hidden="true">›</span></button></h2>
       <div id="flowNav">
@@ -482,23 +485,23 @@ $('dmodal').addEventListener('keydown', e => { if (e.key !== 'Tab') return;
 }
 const ALL = FLOWS.flatMap(f => f.items || [f]).concat(KUBE, ISSUES, LESSONS, DEPLOY.items);
 const $ = id => document.getElementById(id);
-let current = null, frame = null;
+let current = null, frame = null, homeView = 'hld';   // home: the global HLD; 'lld' after "Show detail"
 
 function src(f) { const q = new URLSearchParams({ embed: '1' });   // the flow page fixes its own layout
-  if (!f) { q.set('idle', '1'); return 'flow4.html?' + q; } return `flow${f.page}.html?` + q; }
+  if (!f) { if (homeView === 'hld') return 'hld.html?' + q; q.set('idle', '1'); return 'flow4.html?' + q; } return `flow${f.page}.html?` + q; }
 
 function load(f, autoplay) {
   const old = frame, nf = document.createElement('iframe');
-  nf.title = f ? `${f.name} walkthrough` : 'Architecture overview'; nf.style.opacity = '0'; nf.src = src(f);
+  nf.title = f ? `${f.name} walkthrough` : homeView === 'hld' ? 'Global deployment' : 'Architecture overview'; nf.style.opacity = '0'; nf.src = src(f);
   nf.addEventListener('load', () => { if (frame !== nf) { nf.remove(); return; }
     requestAnimationFrame(() => { nf.style.opacity = '1'; if (!MQ.matches && $('dmodal').hidden) try { nf.focus(); } catch (_) {} });
     if (old) setTimeout(() => document.querySelectorAll('#stage iframe').forEach(fr => { if (fr !== frame) fr.remove(); }), 380);
     watchFrame(nf); if (autoplay) setTimeout(() => { if (frame === nf && !MQ.matches && $('dmodal').hidden) playFrame(nf); }, 700); }, { once: true });
   $('stage').appendChild(nf); frame = nf;
 }
-function select(f, push = true, autoplay = false) {
+function select(f, push = true, autoplay = false, view = 'hld') {
   closeDetail();
-  current = f || null; hideUpNext();
+  current = f || null; hideUpNext(); if (!f) homeView = view; $('toGlobal').hidden = !!f || homeView !== 'lld';
   document.querySelectorAll('.navitem[data-flow]').forEach(b => { const on = !!f && b.dataset.flow === f.slug; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
   if (f) setSection(f.deploy ? 'deployToggle' : f.infra ? 'deepToggle' : 'flowToggle', true);
   $('flowToggle').classList.toggle('has-active', !!f && !f.infra && !f.deploy); $('deepToggle').classList.toggle('has-active', !!f && !!f.infra); $('deployToggle').classList.toggle('has-active', !!f && !!f.deploy);
@@ -542,10 +545,12 @@ $('roleBtn').addEventListener('click', () => openRole($('roleBtn')));
 $('reqBtn').addEventListener('click', () => openReqs($('reqBtn')));
 $('glossBtn').addEventListener('click', () => openGlossary($('glossBtn')));
 $('home').addEventListener('click', () => select(null));
+$('toGlobal').addEventListener('click', () => select(null));
 addEventListener('message', e => {
   if (!frame || e.source !== frame.contentWindow || e.origin !== location.origin) return;
   const d = e.data; if (!d || typeof d !== 'object') return;
   if (d.type === 'home') $('home').click();
+  if (d.type === 'detail') select(null, true, false, 'lld');   // HLD "Show detail" → the full architecture (LLD)
   if (d.type === 'stop') hideUpNext();
   if (d.type === 'role') openRole({ frame, id: '' });
   if (d.type === 'key' && /^[0-9]$/.test(d.key)) jump(d.key);
@@ -626,7 +631,7 @@ $('share').addEventListener('click', async () => {
   $('copied').textContent = ok ? 'Link copied' : url; clearTimeout(copiedT); copiedT = setTimeout(() => { $('copied').textContent = ''; }, ok ? 1500 : 6000);
 });
 
-// teaser: an untouched landing page starts the Heartbeat flow after 8 s; any input hands control back
+// teaser state (kept off): any input hands control back
 let teaser = 'off', teaserT = null;
 function userInput(e) {
   if (e.type === 'keydown' && e.key === 'Escape') hideUpNext();
@@ -659,6 +664,6 @@ MQ.addEventListener('change', e => {
   if (e.matches) { if (frame) pauseFrame(frame); hideUpNext(); clearTimeout(teaserT); teaser = 'off'; showPhoneFlow(current || start); }
   else { document.querySelectorAll('video').forEach(v => v.pause()); if (!frame) select(current || requestedStart || null); }
 });
-if (!MQ.matches && !requestedStart) { teaser = 'waiting'; teaserT = setTimeout(() => { if (teaser !== 'waiting' || current) return; teaser = 'playing'; select(ALL.find(f => f.slug === 'health'), true, true); }, 8000); }
+// No landing teaser: the global HLD is the starting point and is meant to be explained, not skipped.
 </script>
 </html>
