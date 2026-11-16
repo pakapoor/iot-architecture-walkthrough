@@ -13,7 +13,7 @@ const P = VER === 'pres'
   ? { hold: { pass: 1.0, core: 1.35, deep: 1.75 }, hop: 0.8, hopPx: 1800, zoom: 1.8, intro: 2.0, recap: 3.0, endHold: 3.0 }
   : { hold: { pass: 3.5, core: 5.5, deep: 8.0 }, hop: 1.6, hopPx: 900, zoom: 2.6, intro: 3.0, recap: 6.0, endHold: 4.0 };
 const HOOK_R = 2.6;
-const COL = { g: ['#16A34A', 'rgba(22,163,74,.55)'], r: ['#EF4444', 'rgba(239,68,68,.6)'], y: ['#F5B70A', 'rgba(245,183,10,.6)'], v: ['#7C5CFA', 'rgba(124,92,250,.6)'], b: ['#2563EB', 'rgba(37,99,235,.55)'], o: ['#F08A1C', 'rgba(240,138,28,.6)'] };
+const COL = { n: ['#56667C', 'rgba(86,102,124,.55)'], g: ['#16A34A', 'rgba(22,163,74,.55)'], r: ['#EF4444', 'rgba(239,68,68,.6)'], y: ['#F5B70A', 'rgba(245,183,10,.6)'], v: ['#7C5CFA', 'rgba(124,92,250,.6)'], b: ['#2563EB', 'rgba(37,99,235,.55)'], o: ['#F08A1C', 'rgba(240,138,28,.6)'] };
 const BASE = { arch: [1.08, 96, 0], sceneB: [1.125, 60, 0], sceneD: [1, 0, 0], sceneW: [1, 0, 0], sceneM: [1, 0, 0], sceneC: [1, 0, 0] };
 const LAYER = { a: 'arch', b: 'sceneB', w: 'sceneW', d: 'sceneD', m: 'sceneM', c: 'sceneC' };
 const BALL = { a: 40, b: 40, w: 48, d: 48, m: 48, c: 48 };
@@ -381,36 +381,10 @@ if (VID === 25) {   // lesson · Safe upgrades & rollback (notes: pres/notes-les
   RECAP = { cap: 'Rollback restores execution state — savepoint · replay · stable IDs — and reconciles what was already sent ↩', badge: ['✅ restored · reconciled', ...grn], boxes: ['a-flink', 'a-kafka', 'a-act', 'a-obsp'] };
   TRS = [];
 }
-if (VID === 26) {   // lesson · Data residency, a design extension (notes: pres/notes-regions.js)
-  st('a', 'a-reg', 'tr', 'deep', 'b', 'Design extension: every residency zone runs full regional cells · each tenant has one <b>home region</b>', (S) => { S.aBadge = ['🌐 e.g. EU · US · China (isolated)', '#E5EDFF', '#1D4ED8', '#93B4F5']; });
-  st('a', 'a-ctrl', 'br', 'core', 'b', 'Onboarding: Acme gets home region <b>EU-1</b> · only routing metadata (tenant → home region) is global');
-  st('a', 'a-edge', 'br', 'core', 'b', 'Acme\'s site gateways resolve their home cell through the registry + DNS · they connect to EU-1 only');
-  st('a', 'a-gw', 'br', 'deep', 'b', 'The EU-1 gateway admits only tenants homed in EU-1 · a device registered to another region is refused');
-  st('a', 'a-flink', 'br', 'core', 'b', 'Telemetry, device state, timers and incident decisions are processed in the home cell: Kafka and Flink in EU-1');
-  st('a', 'a-act', 'tr', 'core', 'b', 'Pages, workflows and ServiceNow tickets are raised from the home cell · Temporal runs in EU-1');
-  st('a', 'a-stor', 'tr', 'core', 'b', 'Stores stay in the zone: Acme\'s Redis keys, ClickHouse history, MongoDB records and archive live in EU-1');
-  st('a', 'a-dash', 'tr', 'core', 'b', 'Dashboards are served from the home region with RBAC · platform views across regions use <b>aggregates only</b>');
-  st('a', 'a-reg', 'tr', 'deep', 'r', 'China is fully isolated: its own control plane copy and its own DR · nothing replicates out', (S) => { S.aBadge = ['🔒 China · isolated', ...red]; });
-  st('a', 'a-reg', 'tr', 'deep', 'v', 'Rejected: one global cluster with per-row region tags · moving a tenant\'s home region is a planned migration', (S) => { S.aBadge = ['🌐 residency by placement, not by filter', '#F6F3FF', '#5B3FD9', '#C4B5FD']; }, { stay: true });
-  RECAP = { cap: 'Residency by placement, not by filter: one home region per tenant · routing metadata global · China isolated 🌐', badge: ['✅ data stays in its zone', ...grn], boxes: ['a-reg', 'a-ctrl', 'a-edge', 'a-gw', 'a-flink', 'a-act', 'a-stor', 'a-dash'] };
-  TRS = [];
-}
-if (VID === 27) {   // region outage → failover, a design extension (notes: pres/notes-regions.js)
-  const obsPt = () => { const r = rectOf('a-ob1'); return [r.x - 26, r.y + r.h / 2, r.x + r.w / 2, r.y + r.h / 2]; };
-  st('a', 'a-reg', 'tr', 'core', 'r', 'Design example: Acme\'s home region <b>EU-1</b> goes dark', (S) => { S.aBadge = ['🌩 EU-1 · region outage', ...red]; });
-  st('a', 'a-edge', 'br', 'core', 'r', 'Site gateways cannot reach EU-1 · they <b>spool to disk</b> and keep retrying');
-  st('a', 'a-obsp', 'tl', 'deep', 'r', 'Region health monitors fire · operators are paged about <b>the region</b>, not about every device', (S) => { S.obsT = { 1: ['▲ EU-1 unreachable', 1], 3: ['▼ EU-1 ingress 0', 1] }; }, { pt: obsPt });
-  st('a', 'a-reg', 'tr', 'deep', 'o', 'Failover decision: human-approved, or automated with guardrails · target the paired standby <b>EU-2</b> in the same zone', (S) => { S.aBadge = ['↪ failover → EU-2', ...org]; });
-  st('a', 'a-gw', 'br', 'core', 'o', 'Registry + DNS move Acme\'s gateways to EU-2 · same certificates, same tenant identity');
-  st('a', 'a-kafka', 'br', 'deep', 'o', 'EU-2 already holds the replicated topics (e.g. MirrorMaker 2 or cluster linking) · consumer offsets are translated');
-  st('a', 'a-flink', 'br', 'deep', 'o', 'Flink restores the last checkpoint from replicated object storage · devices stay <b>UNKNOWN</b> until caught up, so no DEAD pages', (S) => { S.chip = ['❔ UNKNOWN · catching up', ...yel]; });
-  st('a', 'a-act', 'tr', 'deep', 'o', 'Temporal history is replicated · open incidents continue with the <b>same incident IDs</b>, so no duplicate tickets');
-  st('a', 'a-edge', 'br', 'core', 'g', 'Spools flush to EU-2 · fresh heartbeats arrive and health resumes', (S) => { S.chip = null; S.aBadge = ['✅ serving from EU-2', ...grn]; });
-  st('a', 'a-stor', 'tr', 'core', 'g', 'Redis is rebuilt from the log · ClickHouse replicas keep history available');
-  st('a', 'a-obsp', 'tl', 'deep', 'v', '<b>RPO</b> = the replication-lag window · <b>RTO</b> = time to fail over and catch up · define both, rehearse both', (S) => { S.obsT = { 1: ['✓ freshness recovered', 0], 3: ['EU-2 serving', 0] }; }, { pt: obsPt });
-  st('a', 'a-reg', 'tr', 'deep', 'g', 'Fail back to EU-1 as a planned, drained move · never mid-incident', (S) => { S.aBadge = ['✅ back home · EU-1', ...grn]; });
-  RECAP = { cap: 'Region lost → spools buffer → UNKNOWN, not DEAD → fail over in-zone → same incident IDs → rehearsed fail-back 🌩', badge: ['✅ no page storm · no duplicate tickets', ...grn], boxes: ['a-reg', 'a-edge', 'a-gw', 'a-kafka', 'a-flink', 'a-act', 'a-stor', 'a-obsp'] };
-  TRS = [];
+// Flows defined in their own notes file (pres/notes-*.js): FLOWDEF[VID](helpers) adds the stops and returns RECAP.
+if (typeof FLOWDEF !== 'undefined' && FLOWDEF[VID]) {
+  const obsPt = i => () => { const r = rectOf('a-ob' + i); return [r.x - 26, r.y + r.h / 2, r.x + r.w / 2, r.y + r.h / 2]; };
+  RECAP = FLOWDEF[VID]({ st, rectOf, obsPt, red, grn, yel, org, gry, blu: ['#E5EDFF', '#1D4ED8', '#93B4F5'], vio: ['#F6F3FF', '#5B3FD9', '#C4B5FD'] }); TRS = [];
 }
 
 // ---------- compile timeline ----------
@@ -462,7 +436,7 @@ const MSIM = (() => { const N = 121, SCALE = 66, SINK = 80, ing = [], lag = [], 
     const cap = i < SCALE ? 260 : (i < SINK ? 470 : 600); L = Math.max(0, L + (x - cap) * 60 / 1000); ing.push(x); lag.push(L);
     fr.push(Math.max(0.05, L * 1000 / (cap * 60))); hb.push(0.07 + 0.01 * Math.sin(i / 2)); const b = L > 0.5 ? (i < SCALE ? 88 : (i < SINK ? 55 : 12)) : 4; bp.push(b + 3 * Math.sin(i)); ck.push(L > 0.5 ? (i < SCALE ? 48 : 20) : 6); }
   return { N, SCALE, SINK, ing, lag, fr, hb, bp, ck, lagMax: Math.max(...lag), frMax: Math.max(...fr) }; })();
-const FOCUS_AMT = id => /^[cdf]\d$/.test(id) ? 0.04 : id.startsWith('c-') ? 0.04 : id.startsWith('m-') ? 0.03 : id === 'a-obsp' ? 0.015 : id.startsWith('a-ob') ? 0.04 : id === 'b-tmp' ? 0.03 : (id.startsWith('ws') ? 0.03 : (id === 'alist' || id === 'p-det' || id === 'toast' || id === 'livepill' ? 0.04 : (id.startsWith('a-') ? 0.11 : 0.08)));
+const FOCUS_AMT = id => /^[cdf]\d$/.test(id) ? 0.04 : id.startsWith('c-') ? 0.04 : id.startsWith('m-') ? 0.03 : id === 'a-obsp' ? 0.015 : id === 'a-k8s' || id === 'a-reg' ? 0.03 : id.startsWith('a-ob') ? 0.04 : id === 'b-tmp' ? 0.03 : (id.startsWith('ws') ? 0.03 : (id === 'alist' || id === 'p-det' || id === 'toast' || id === 'livepill' ? 0.04 : (id.startsWith('a-') ? 0.11 : 0.08)));
 const ALL_FOCUS = [...new Set(STOPS.filter(s => s.id).map(s => s.id).concat(RECAP.boxes))];
 const flinkChipOrig = E('a-chip').innerHTML;
 const devRects = {}; document.querySelectorAll('.dev').forEach(d => { const r = rectOf(d.id); devRects[d.id] = [r.x + r.w / 2, r.y + r.h / 2]; });

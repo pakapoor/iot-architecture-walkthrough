@@ -71,7 +71,18 @@ b.append(lab(945,214,'+ 212 more sites','#56667C',14,700,'middle')+lab(945,236,'
 b.append(arr('M240 306 V384 H1060 V215 H1074','#1D4ED8')+'<path d="M660 306 V384" fill="none" stroke="#1D4ED8" stroke-width="2"/>'+lab(470,400,'WAN · mTLS · one uplink per site','#1D4ED8',12.5,800))
 b.append(box(1080,150,200,130,'b','Cloud Gateway',['mTLS identity','Per-tenant quotas'],fs=14))
 b.append(box(1300,14,200,392,'n','One edge pair per site',['Devices never reach','the cloud directly','','The edge pair batches,','spools and runs the','firmware agent','','100M devices × 1/min','≈ 1.7M readings/sec','→ ~200K envelopes/sec'],fs=13.5,tfs=15))
-OUT['EDGE']=svg(1520,420,''.join(b))
+# onboarding + filtering at the site (row added below; coordinates above unchanged)
+b.append(f'<rect x="20" y="424" width="1480" height="190" rx="16" fill="#FFFBF5" stroke="#FDBA74" stroke-width="1.6"/>'+hd(40,450,'ONBOARDING + FILTERING · AT EVERY SITE','o'))
+b.append(box(40,466,210,118,'t','Edge Dashboard',['site ops: connect,','onboard, activate'],fs=13.5,tfs=15))
+b.append(arr('M250 525 H292'))
+b.append(box(298,466,250,118,'v','Device Identity & PKI',['issues the cert:','tenant + site + region'],fs=13.5,tfs=15))
+b.append(box(620,466,190,118,'n','Devices',['MQTT / CoAP','on the site LAN'],fs=13.5,tfs=15))
+b.append(arr('M810 525 H852'))
+b.append(box(858,466,300,118,'o','Filtering',['allow / block list of devices','per-tenant quota · max devices','drops unknown or excess'],fs=13.5,tfs=15))
+b.append(arr('M1158 525 H1200'))
+b.append(box(1206,466,280,118,'t','Edge pair',['active publishes + buffers','standby takes over'],fs=13.5,tfs=15))
+b.append(arr('M145 584 V600 H1008 V590','#B45309',dash='5 4')+lab(330,598,'activation pushes the allow-list to Filtering','#B45309',12.5,700))
+OUT['EDGE']=svg(1520,620,''.join(b))
 # ---------- EDGE site details (level 2): example topologies ----------
 ED={}
 b=[f'<rect x="20" y="14" width="800" height="392" rx="16" fill="#F0FDFA" stroke="#99F6E4" stroke-width="1.6"/>'+hd(40,42,'SITE-07 · NOIDA · SMALL STORE · EXAMPLE TOPOLOGY','t')]
@@ -121,7 +132,15 @@ b.append(f'<rect x="1378" y="40" width="130" height="206" rx="14" fill="#F6F8FB"
 for i in range(4): b.append(f'<rect x="1394" y="{80+i*40}" width="98" height="30" rx="8" fill="#fff" stroke="#B9C6D8"/>'+lab(1406,100+i*40,f'pod {i+1}','#33465C',13,700))
 b.append(box(20,280,740,110,'r','Why quotas live here',['Tenant/device budgets bound bytes and readings across replicas.','Reserve heartbeats; shared capacity still needs measured headroom.'],fs=15))
 b.append(box(780,280,728,110,'n','Also at the gateway',['Auth + tenant resolution for every request','Health checks on the ingestion tier · rate limits per device'],fs=15))
-OUT['GW']=svg(1520,400,''.join(b))
+# PKI + multi-AZ load balancing (row added below; coordinates above unchanged)
+b.append(box(20,410,560,170,'v','Device Identity & PKI',['Offline root CA · one issuing CA per region','Cert issued at activation: tenant + site + region','Short-lived certs, rotated by the edge agent','Revoked cert → refused at the handshake'],fs=14,tfs=16))
+b.append(arr('M425 410 V246','#5B3FD9',dash='5 4')+lab(434,300,'trust + revocation','#5B3FD9',12.5,700))
+b.append(f'<rect x="600" y="410" width="908" height="170" rx="14" fill="#F6F8FB" stroke="#B9C6D8" stroke-width="1.6"/>'+hd(618,436,'4 · LOAD BALANCER SPREADS OVER 3 AVAILABILITY ZONES','n'))
+for i,az in enumerate(['AZ-a','AZ-b','AZ-c']):
+    x=618+i*296; b.append(f'<rect x="{x}" y="448" width="280" height="84" rx="10" fill="#fff" stroke="#B9C6D8"/>'+lab(x+12,470,az,'#33465C',13,800))
+    for k in range(3): b.append(f'<rect x="{x+12+k*88}" y="482" width="78" height="38" rx="8" fill="#F4F8FF" stroke="#93B4F5"/>'+lab(x+51+k*88,506,'ingest','#1D4ED8',12,700,'middle'))
+b.append(lab(618,556,'Lose one AZ → the other two carry the load · sized N+1, so one AZ down still fits',fs=13.5,c='#33465C',wgt=600))
+OUT['GW']=svg(1520,590,''.join(b))
 # ---------- INGESTION ----------
 b=[]
 b.append(box(20,120,180,110,'b','From gateway',['tenant-tagged','batches'],fs=14))
@@ -227,7 +246,7 @@ OUT['OBS']=svg(1520,410,''.join(b))
 b=[]
 b.append(box(380,14,760,64,'v','Global control plane · routing metadata only',['tenant → home region · one writable primary, read replicas in every region'],fs=13.5,tfs=15))
 b.append(arr('M440 78 V96','#5B3FD9',dash='5 4')+arr('M760 78 V96','#5B3FD9',dash='5 4'))
-for zx,name,h,s in [(20,'EU ZONE · E.G.','EU-1','EU-2'),(510,'US ZONE · E.G.','US-1','US-2')]:
+for zx,name,h,s in [(20,'EU ZONE','EU-1','EU-2'),(510,'US ZONE','US-1','US-2')]:
     b.append(f'<rect x="{zx}" y="100" width="470" height="248" rx="14" fill="#F4F8FF" stroke="#93B4F5" stroke-width="1.6"/>'+hd(zx+18,124,name,'b'))
     b.append(box(zx+18,136,190,156,'b',f'{h} · home',['gateway · ingestion','Kafka · Flink','Temporal · storage','dashboards'],fs=13,tfs=15))
     b.append(box(zx+262,136,190,156,'n',f'{s} · standby',['warm · same stack','replicated topics','checkpoints, history','scales up on failover'],fs=13,tfs=15))
@@ -338,3 +357,98 @@ b.append(f'<rect x="20" y="240" width="1490" height="130" rx="12" fill="#fff" st
 for i,t in enumerate(['Dashboards never read S3. It is for audits, long-term analysis and reprocessing.','Sampled archives support bounded analysis, not full-fidelity raw replay.']): b.append(lab(38,298+i*26,t,fs=14.5,c='#24364E',wgt=400))
 D['s3']=('S3 cold · sampled archive',svg(1520,380,''.join(b)))
 OUT_D=D
+
+# ================= Kubernetes platform + multi-region edge path =================
+XD={}
+def pod(x,y,t,c='b',w=78):
+    fg,bg,bd=P[c]; return f'<rect x="{x}" y="{y}" width="{w}" height="34" rx="8" fill="#fff" stroke="{bd}" stroke-width="1.5"/>'+lab(x+w/2,y+22,t,fg,12,700,'middle')
+# ---------- K8S: one EKS cluster per region ----------
+b=[f'<rect x="20" y="14" width="1080" height="532" rx="16" fill="#F4F8FF" stroke="#93B4F5" stroke-width="1.6"/>'+hd(40,42,'EKS CLUSTER · ONE PER REGION · NODES SPREAD OVER 3 AZs','b')]
+for i,az in enumerate(['AZ-a','AZ-b','AZ-c']):
+    x=250+i*282; b.append(f'<rect x="{x}" y="56" width="268" height="476" rx="12" fill="#fff" fill-opacity=".55" stroke="#C7D7F5" stroke-dasharray="6 5"/>'+lab(x+134,76,az,'#1D4ED8',13,800,'middle'))
+pools=[('Stateless pool','Deployments · HPA / KEDA','b',[('gateway','b'),('ingest','b'),('dash','b')]),
+       ('Kafka pool','Strimzi · StatefulSet + disks','o',[('broker','o')]),
+       ('Flink pool','Flink Operator','v',[('TM','v'),('TM','v')]),
+       ('System pool','add-ons · DaemonSets','n',[('argo','n'),('keda','n'),('dd-agent','n')])]
+for r,(name,sub,c,pods) in enumerate(pools):
+    y=92+r*110; fg,bg,bd=P[c]
+    b.append(f'<rect x="36" y="{y}" width="1048" height="96" rx="12" fill="{bg}" fill-opacity=".55" stroke="{bd}" stroke-width="1.4"/>'+lab(52,y+38,name,fg,15,800)+lab(52,y+60,sub,'#33465C',12.5,500))
+    for i in range(3):
+        x=250+i*282+10
+        if name=='Kafka pool': b.append(pod(x,y+30,f'broker-{i}','o',120)+lab(x+130,y+52,'+ EBS volume','#B45309',11.5,600))
+        elif name=='Flink pool': b.append(pod(x,y+30,'JobManager' if i==0 else 'TaskMgr','v',110)+pod(x+120,y+30,'TaskMgr','v',110))
+        else:
+            for k,(t,cc) in enumerate(pods): b.append(pod(x+k*84,y+30,t,cc))
+b.append(box(1120,14,380,300,'n','Control loops',['HPA','  CPU → more gateway pods','KEDA','  Kafka lag → more consumers','Karpenter','  pending pods → new nodes','PDB · at most 1 broker down','Argo CD · Git → cluster'],fs=15,tfs=17))
+b.append(box(1120,330,380,216,'g','Guardrails',['Requests + limits on every pod','Anti-affinity: replicas in different AZs','NetworkPolicies: deny by default','IRSA: one IAM role per service','Liveness + readiness probes'],fs=14,tfs=16))
+OUT['K8S']=svg(1520,560,''.join(b))
+# ---------- scaling chain ----------
+b=[hd(20,30,'A TRAFFIC SPIKE · THREE CONTROL LOOPS, IN ORDER','b')]
+steps=[('o','Kafka lag rises','consumer group behind','e.g. > 50K msgs'),('b','KEDA','reads the lag metric','scales consumer pods'),('b','HPA','reads pod CPU','scales gateway + ingest'),('n','Pods pending','no room on','current nodes'),('g','Karpenter','launches right-sized','nodes in ~1–2 min'),('g','Pods run','lag drains','then scale down slowly')]
+for i,(c,t,a,bb) in enumerate(steps):
+    x=20+i*250; b.append(box(x,48,224,124,c,t,[a,bb],fs=13.5,tfs=16))
+    if i<5: b.append(arr(f'M{x+224} 110 H{x+246}'))
+b.append(box(20,196,730,150,'v','Flink scales differently',['Parallelism change = savepoint → restart with more TaskManagers','Source readers ≤ Kafka partitions: partitions set the ceiling','Flink Operator (or its autoscaler) runs that restart for us'],fs=14,tfs=16))
+b.append(box(770,196,730,150,'o','Guard the edges',['Max replicas + per-tenant quotas cap the cost of a bad spike','Scale-down cooldown so pods do not flap','Keep headroom: Karpenter needs minutes, a spike needs seconds'],fs=14,tfs=16))
+XD['scale']=('Scaling on Kubernetes · three loops',svg(1520,360,''.join(b)))
+# ---------- stateful on Kubernetes: operators ----------
+b=[f'<rect x="20" y="14" width="730" height="420" rx="16" fill="#FFF7ED" stroke="#FDBA74" stroke-width="1.6"/>'+hd(40,42,'KAFKA · STRIMZI OPERATOR','o')]
+b.append(box(40,58,220,96,'o','Kafka resource',['YAML in Git:','brokers, topics, users'],fs=13,tfs=15))
+b.append(arr('M260 106 H300'))
+b.append(box(306,58,200,96,'o','Strimzi',['watches it,','makes it so'],fs=13,tfs=15))
+b.append(arr('M506 106 H546'))
+b.append(box(552,58,180,96,'o','StatefulSet',['stable names','broker-0, 1, 2'],fs=13,tfs=15))
+for i in range(3):
+    x=40+i*232; b.append(pod(x,182,f'broker-{i} · AZ-{"abc"[i]}','o',212)+cyl(x+40,226,132,70,'o','disk',f'PVC {i}'))
+b.append(lab(40,330,'Rack-aware: each partition has replicas in 3 AZs',fs=14,c='#9A4A0C',wgt=700))
+b.append(lab(40,356,'Rolling restart: one broker at a time; the next starts',fs=14,c='#24364E',wgt=400)+lab(40,378,'only when every partition is fully in sync again',fs=14,c='#24364E',wgt=400))
+b.append(lab(40,412,'PDB: max 1 broker unavailable · node drains wait for it',fs=14,c='#B45309',wgt=700))
+b.append(f'<rect x="770" y="14" width="730" height="420" rx="16" fill="#F6F3FF" stroke="#C4B5FD" stroke-width="1.6"/>'+hd(790,42,'FLINK · FLINK KUBERNETES OPERATOR','v'))
+b.append(box(790,58,220,96,'v','FlinkDeployment',['job jar, version,','parallelism'],fs=13,tfs=15))
+b.append(arr('M1010 106 H1050'))
+b.append(box(1056,58,200,96,'v','Operator',['deploys, upgrades,','rescales'],fs=13,tfs=15))
+b.append(arr('M1156 154 V180'))
+b.append(pod(790,186,'JobManager · HA (leader + standby)','v',330)+pod(1140,186,'TaskManager ×N','v',340))
+b.append(cyl(1000,240,280,74,'n','S3','checkpoints + savepoints'))
+b.append(arr('M1250 220 V244','#7A8BA0')+arr('M955 220 V277 H996','#7A8BA0'))
+b.append(lab(790,344,'Upgrade = savepoint → new version → restore state',fs=14,c='#3B2A8C',wgt=700))
+b.append(lab(790,370,'Pod dies → restart from the last checkpoint in S3',fs=14,c='#24364E',wgt=400))
+b.append(lab(790,396,'State lives in S3, not on the pod: pods stay replaceable',fs=14,c='#24364E',wgt=400))
+XD['ops']=('Stateful on Kubernetes · operators',svg(1520,450,''.join(b)))
+# ---------- EKS vs ECS ----------
+b=[f'<rect x="20" y="14" width="1480" height="40" rx="10" fill="#0B1F3F"/>'+lab(40,40,'QUESTION',  '#FFD23F',13,800)+lab(150,40,'EKS (chosen)','#fff',15,800)+lab(830,40,'ECS (rejected)','#fff',15,800)]
+rows=[('Kafka + Flink','Operators run them: Strimzi, Flink Operator','No operators: we would build failover and upgrades'),
+      ('Scaling','HPA + KEDA on Kafka lag · Karpenter nodes','Service auto scaling on CloudWatch metrics'),
+      ('Portability','Same manifests in every region, beyond AWS','AWS-only APIs and task definitions'),
+      ('Who runs it','We run upgrades and add-ons','AWS runs the control plane: less to operate'),
+      ('Team skills','Kubernetes skills needed','Simpler to learn')]
+for i,(q,a,c) in enumerate(rows):
+    y=62+i*58; fill='#fff' if i%2==0 else '#F6F8FB'
+    b.append(f'<rect x="20" y="{y}" width="1480" height="52" rx="8" fill="{fill}" stroke="#E3E9F1"/>'+lab(40,y+32,q,'#0B1F3F',15,800)+lab(150,y+32,a,'#15803D' if i<3 else '#B45309',15,600)+lab(830,y+32,c,'#B45309' if i<3 else '#15803D',15,600))
+b.append(box(20,360,730,96,'g','Why EKS won',['One platform for stateful + stateless, run by operators,','the same in every region.'],fs=14.5,tfs=16))
+b.append(box(770,360,730,96,'o','When ECS is the right call',['A few stateless services, a small team, AWS only:','ECS + Fargate is simpler. Not our workload.'],fs=14.5,tfs=16))
+XD['ecs']=('EKS vs ECS · the decision',svg(1520,470,''.join(b)))
+# ---------- multi-region edge path ----------
+b=[f'<rect x="20" y="14" width="330" height="420" rx="16" fill="#F0FDFA" stroke="#99F6E4" stroke-width="1.6"/>'+hd(40,42,'ACME SITE · HOME = EU-1','t')]
+b.append(box(40,58,290,64,'n','Devices → Filtering',['allow-list · quotas'],fs=13,tfs=15))
+b.append(arr('M185 122 V142'))
+b.append(box(40,146,290,150,'t','Edge pair',['cert: acme · site-07 · EU','endpoints, in order:','1. EU-1 (home)','2. EU-2 (same-zone standby)'],fs=13,tfs=15))
+b.append(box(40,312,290,104,'o','Region unreachable?',['spool to disk, keep retrying','switch only when told'],fs=13,tfs=15))
+b.append(box(380,150,240,150,'v','DNS · tenant-pinned',['acme.eu.ingest…','→ EU-1 today','never "nearest region"'],fs=13,tfs=15))
+b.append(arr('M330 220 H376','#1D4ED8'))
+for k,(x,name,c,st) in enumerate([(650,'EU-1 · home','b','serving'),(1080,'EU-2 · standby','n','warm')]):
+    fg,bg,bd=P[c]
+    b.append(f'<rect x="{x}" y="14" width="410" height="420" rx="16" fill="{bg}" stroke="{bd}" stroke-width="1.6"/>'+hd(x+18,42,name.upper()+' · '+st.upper(),c))
+    b.append(box(x+18,58,374,84,c,'Cloud Gateway',['mTLS · trusts the EU issuing CA','admits EU-homed tenants only'],fs=13,tfs=15))
+    b.append(arr(f'M{x+205} 142 V158'))
+    b.append(box(x+18,162,374,64,c,'Load balancer · 3 AZs',[ 'health-checked ingest pods'],fs=13,tfs=15))
+    b.append(arr(f'M{x+205} 226 V242'))
+    b.append(box(x+18,246,374,64,c,'Ingestion pool',['validate · tag · publish'],fs=13,tfs=15))
+    b.append(arr(f'M{x+205} 310 V326'))
+    b.append(box(x+18,330,374,84,c,'Kafka',['keyed tenant + device'] + (['→ replicated to EU-2'] if k==0 else ['replica of EU-1 topics']),fs=13,tfs=15))
+b.append(arr('M620 200 H646','#1D4ED8')+arr('M620 260 H636 V448 H1286 V438','#7A8BA0',dash='6 5')+lab(660,462,'failover: DNS + endpoint list move Acme to EU-2 · same certs, same tenant identity','#56667C',13,600))
+b.append(arr('M1060 372 H1094','#15803D','qg',dash='5 4'))
+b.append(box(20,484,600,90,'r','Wrong region? Refused, not stored',['A US tenant\'s gateway reaching EU-1 is refused at the','gateway and pointed at its home endpoint.'],fs=13.5,tfs=15))
+b.append(box(650,484,850,90,'v','PKI per region',['One offline root CA; an issuing CA per region. The cert carries tenant +','region, so a gateway can verify the home region without a cross-region call.'],fs=13.5,tfs=15))
+XD['edgepath']=('Multi-region · edge to ingestion',svg(1520,590,''.join(b)))
+OUT_XD=XD

@@ -325,6 +325,7 @@ for (const [flow, byStep] of Object.entries(INSIDE)) for (const [n, v] of Object
 
 // Other flows register themselves from pres/notes-<group>.js (loaded after this file):
 //   registerFlow(7, { name, intro, steps: [[id, heading, [bullets]], ...], recap }, { 1: { steps: [...] }, ... });
+var FLOWDEF = {};   // FLOWDEF[flow] = h => { h.st(...); ...; return RECAP; } lets a notes file own its flow's stops (see timeline2p.js)
 function registerFlow(flow, notes, inside) {
   NOTES[flow] = notes;
   for (const [n, v] of Object.entries(inside || {})) if (notes.steps[n - 1]) notes.steps[n - 1][3] = v;

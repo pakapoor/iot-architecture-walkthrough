@@ -1,0 +1,67 @@
+// "Requirements" dialog, opened from the sidebar (or the Q key). Allowed markup: <b>, <i>.
+// Requirements say what is needed; design decisions say how, and what it costs. Each decision lists the requirement IDs it serves,
+// and each requirement shows the decisions that meet it (computed). flow = slug of the walkthrough that shows it.
+// Keep facts consistent with role.js and the notes files.
+const REQS = {
+  kicker: 'Requirements',
+  title: 'What the platform must do, how well, and the decisions behind it',
+  lead: '<b>Functional</b> requirements say what the system does. <b>Non-functional</b> requirements say how well. <b>Design decisions</b> show how each one is met, what we rejected, and the trade-off we accepted. Click an ID to jump to it.',
+  fr: [
+    { id: 'FR1', r: 'Collect a heartbeat and telemetry from every device, every minute.', flow: 'health' },
+    { id: 'FR2', r: 'Onboard and activate devices. Only known devices can send data.', flow: 'residency' },
+    { id: 'FR3', r: 'Detect a silent device and escalate: <b>SILENT</b> at 10 min, <b>DEAD</b> + page at 20, ticket at 30. Also SLOW and HOT.', flow: 'red-fix' },
+    { id: 'FR4', r: 'Rules per device type, with per-tenant overrides, changed live.', flow: 'tenants' },
+    { id: 'FR5', r: 'Report minor issues as a 15-minute site digest, without paging anyone.', flow: 'yellow' },
+    { id: 'FR6', r: 'Open exactly one ServiceNow ticket per incident, and close it on recovery.', flow: 'red-snow' },
+    { id: 'FR7', r: 'Show live and historical health: tenant → site → device.', flow: 'telemetry' },
+    { id: 'FR8', r: 'Manage tenants, sites and users, with role-based access.', flow: 'tenancy' },
+    { id: 'FR9', r: 'Roll out firmware and rule changes safely.', flow: 'firmware' },
+    { id: 'FR10', r: 'Keep each tenant\'s data in its home region.', flow: 'residency' }
+  ],
+  nfr: [
+    { id: 'NFR1', q: 'Scale', r: '100M+ devices · 200K envelopes/sec normal peak (about 1.7M readings/sec).', flow: 'k8s-scale' },
+    { id: 'NFR2', q: 'Availability', r: '99.9% uptime. Losing a node or a zone loses no data.', flow: 'k8s-az' },
+    { id: 'NFR3', q: 'Freshness', r: 'Alerts on time. Datadog alerts when freshness p99 passes 2 minutes.', flow: 'lag' },
+    { id: 'NFR4', q: 'Correctness', r: 'No lost events, no duplicate tickets. Replay after a bug or crash.', flow: 'crash' },
+    { id: 'NFR5', q: 'Tenant isolation', r: 'One noisy tenant cannot slow down or see another.', flow: 'hot' },
+    { id: 'NFR6', q: 'Security', r: 'Every device authenticated, every read authorised.', flow: 'tenancy' },
+    { id: 'NFR7', q: 'Disaster recovery', r: 'Survive losing a region. RPO and RTO defined and rehearsed.', flow: 'region' },
+    { id: 'NFR8', q: 'Cost', r: 'Cost per device must not grow with the fleet: 7-day detail, 6-month history.', flow: 'telemetry' },
+    { id: 'NFR9', q: 'Operability', r: 'See problems before customers do: lag, freshness, checkpoints, traces.', flow: 'liveness' },
+    { id: 'NFR10', q: 'Safe change', r: 'Every release gated and reversible.', flow: 'upgrades' }
+  ],
+  decisions: [
+    { id: 'D1', d: 'Batch readings per site at an active / standby edge pair, with a disk spool.', serves: ['FR1', 'NFR1', 'NFR2'],
+      rejected: 'Every device connecting to the cloud directly.', trade: 'A little delay per reading, and a spool to size and alarm.', flow: 'health' },
+    { id: 'D2', d: 'Site Filtering plus a PKI certificate per gateway (tenant + site + region), checked with mTLS.', serves: ['FR2', 'NFR5', 'NFR6'],
+      rejected: 'Shared API keys, or trusting a tenant tag in the payload.', trade: 'Certificates to issue, rotate and revoke at fleet scale.', flow: 'tenancy' },
+    { id: 'D3', d: 'Per-tenant and per-device quotas at the Cloud Gateway, on shared topics.', serves: ['NFR5', 'NFR1'],
+      rejected: 'A Kafka topic per tenant.', trade: 'Shared capacity needs measured headroom and per-tenant freshness monitoring.', flow: 'hot' },
+    { id: 'D4', d: 'Kafka as the durable backbone, keyed by tenant + device, with a priority heartbeat topic.', serves: ['FR1', 'NFR3', 'NFR4'],
+      rejected: 'RabbitMQ microservices (our first generation): no replay, weak ordering.', trade: 'We run Kafka, and partitions must be planned ahead.', flow: 'crash' },
+    { id: 'D5', d: 'Per-device timers in Flink keyed state.', serves: ['FR3', 'FR4', 'NFR1', 'NFR3'],
+      rejected: 'Kinesis + Lambda, scanning 100M last-seen rows.', trade: 'Stateful stream processing to run: checkpoints and savepoints.', flow: 'red-fix' },
+    { id: 'D6', d: 'Graded alerts in two lanes: critical pages, minor digests.', serves: ['FR3', 'FR5'],
+      rejected: 'Paging on every silence.', trade: 'Two paths to build and test, and thresholds to tune per device type.', flow: 'yellow' },
+    { id: 'D7', d: 'Hold devices UNKNOWN, not DEAD, while the pipeline itself is behind.', serves: ['FR3', 'NFR3', 'NFR4'],
+      rejected: 'Treating every timer expiry as a dead device.', trade: 'A short, bounded hold before real alerts while the pipeline recovers.', flow: 'liveness' },
+    { id: 'D8', d: 'One incident identity end to end, idempotent upserts, Temporal for the lifecycle.', serves: ['FR6', 'NFR4'],
+      rejected: 'Matching alerts by time window; handlers and cron jobs.', trade: 'Every integration must honour the key; workflows need versioning.', flow: 'red-snow' },
+    { id: 'D9', d: 'Tiered storage: Redis live, ClickHouse 7-day hot and 6-month rollups, sampled S3 archive.', serves: ['FR7', 'NFR8'],
+      rejected: 'Keeping everything hot.', trade: 'Raw detail older than 7 days is gone; only rollups and samples remain.', flow: 'telemetry' },
+    { id: 'D10', d: 'Push live updates over SSE, from a snapshot plus a stream cursor.', serves: ['FR7', 'NFR1'],
+      rejected: 'Dashboards polling the store.', trade: 'A replay buffer to size and run.', flow: 'consistency' },
+    { id: 'D11', d: 'A control plane separate from the data plane, with RBAC on every call.', serves: ['FR4', 'FR8', 'NFR6'],
+      rejected: 'Config and telemetry on one path.', trade: 'Two paths with different scaling and consistency.', flow: 'tenants' },
+    { id: 'D12', d: 'Run everything on Kubernetes (EKS), with operators for Kafka and Flink.', serves: ['NFR1', 'NFR2', 'NFR10'],
+      rejected: 'ECS: no operators for stateful systems, AWS-only.', trade: 'We run cluster upgrades and add-ons, and need Kubernetes skills.', flow: 'eks-ecs' },
+    { id: 'D13', d: 'Spread every tier over 3 availability zones, sized N+1.', serves: ['NFR2'],
+      rejected: 'A single zone with backups.', trade: 'Spare capacity in every zone, paid for every day.', flow: 'k8s-az' },
+    { id: 'D14', d: 'A home region per tenant, a same-zone standby, China isolated.', serves: ['FR10', 'NFR7'],
+      rejected: 'One global cluster with region tags; active-active per device.', trade: 'Capacity and operations per zone; moving a tenant is a planned migration.', flow: 'residency' },
+    { id: 'D15', d: 'Canary waves, savepoint upgrades, versioned workflows, one-step rollback.', serves: ['FR9', 'NFR10'],
+      rejected: 'Shipping to everyone at once.', trade: 'Slower rollouts, and every change must stay compatible with the last.', flow: 'upgrades' },
+    { id: 'D16', d: 'Datadog monitors on pipeline health (lag, freshness p99, checkpoint age, ingress, traces), with automation first.', serves: ['NFR9', 'NFR3'],
+      rejected: 'Alerting only on device symptoms.', trade: 'Monitors need owners and tuning, or they become noise.', flow: 'lag' }
+  ]
+};

@@ -162,7 +162,7 @@ arch = arch.replace('<div class="lane r">', '<div class="lane r" id="a-laneR" st
 arch = arch.replace('<div class="lane y">', '<div class="lane y" id="a-laneY">')
 arch = arch.replace('src="sdi_logo_v2_crop.png"', 'src="../sdi_logo_v2_crop.png"')
 arch += '<div id="a-obsp"><div class="oh">OBSERVABILITY · DATADOG</div><div class="tiles"><div class="otile" id="a-ob0"><div class="ot">Consumer lag</div><div class="ov" id="a-ov0">● OK</div><div class="on">Kafka messages waiting for Flink</div></div><div class="otile" id="a-ob1"><div class="ot">Freshness p99</div><div class="ov" id="a-ov1">● OK</div><div class="on">event age when processed · alert > 2 min</div></div><div class="otile" id="a-ob2"><div class="ot">Flink checkpoints</div><div class="ov" id="a-ov2">● OK</div><div class="on">duration + failures · state health</div></div><div class="otile" id="a-ob3"><div class="ot">Gateway ingress</div><div class="ov" id="a-ov3">● 200K/s</div><div class="on">gateway envelopes/sec · per tenant</div></div><div class="otile" id="a-ob4"><div class="ot">Traces</div><div class="ov" id="a-ov4">● OK</div><div class="on">one trace ID: edge → ticket</div></div></div></div>'
-arch += '<style>#a-reg{position:absolute;left:1148px;top:96px;width:392px;height:66px;box-sizing:border-box;background:#fff;border:1.5px solid #C4B5FD;border-radius:14px;padding:8px 14px;cursor:pointer;box-shadow:0 6px 18px rgba(15,30,51,.06)}#a-reg .rt{font-size:16px;font-weight:800;color:#0B1F3F;display:flex;align-items:center;gap:8px}#a-reg .rt span{font-size:11px;font-weight:800;letter-spacing:1.2px;color:#5B3FD9;background:#F6F3FF;border-radius:999px;padding:2px 8px}#a-reg .rs{font-size:13px;color:#4A5B70;margin-top:4px;white-space:nowrap}</style><div id="a-reg"><div class="rt">🌐 Regions<span>DESIGN EXTENSION</span></div><div class="rs">e.g. EU · US home cells · paired standby · China isolated</div></div>'
+arch += '<style>.plat{position:absolute;top:886px;height:64px;box-sizing:border-box;background:#fff;border-radius:14px;padding:8px 16px;cursor:pointer;box-shadow:0 6px 18px rgba(15,30,51,.06)}.plat .rt{font-size:16px;font-weight:800;color:#0B1F3F;display:flex;align-items:center;gap:8px}.plat .rs{font-size:13px;color:#4A5B70;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#a-k8s{left:60px;width:1010px;border:1.5px solid #93C5FD}#a-reg{left:1090px;width:450px;border:1.5px solid #C4B5FD}.plat .tag{font-size:11px;font-weight:800;letter-spacing:1.2px;color:#1D4ED8;background:#EFF6FF;border-radius:999px;padding:2px 8px}#a-reg .tag{color:#5B3FD9;background:#F6F3FF}</style><div class="phead" style="position:absolute;left:60px;top:866px;font-size:13px;letter-spacing:3px;font-weight:800;color:#6E6E73">PLATFORM · EVERYTHING ABOVE RUNS ON THIS</div><div id="a-k8s" class="plat"><div class="rt">📦 Kubernetes · EKS<span class="tag">ONE CLUSTER PER REGION</span></div><div class="rs">node pools per workload · HPA + KEDA scale pods · Karpenter adds nodes · Strimzi (Kafka) + Flink Operator · Argo CD</div></div><div id="a-reg" class="plat"><div class="rt">🌐 Regions<span class="tag">HOME REGION PER TENANT</span></div><div class="rs">EU · US · China isolated · paired standby per region</div></div>'
 arch += '<div id="a-badge" class="badge" style="left:72px;top:372px"></div><div id="a-pk" class="pk"></div><div id="a-streams"></div>'
 for k in ['edge','gw','ing','kafka','flink','ctrl','dash','stor','act']:
     assert f'id="a-{k}"' in arch, k
@@ -320,6 +320,14 @@ HOOK[26] = ('One platform, many jurisdictions. 🌐', 'Where does each tenant\'s
 HOOK[27] = ('A whole region goes dark. 🌩', 'Fail over without a page storm or a duplicate ticket.')
 END[26] = ('Residency by placement. ✅', 'Home region per tenant · global routing only · China isolated.')
 END[27] = ('Failed over, failed back. ✅', 'UNKNOWN, not DEAD · same incident IDs · rehearsed RPO / RTO.')
+HOOK[28] = ('Traffic doubles in ten minutes. 📈', 'Who adds the pods, and who adds the machines?')
+HOOK[29] = ('A whole availability zone goes dark. ⚡', 'What does Kubernetes do, and what must we design?')
+HOOK[30] = ('Kafka and Flink on Kubernetes? 🤔', 'Stateful systems, on a platform built for stateless pods.')
+HOOK[31] = ('EKS or ECS? ⚖', 'The platform decision, and what it cost us.')
+END[28] = ('Scaled out, then back in. ✅', 'KEDA on lag · HPA on CPU · Karpenter adds nodes.')
+END[29] = ('Lost a zone, lost nothing. ✅', 'Spread over 3 AZs · replicas · checkpoints · N+1 capacity.')
+END[30] = ('Stateful, and still replaceable. ✅', 'Operators · stable identity · disks · savepoints.')
+END[31] = ('One platform, chosen on purpose. ✅', 'EKS for operators and portability · ECS for simple stateless.')
 
 def page(v):
     scene = ''
@@ -368,6 +376,7 @@ _timeline = open(_timeline_path).read()
 for _name, _svg in _diagrams['OUT'].items():
     _timeline = re.sub(r'  const ' + _name + r'_SVG = .*?;\n', lambda m: '  const ' + _name + '_SVG = ' + json.dumps(_svg, ensure_ascii=False) + ';\n', _timeline)
 _timeline = re.sub(r'  const STORE_D = .*?;\n', lambda m: '  const STORE_D = ' + json.dumps(_diagrams['OUT_D'], ensure_ascii=False) + ';\n', _timeline)
+_timeline = re.sub(r'  const XD = .*?;\n', lambda m: '  const XD = ' + json.dumps(_diagrams['OUT_XD'], ensure_ascii=False) + ';\n', _timeline)
 _timeline = re.sub(r'  const EDGE_D = .*?;\n', lambda m: '  const EDGE_D = ' + json.dumps(_diagrams['OUT_ED'], ensure_ascii=False) + ';\n', _timeline)
 open(_timeline_path, 'w').write(_timeline)
 
@@ -376,6 +385,6 @@ engine = open(f'{ROOT}/pres/timeline2p.js').read().split('// ================= p
 engine = engine.replace("const VER = 'pres';", "const VER = QS.get('ver') || 'int';")
 open(f'{ROOT}/vid/timeline2.js', 'w').write('// Generated from pres/timeline2p.js by vid/build.py.\n' + engine.rstrip() + '\n')
 
-for v in range(1, 28):
+for v in range(1, 32):
     open(f'{ROOT}/vid/v{v}.html', 'w').write(page(v))
 print('built')

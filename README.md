@@ -11,7 +11,7 @@ An interactive, click-to-advance walkthrough of a commercial IoT monitoring plat
 ![Commercial IoT Monitoring System architecture](docs/architecture.svg)
 
 ## How to use it
-Open **My role** for the presenter's role, scope, decisions and outcomes. Expand **Flows**, **Deep dives** or **Deployment & upgrades** and click a walkthrough directly, then press play or step through with the arrow keys. Each section reveals its items immediately; opening another section closes the previous one. Direct links open the selected section. Click or keyboard-activate a component for a close-up. In Tiered Storage, select a store to inspect its example schema; in Edge Site, select a site to open its example network. While a flow plays, the left panel explains each step with a heading and spoken bullets; clicking the component the ball rests on opens an animated view of what happens inside it. Play runs at a presenter-friendly pace and ■ Stop holds the current step. The Datadog observability tiles are always shown. Clicking Edge Site opens the tenant view; click a site for an example small-store or flagship network.
+Open **My role** for the presenter's role, scope, decisions and outcomes, **Requirements** (Q) for the functional and non-functional requirements and the design decisions that meet them (each decision lists the requirements it serves, the rejected alternative and its trade-off), and **Glossary** (G) for plain-English definitions. Expand **Flows**, **Deep dives** or **Deployment & upgrades** and click a walkthrough directly, then press play or step through with the arrow keys. Each section reveals its items immediately; opening another section closes the previous one. Direct links open the selected section. Click or keyboard-activate a component for a close-up. In Tiered Storage, select a store to inspect its example schema; in Edge Site, select a site to open its example network. While a flow plays, the left panel explains each step with a heading and spoken bullets; clicking the component the ball rests on opens an animated view of what happens inside it. Trade-offs appear in a highlighted amber box in the panel; new stops also teach with a "What is it?" line and "If they ask…" follow-ups. Play runs at a presenter-friendly pace and ■ Stop holds the current step. The Datadog observability tiles are always shown. Clicking Edge Site opens the tenant view (with onboarding and site filtering); click a site for an example small-store or flagship network. A platform row under the diagram holds **Kubernetes · EKS** (cluster layout, with deeper views of scaling, the Kafka and Flink operators, and EKS vs ECS) and **Regions** (home regions, standby, and the edge → ingestion path across regions).
 
 ## Flows
 | Group | Flow | What it shows |
@@ -24,6 +24,15 @@ Open **My role** for the presenter's role, scope, decisions and outcomes. Expand
 | | Minor · digest | SLOW → minor lane → 15-min digest per site |
 | Multi-tenancy | Noisy neighbour | tenant throttled at its own quota, bounded tenant budgets; scoped identities and RBAC |
 
+**Deep dives · Kubernetes & platform**
+
+| Flow | What it shows |
+|---|---|
+| Traffic spike scales out | HPA on CPU · KEDA on Kafka lag · Karpenter adds nodes · Flink rescales via savepoint · quotas cap a bad spike |
+| Node / AZ dies | pods reschedule across AZs · Kafka in-sync replicas lead · Flink restores from checkpoint · UNKNOWN, not DEAD |
+| Kafka & Flink on Kubernetes | Strimzi and the Flink Operator · StatefulSets, disks, PDBs · savepoint upgrades · Argo CD |
+| EKS vs ECS | the platform decision: operators and portability vs a simpler managed service, and the cost we accepted |
+
 **Deep dives · when things break**
 
 | Infra issue | What it shows |
@@ -33,9 +42,9 @@ Open **My role** for the presenter's role, scope, decisions and outcomes. Expand
 | Flink job crash | checkpoint restore → Kafka replay → idempotent actions |
 | Hot partition | contained at the door: per-device limits · lag by partition |
 | Sustained 10× traffic | measure the bottleneck → scale each layer → ordered Kafka migration → bounded admission → recovery/soak gates |
-| Region outage → failover (design extension) | spools buffer → UNKNOWN, not DEAD → in-zone failover → same incident IDs → rehearsed RPO/RTO and fail-back |
+| Region outage → failover | spools buffer → UNKNOWN, not DEAD → in-zone failover → same incident IDs → rehearsed RPO/RTO and fail-back |
 
-**Deep dives** also contains seven runnable visual answers on correctness and trade-offs: delivery/replay, device versus pipeline health, incident races, tenant isolation, live/history consistency, safe rollback, and data residency (a multi-region design extension). Each is a flow on the main architecture diagram (flows 20–26), with presenter notes and inside views like the other walkthroughs; old `?deep=` links open the matching flow.
+**Deep dives** also contains seven runnable visual answers on correctness and trade-offs: delivery/replay, device versus pipeline health, incident races, tenant isolation, live/history consistency, safe rollback, and data residency (home region per tenant, along the edge → ingestion path). Each is a flow on the main architecture diagram (flows 20–26), with presenter notes and inside views like the other walkthroughs; old `?deep=` links open the matching flow.
 
 | Deployment & upgrades | What it shows |
 |---|---|
@@ -47,7 +56,7 @@ Open **My role** for the presenter's role, scope, decisions and outcomes. Expand
 | Data stores | zero-downtime schema change: expand → migrate → contract |
 | Kafka + platform | infrastructure as code, rolled one broker at a time |
 
-Flows use keys 1–3 for their groups, deployment uses 4 and infra issues use 5–9; R opens My role. Automatic playback offers a five-second Up next countdown after the final card. Manual stepping records explored progress without advancing. Phones highlight linked videos or show a desktop note for interactive-only flows; deep dives also run on phones.
+Flows use keys 1–3 for their groups, deployment uses 4 and infra issues use 5–9; R opens My role, Q Requirements, G Glossary. Automatic playback offers a five-second Up next countdown after the final card. Manual stepping records explored progress without advancing. Phones highlight linked videos or show a desktop note for interactive-only flows; deep dives also run on phones.
 
 ## Videos
 Walkthrough videos of the first eight flows (720p), in [`videos/`](videos):
@@ -66,7 +75,9 @@ pres/index.html           the one-page shell: side panel, My role dialog, phone 
 pres/timeline2p.js        presenter engine: stops, camera, controls, close-ups, reflow
 pres/icons.js             SVG line icons (replace emoji at runtime)
 pres/notes.js             explanation-panel notes + inside views: flow 1 and registerFlow()
-pres/notes-*.js           the other flows' notes: alerts, device, infra, deploy, lessons (correctness deep dives, flows 20–25), regions (multi-region design extension, flows 26–27)
+pres/notes-*.js           the other flows' notes: alerts, device, infra, deploy, lessons (flows 20–25), regions (flows 26–27), k8s-a/k8s-b (Kubernetes, flows 28–31; these define their own stops via FLOWDEF)
+pres/requirements.js      FRs, NFRs and design decisions (Requirements dialog)
+pres/glossary.js          plain-English glossary (Glossary dialog)
 pres/role.js              content of the My role dialog
 pres/flow*.html           one page per flow (generated)
 iot.html, svcnow.html     the architecture diagram and ServiceNow/Temporal scene (source of truth)
@@ -94,4 +105,4 @@ It's plain static files, so it runs on GitHub Pages, Netlify or any web server, 
 - Database schemas, keys, role permissions and CI/CD tooling in the close-ups are **examples**, labelled as such.
 - Additional recovery policies are design examples, not assertions that these exact implementations ran in production. The 500K recovery burst and sustained 10× growth are designed-for scenarios, not measured throughput benchmarks.
 - The existing eight MP4s are earlier rendered snapshots. Current accuracy explanations and new scenarios are available in the interactive UI; regenerate videos separately when publishing a new video edition.
-- `tools/build.sh` embeds generated close-ups, updates all 19 flow pages and derives the video timeline from the same interactive timeline definitions.
+- `tools/build.sh` embeds generated close-ups, updates all 31 flow pages and derives the video timeline from the same interactive timeline definitions.

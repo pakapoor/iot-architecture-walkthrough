@@ -60,7 +60,7 @@ def run(output, playback=None):
             page.wait_for_timeout(100)
             return page.frames[-1]
 
-        for v in range(1, 28):
+        for v in range(1, 32):
             page.goto(f'{base}/pres/flow{v}.html?embed=1&obs=1&why=1&caps=1')
             page.wait_for_function('window.PRESENTER')
             result = page.evaluate('''() => {
@@ -68,10 +68,11 @@ def run(output, playback=None):
               return {pauses:PRESENTER.PAUSES.length, finite:Number.isFinite(window.TOTAL)};
             }''')
             assert result['finite'] and result['pauses'] > 5, (v, result)
-        passed('all 27 timelines render every pause without runtime errors')
+        passed('all 31 timelines render every pause without runtime errors')
 
         frame = shell()
         assert page.locator('#flows button[data-flow]').count() == 7
+        assert page.locator('#kube button[data-flow]').count() == 4
         assert page.locator('#issues button[data-flow]').count() == 6
         assert page.locator('#deepTopics button[data-flow]').count() == 7
         assert page.locator('#deploy button[data-flow]').count() == 7
@@ -110,6 +111,38 @@ def run(output, playback=None):
         page.locator('#dmodal').wait_for(state='visible')
         page.keyboard.press('Escape')
         passed('My role dialog opens from the sidebar and the R key; sections start collapsed, expand/collapse all; focus returns')
+
+        page.locator('#reqBtn').click()
+        page.locator('#dmodal').wait_for(state='visible')
+        assert page.locator('#dtitle').inner_text().startswith('What the platform must do')
+        assert page.locator('#dtext .reqsec').count() == 3, 'FRs, NFRs and design decisions'
+        n_dec = page.locator('#dtext .rqid.dec').count()
+        assert page.locator('#dtext .reqtrade').count() == n_dec >= 10, 'every design decision shows its trade-off'
+        unmet = page.evaluate('''() => [...document.querySelectorAll('#dtext .req')].filter(r => !r.querySelector('.rqid.dec') && !r.querySelector('.rqchip')).map(r => r.id)''')
+        assert not unmet, f'every requirement is met by a decision: {unmet}'
+        assert page.locator('#dclose').evaluate('e => e === document.activeElement')
+        page.locator('#dtext [data-jump="D5"]').first.click(); page.wait_for_timeout(300)
+        assert page.locator('#rq-D5').evaluate("e => e.classList.contains('flash')"), 'requirement chips jump to the decision'
+        page.locator('#dclose').focus()
+        page.keyboard.press('Escape')
+        assert page.locator('#reqBtn').evaluate('e => e === document.activeElement')
+        page.locator('body').press('q')
+        page.locator('#dmodal').wait_for(state='visible')
+        page.locator('#dtext .golink[data-go="k8s-scale"]').first.click()
+        page.wait_for_function("document.querySelector('#stage iframe:last-of-type')?.src.includes('flow28.html')")
+        assert page.locator('#dmodal').is_hidden() and 'flow=k8s-scale' in page.url
+        page.locator('#glossBtn').click()
+        page.locator('#dmodal').wait_for(state='visible')
+        assert page.locator('#dtitle').inner_text().startswith('Terms used') and page.locator('#dtext .gterm').count() > 30
+        page.locator('#gfilter').fill('karpenter')
+        assert page.locator('#dtext .gterm:visible').count() >= 1 and page.locator('#dtext .gterm:visible').count() < 5
+        page.keyboard.press('Escape')
+        page.locator('#dmodal').wait_for(state='hidden')
+        assert page.locator('#glossBtn').evaluate('e => e === document.activeElement')
+        page.locator('body').press('g')
+        page.locator('#dmodal').wait_for(state='visible')
+        page.keyboard.press('Escape')
+        passed('Requirements and Glossary dialogs: buttons, Q/G keys, FR/NFR → decision mapping, trade-off on every decision, filter, See-it links, focus returns')
 
         frame = shell()
         # fixed layout: observability always shown, no design-decision cards or switches, panel in every flow
@@ -198,6 +231,13 @@ def run(output, playback=None):
             desk.wait_for_function(f"document.querySelector('#stage iframe:last-of-type')?.src.includes('flow{v}.html')")
             desk.wait_for_function("document.querySelector('#stage iframe:last-of-type')?.contentWindow.PRESENTER")
             assert desk.evaluate("document.querySelector('#stage iframe:last-of-type').contentWindow.PRESENTER.PAUSES.length") > 1, slug
+        for slug, v in {'k8s-scale': 28, 'k8s-az': 29, 'k8s-stateful': 30, 'eks-ecs': 31}.items():   # Kubernetes & platform group
+            desk.locator(f'#kube button[data-flow="{slug}"]').click()
+            desk.wait_for_function(f"document.querySelector('#stage iframe:last-of-type')?.src.includes('flow{v}.html')")
+            assert f'flow={slug}' in desk.url
+        desk.goto(f'{base}/pres/?flow=eks-ecs')
+        desk.wait_for_function("document.querySelector('#stage iframe')?.src.includes('flow31.html')")
+        assert desk.locator('#deepToggle').get_attribute('aria-expanded') == 'true'
         desk.locator('#issues button[data-flow="region"]').click()   # multi-region failover, a When things break flow
         desk.wait_for_function("document.querySelector('#stage iframe:last-of-type')?.src.includes('flow27.html')")
         assert 'flow=region' in desk.url
@@ -207,11 +247,11 @@ def run(output, playback=None):
         phone.goto(f'{base}/pres/?deep=replay')
         assert phone.locator('#vnote').inner_text().startswith('Delivery & replay') and phone.locator('.mobile-learning').evaluate('e => e.open')
         assert phone.locator('#dmodal').is_hidden() and phone.locator('#stage iframe').count() == 0
-        for slug in [*lessons, 'region']:
+        for slug in [*lessons, 'region', 'k8s-scale', 'k8s-az', 'k8s-stateful', 'eks-ecs']:
             phone.locator('#mobile-flow-' + slug).click()
             assert phone.locator('#vnote').is_visible() and f'flow={slug}' in phone.url, slug
         phone.close()
-        passed('the correctness deep dives and the region flow open as flows: sidebar, old ?deep= links, phone list')
+        passed('the correctness, Kubernetes and region deep dives open as flows: sidebar, ?flow= and old ?deep= links, phone list')
 
         page.set_viewport_size({'width': 1440, 'height': 900})
         page.goto(f'{base}/pres/?future=security')   # removed section: an old link falls back to the architecture

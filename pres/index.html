@@ -224,6 +224,7 @@ aside{transition:visibility 0s .25s}
 #flowNav[hidden],#deepNav[hidden],#deploy[hidden]{display:none}
 #deepNav .navgroup .list{gap:2px}
 .rolebtn{margin-top:14px}
+.inforow{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.inforow .home{margin-top:0}
 .rolefacts{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 18px}
 .rolefacts span{background:var(--hover);border-radius:999px;padding:6px 12px;font-size:13.5px;color:var(--muted)}
 .rolefacts b{color:var(--ink);font-weight:600}
@@ -256,6 +257,34 @@ aside{transition:visibility 0s .25s}
 .rolesec summary:hover span{color:var(--accent)}
 .rolesec summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
 .rolesec ul,.rolesec ol{margin:0 0 12px;padding-left:22px}.rolesec li{margin:0 0 8px;font-size:15px;line-height:1.5}
+.req{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 10px;background:var(--card)}
+.reqr{font-size:15.5px;font-weight:600;line-height:1.4;color:var(--ink)}
+.reqhow{font-size:14.5px;line-height:1.5;color:var(--muted);margin-top:4px}
+.rqid{display:inline-block;min-width:44px;margin-right:8px;padding:1px 7px;border-radius:7px;background:#E8F0FE;color:#1D4ED8;font-size:12.5px;font-weight:800;text-align:center;vertical-align:1px}
+.rqid.dec{background:#F3EFFF;color:#5B3FD9}
+.rqmap{margin-top:6px;font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.rqchip{border:1px solid #93B4F5;background:transparent;color:#1D4ED8;border-radius:999px;padding:1px 9px;font:700 12.5px inherit;font-family:inherit;cursor:pointer}
+.rqchip.dec{border-color:#C4B5FD;color:#5B3FD9}
+.rqchip:hover{background:rgba(37,99,235,.08)}
+.req.flash{animation:rqflash 1.4s ease}
+@keyframes rqflash{0%,40%{box-shadow:0 0 0 3px #F5B70A}100%{box-shadow:0 0 0 0 transparent}}
+.reqhow b{color:var(--ink)}
+.rqgo{margin-left:auto}.rqgo .golink{margin:0}
+.reqtrade{margin-top:8px;padding:8px 12px;border-radius:10px;background:#FFF7E6;border:1.5px solid #F5B70A;color:#5B3A06;font-size:14.5px;line-height:1.45}
+.reqtrade b{display:block;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:#B45309;margin-bottom:2px}
+:root[data-theme="dark"] .reqtrade{background:#2B2210;border-color:#B7791F;color:#F5DEB3}
+:root[data-theme="dark"] .reqtrade b{color:#F5B70A}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .reqtrade{background:#2B2210;border-color:#B7791F;color:#F5DEB3}:root:not([data-theme="light"]) .reqtrade b{color:#F5B70A}}
+.golink{display:inline-block;margin-top:8px;font:500 13px var(--body);color:var(--accent);background:none;border:0;padding:2px 0;cursor:pointer}
+.golink:hover{text-decoration:underline}.golink:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.gfilter{width:100%;box-sizing:border-box;font:400 15px var(--body);color:var(--ink);background:var(--hover);border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin:0 0 10px}
+.gfilter:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.gloss{margin:0 0 12px}.gterm{display:grid;grid-template-columns:200px 1fr;gap:12px;padding:8px 0;border-top:1px solid var(--line)}
+.gterm:first-child{border-top:0}.gterm[hidden],.gsec[hidden]{display:none}
+.gloss dt{font-weight:600;font-size:14.5px;color:var(--ink)}.gloss dd{margin:0;font-size:14.5px;line-height:1.5}
+.gloss .gwhy{display:block;color:var(--muted);font-size:13.5px;margin-top:2px}
+.gloss .golink{display:block;margin-top:2px}
+@media (max-width:640px){.gterm{grid-template-columns:1fr;gap:2px}}
 .roletools{display:flex;justify-content:flex-end;margin:-6px 0 6px}
 .roletools button{font:500 13px var(--body);color:var(--accent);background:none;border:0;cursor:pointer;padding:4px 2px}
 .roletools button:hover{text-decoration:underline}
@@ -296,7 +325,7 @@ aside{transition:visibility 0s .25s}
       <a class="sdi" href="https://system-design.in" target="_blank" rel="noopener"><span class="sdi-mark"><img src="../docs/favicon.png" alt="System-Design.in logo" width="28" height="28"></span><span class="sdi-name">System-Design.in</span></a>
       <h1>Commercial IoT Monitoring System</h1>
       <p class="explored" id="explored" hidden></p>
-      <button class="home rolebtn" id="roleBtn" type="button" title="My role on this project (R)"><svg class="emi" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.125em;margin-right:6px"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>My role</button>
+      <div class="inforow"><button class="home rolebtn" id="roleBtn" type="button" title="My role on this project (R)"><svg class="emi" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.125em;margin-right:6px"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>My role</button><button class="home" id="reqBtn" type="button" title="Functional and non-functional requirements (Q)"><svg class="emi" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.125em;margin-right:6px"><path d="M9 5h10M9 12h10M9 19h10"/><path d="m4 5 1 1 2-2M4 12l1 1 2-2M4 19l1 1 2-2"/></svg>Requirements</button><button class="home" id="glossBtn" type="button" title="Glossary of terms (G)"><svg class="emi" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.125em;margin-right:6px"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 21.5V4.5"/></svg>Glossary</button></div>
       <div class="navrow"><button class="home" id="home" type="button" hidden><svg class="emi" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.125em;margin-right:6px"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Back to architecture</button><button class="share" id="share" type="button" hidden aria-label="Copy link to this flow" title="Copy link to this flow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></button><span class="copied" id="copied" role="status" aria-live="polite"></span></div>
     </div>
     <section class="grp" aria-labelledby="g1"><h2 id="g1"><button class="sectiontoggle" id="flowToggle" type="button" aria-expanded="true" aria-controls="flowNav">Flows<span class="chev" aria-hidden="true">›</span></button></h2>
@@ -307,13 +336,14 @@ aside{transition:visibility 0s .25s}
     </section>
     <section class="grp" aria-labelledby="g2"><h2 id="g2"><button class="sectiontoggle" id="deepToggle" type="button" aria-expanded="false" aria-controls="deepNav">Deep dives<span class="chev" aria-hidden="true">›</span></button></h2>
       <div id="deepNav" hidden>
+        <div class="navgroup" role="group" aria-label="Kubernetes and platform"><div class="navgroup-label">Kubernetes &amp; platform</div><div class="list" id="kube"></div></div>
         <div class="navgroup" role="group" aria-label="When things break"><div class="navgroup-label">When things break</div><div class="list" id="issues"></div></div>
         <div class="navgroup" role="group" aria-label="Correctness and trade-offs"><div class="navgroup-label">Correctness &amp; trade-offs</div><div class="list" id="deepTopics"></div></div>
       </div>
     </section>
     <section class="grp" aria-labelledby="g3"><h2 id="g3"><button class="sectiontoggle" id="deployToggle" type="button" aria-expanded="false" aria-controls="deploy">Deployment &amp; upgrades<span class="chev" aria-hidden="true">›</span></button></h2><div class="list" id="deploy" hidden></div></section>
     <p class="byline">Built by Pankaj Kapoor · <a href="https://system-design.in" target="_blank" rel="noopener">System-Design.in</a></p>
-    <div class="hint"><kbd>→</kbd> or the flashing ball steps · <kbd>1</kbd>–<kbd>8</kbd> flows · click a box to zoom in</div>
+    <div class="hint"><kbd>→</kbd> or the flashing ball steps · <kbd>1</kbd>–<kbd>9</kbd> flows · <kbd>R</kbd> role · <kbd>Q</kbd> requirements · <kbd>G</kbd> glossary · click a box to zoom in</div>
   </aside>
   <button class="paneltoggle" id="paneltoggle" type="button" aria-controls="panel" aria-expanded="true" aria-label="Hide panel" title="Hide panel"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17-5-5 5-5M18 17l-5-5 5-5"/></svg></button>
 </div>
@@ -327,6 +357,8 @@ aside{transition:visibility 0s .25s}
 </div>
 
 <script src="role.js"></script>
+<script src="requirements.js"></script>
+<script src="glossary.js"></script>
 <script>
 const FLOWS = [
   { group: 'Device data', slug: 'g-data', key: '1', color: 'var(--g)', items: [
@@ -354,8 +386,15 @@ const ISSUES = [
   { slug: 'crash', key: '7', name: 'Flink job crash', page: 17, color: 'var(--v)', video: null, sub: 'Checkpoint restore + Kafka replay + idempotent actions', infra: true },
   { slug: 'hot', key: '8', name: 'Hot partition', page: 18, color: 'var(--y)', video: null, sub: 'One runaway device → one lagging partition → per-device limit', infra: true },
   { slug: 'growth', key: '9', name: 'Sustained 10× traffic', page: 19, color: 'var(--dd)', video: null, sub: 'Measure → scale bottlenecks → ordered capacity expansion → bound overload → soak test', infra: true },
-  { slug: 'region', name: 'Region outage → failover', page: 27, color: 'var(--r)', video: null, sub: 'Design extension: spools buffer → UNKNOWN, not DEAD → in-zone failover → same incident IDs', infra: true }
+  { slug: 'region', name: 'Region outage → failover', page: 27, color: 'var(--r)', video: null, sub: 'Spools buffer → UNKNOWN, not DEAD → in-zone failover → same incident IDs', infra: true }
 ];
+const KUBE = [   // Kubernetes & platform deep dives
+  { slug: 'k8s-scale', name: 'Traffic spike scales out', page: 28, color: '#2563EB', video: null, sub: 'Lag rises → KEDA + HPA add pods → Karpenter adds nodes → lag drains' },
+  { slug: 'k8s-az', name: 'Node / AZ dies', page: 29, color: 'var(--r)', video: null, sub: 'A zone goes dark → pods reschedule → replicas + checkpoints → nothing lost' },
+  { slug: 'k8s-stateful', name: 'Kafka & Flink on Kubernetes', page: 30, color: 'var(--v)', video: null, sub: 'Operators, StatefulSets, disks and savepoints: stateful, still replaceable' },
+  { slug: 'eks-ecs', name: 'EKS vs ECS', page: 31, color: '#0EA5A4', video: null, sub: 'Why EKS: operators, one platform, portability · what it costs' }
+];
+KUBE.forEach(f => { f.infra = true; });
 const LESSONS = [   // Correctness & trade-offs deep dives, shown as flows on the main diagram
   { slug: 'replay', name: 'Delivery & replay', page: 20, color: 'var(--v)', video: null, sub: 'Crash after an external write: no duplicate, no missing incident' },
   { slug: 'liveness', name: 'Device or pipeline failure?', page: 21, color: 'var(--y)', video: null, sub: 'Many devices silent while the consumer is behind: page or hold?' },
@@ -363,7 +402,7 @@ const LESSONS = [   // Correctness & trade-offs deep dives, shown as flows on th
   { slug: 'tenancy', name: 'Tenant isolation', page: 23, color: '#2563EB', video: null, sub: 'Shared ingestion, state and caches: identity scope at every hop' },
   { slug: 'consistency', name: 'Live & history consistency', page: 24, color: 'var(--dd)', video: null, sub: 'Live point before history, reconnects: snapshot plus cursor' },
   { slug: 'upgrades', name: 'Safe upgrades & rollback', page: 25, color: '#0EA5A4', video: null, sub: 'Compatible changes, canary gates and one-step rollback' },
-  { slug: 'residency', name: 'Data residency', page: 26, color: '#7C5CFA', video: null, sub: 'Design extension: a home region per tenant, global routing only, China isolated' }
+  { slug: 'residency', name: 'Data residency', page: 26, color: '#7C5CFA', video: null, sub: 'A home region per tenant, global routing only, China isolated' }
 ];
 LESSONS.forEach(f => { f.infra = true; f.lesson = true; });
 let lastFocus = null;
@@ -385,6 +424,45 @@ function openRole(from) {
   secs.forEach(d => d.addEventListener('toggle', sync)); sync();
   $('dmodal').hidden = false; card.scrollTop = 0; $('dclose').focus();
 }
+// "Requirements" (pres/requirements.js) and "Glossary" (pres/glossary.js) reuse the same dialog
+const escT = v => String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/&lt;(\/?)(b|i)&gt;/g, '<$1$2>');
+function openText(doc, html, from) {
+  lastFocus = from || null;
+  hideUpNext(); if (frame) { pauseFrame(frame); frame.inert = true; }
+  $('panel').inert = true; $('paneltoggle').inert = true;
+  const card = $('dmodal').querySelector('.dcard'); card.classList.add('textonly');
+  $('dkick').textContent = doc.kicker; $('dtitle').textContent = doc.title;
+  $('dtext').innerHTML = `<p class="dlead">${escT(doc.lead)}</p>` + html;
+  $('dtext').querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { const f = ALL.find(x => x.slug === b.dataset.go); lastFocus = null; closeDetail(); if (f) select(f); }));
+  $('dmodal').hidden = false; card.scrollTop = 0; $('dclose').focus();
+}
+const goBtn = slug => { const f = ALL.find(x => x.slug === slug); return f ? `<button type="button" class="golink" data-go="${slug}">See it: ${escT(f.name)} →</button>` : ''; };
+function openReqs(from) {
+  // requirement → the decisions that meet it (reverse of each decision's "serves" list)
+  const metBy = id => REQS.decisions.filter(d => d.serves.includes(id)).map(d => d.id);
+  const chip = id => `<button type="button" class="rqchip ${id[0] === 'D' ? 'dec' : ''}" data-jump="${id}">${id}</button>`;
+  const sec = (h, n, body) => `<details class="rolesec reqsec" open><summary><span>${h}</span><em>${n}</em></summary>${body}</details>`;
+  const req = (it, label) => `<div class="req" id="rq-${it.id}"><div class="reqr"><span class="rqid">${it.id}</span>${label ? `<b>${escT(label)}</b> · ` : ''}${escT(it.r)}</div>`
+    + `<div class="rqmap">Met by ${metBy(it.id).map(chip).join('')}<span class="rqgo">${goBtn(it.flow)}</span></div></div>`;
+  openText(REQS, sec('Functional requirements · what it does', REQS.fr.length, REQS.fr.map(it => req(it)).join(''))
+    + sec('Non-functional requirements · how well', REQS.nfr.length, REQS.nfr.map(it => req(it, it.q)).join(''))
+    + sec('Design decisions · how, and what it cost', REQS.decisions.length, REQS.decisions.map(d => `<div class="req" id="rq-${d.id}">`
+      + `<div class="reqr"><span class="rqid dec">${d.id}</span>${escT(d.d)}</div><div class="rqmap">Serves ${d.serves.map(chip).join('')}</div>`
+      + `<div class="reqhow"><b>Rejected:</b> ${escT(d.rejected)}</div><div class="reqtrade"><b>⚖ Trade-off</b>${escT(d.trade)}</div>${goBtn(d.flow)}</div>`).join('')), from);
+  $('dtext').querySelectorAll('[data-jump]').forEach(c => c.addEventListener('click', () => {
+    const el = $('rq-' + c.dataset.jump); if (!el) return; el.closest('details').open = true;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }));
+}
+function openGlossary(from) {
+  openText(GLOSSARY, `<input type="search" id="gfilter" class="gfilter" placeholder="Filter terms…" aria-label="Filter terms">`
+    + GLOSSARY.groups.map(g => `<details class="rolesec gsec" open><summary><span>${escT(g.h)}</span><em>${g.items.length}</em></summary><dl class="gloss">`
+      + g.items.map(([t, m, w, fl]) => `<div class="gterm"><dt>${escT(t)}</dt><dd>${escT(m)}<span class="gwhy">Here: ${escT(w)}</span>${fl ? goBtn(fl) : ''}</dd></div>`).join('') + '</dl></details>').join(''), from);
+  const inp = $('gfilter');
+  inp.addEventListener('input', () => { const q = inp.value.trim().toLowerCase();
+    $('dtext').querySelectorAll('.gsec').forEach(sec => { let n = 0;
+      sec.querySelectorAll('.gterm').forEach(r => { const on = !q || r.textContent.toLowerCase().includes(q); r.hidden = !on; n += on; });
+      sec.hidden = !n; if (q) sec.open = true; }); });
+}
 function closeDetail() {
   if ($('dmodal').hidden) return; $('dmodal').hidden = true;
   $('panel').inert = false; $('paneltoggle').inert = false; if (frame) frame.inert = false;
@@ -398,11 +476,11 @@ $('dclose').addEventListener('click', closeDetail);
 $('dmodal').addEventListener('click', e => { if (e.target.id === 'dmodal') closeDetail(); });
 addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
 $('dmodal').addEventListener('keydown', e => { if (e.key !== 'Tab') return;
-  const f = [...$('dmodal').querySelectorAll('button,a[href],summary,[tabindex]:not([tabindex="-1"])')].filter(x => x.offsetParent && !x.disabled); if (!f.length) return;
+  const f = [...$('dmodal').querySelectorAll('button,a[href],summary,input,[tabindex]:not([tabindex="-1"])')].filter(x => x.offsetParent && !x.disabled); if (!f.length) return;
   const i = f.indexOf(document.activeElement), n = e.shiftKey ? (i <= 0 ? f.length - 1 : i - 1) : (i === f.length - 1 ? 0 : i + 1);
   e.preventDefault(); f[n].focus(); });
 }
-const ALL = FLOWS.flatMap(f => f.items || [f]).concat(ISSUES, LESSONS, DEPLOY.items);
+const ALL = FLOWS.flatMap(f => f.items || [f]).concat(KUBE, ISSUES, LESSONS, DEPLOY.items);
 const $ = id => document.getElementById(id);
 let current = null, frame = null;
 
@@ -442,6 +520,7 @@ FLOWS.forEach(f => {
   const label = document.createElement('div'); label.className = 'navgroup-label'; label.textContent = f.group; group.appendChild(label);
   f.items.forEach(item => flowButton(item, group)); $('flows').appendChild(group);
 });
+KUBE.forEach(f => flowButton(f, $('kube')));
 ISSUES.forEach(f => flowButton(f, $('issues')));
 LESSONS.forEach(f => flowButton(f, $('deepTopics')));
 DEPLOY.items.forEach(f => flowButton(f, $('deploy')));
@@ -455,11 +534,13 @@ const mobileLearning = document.createElement('details'); mobileLearning.classNa
 mobileLearning.innerHTML = '<summary>Deep dives</summary><div id="phoneTopics"></div>';
 $('vids').before(mobileLearning);
 { const group = document.createElement('div'); group.className = 'navgroup'; group.setAttribute('role', 'group'); group.setAttribute('aria-label', 'Deep dives');
-  ISSUES.concat(LESSONS).forEach(f => { const b = navButton(f.name, () => { showPhoneFlow(f); const u = new URL(location.href); u.searchParams.delete('deep'); u.searchParams.set('flow', f.slug); try { history.replaceState(null, '', u); } catch (_) {} });
+  KUBE.concat(ISSUES, LESSONS).forEach(f => { const b = navButton(f.name, () => { showPhoneFlow(f); const u = new URL(location.href); u.searchParams.delete('deep'); u.searchParams.set('flow', f.slug); try { history.replaceState(null, '', u); } catch (_) {} });
     b.id = 'mobile-flow-' + f.slug; b.dataset.phone = f.slug; group.appendChild(b); });
   $('phoneTopics').appendChild(group); }
 
 $('roleBtn').addEventListener('click', () => openRole($('roleBtn')));
+$('reqBtn').addEventListener('click', () => openReqs($('reqBtn')));
+$('glossBtn').addEventListener('click', () => openGlossary($('glossBtn')));
 $('home').addEventListener('click', () => select(null));
 addEventListener('message', e => {
   if (!frame || e.source !== frame.contentWindow || e.origin !== location.origin) return;
@@ -471,7 +552,10 @@ addEventListener('message', e => {
   if (d.type === 'view' && ['idle', 'arch', 'zoom', 'end'].includes(d.view)) onView(d.view, d.auto === true); });
 function jump(k) { const f = ALL.find(x => x.key === k); if (f) { select(f); return; } const g = FLOWS.concat([DEPLOY]).find(x => x.items && x.key === k); if (g) select(g.items[0]); }
 addEventListener('keydown', e => { if (!$('dmodal').hidden || e.target.closest && e.target.closest('input')) return; if (/^[1-9]$/.test(e.key)) jump(e.key);
-  if ((e.key === 'r' || e.key === 'R') && !e.ctrlKey && !e.metaKey && !e.altKey) openRole(document.activeElement); });
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === 'r' || e.key === 'R') openRole(document.activeElement);
+  if (e.key === 'q' || e.key === 'Q') openReqs(document.activeElement);
+  if (e.key === 'g' || e.key === 'G') openGlossary(document.activeElement); });
 
 // phone: plain video list
 $('vids').innerHTML = ALL.filter(f => f.video).map(f => `<div class="vcard" id="v-${f.slug}"><video controls playsinline preload="none" src="m/${f.video}" poster="m/${f.video.replace('.mp4', '.jpg')}" aria-label="${f.name} walkthrough video"></video><div class="vt"><span class="dot" style="width:11px;height:11px;border-radius:50%;background:${f.color};flex:none"></span><div>${f.infra ? 'Infra issue · ' : ''}${f.name}<small>${f.sub}</small></div></div></div>`).join('');
