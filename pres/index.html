@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>IoT Architecture Walkthrough</title>
+<script>try { document.documentElement.dataset.theme = localStorage.getItem('iot-theme') || 'dark'; } catch (_) { document.documentElement.dataset.theme = 'dark'; }</script>
 <meta property="og:title" content="Commercial IoT Monitoring System: interactive architecture walkthrough">
 <meta property="og:description" content="100M+ devices · 200K gateway envelopes/sec normal peak · 99.9% uptime. Step through alerts, multi-tenancy, deployments and infra failures.">
 <meta property="og:image" content="https://pakapoor.github.io/iot-architecture-walkthrough/docs/og.png">
@@ -94,7 +95,7 @@ figcaption{font-size:12.5px;color:var(--muted)}
 :root{--bg:#F5F5F7;--surface:#FBFBFD;--card:#FFFFFF;--ink:#1D1D1F;--muted:#6E6E73;--line:#E5E5EA;--hover:#EFEFF2;--accent:#0071E3;--ok:#34C759;
   --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Sora",ui-sans-serif,system-ui,sans-serif;--body:-apple-system,BlinkMacSystemFont,"SF Pro Text","IBM Plex Sans",ui-sans-serif,system-ui,sans-serif}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#000000;--surface:#1C1C1E;--card:#2C2C2E;--ink:#F5F5F7;--muted:#98989D;--line:#38383A;--hover:#2C2C2E;--accent:#0A84FF;--ok:#30D158;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#000000;--surface:#1C1C1E;--card:#2C2C2E;--ink:#F5F5F7;--muted:#98989D;--line:#38383A;--hover:#2C2C2E;--accent:#0A84FF;--ok:#30D158;color-scheme:dark}
+:root[data-theme="dark"]{--bg:#0B1220;--surface:#111A2B;--card:#18233A;--ink:#E6ECF5;--muted:#9AA8BC;--line:#26334D;--hover:#1B2740;--accent:#5B9BFF;--ok:#30D158;color-scheme:dark}
 body{-webkit-font-smoothing:antialiased}
 aside{padding:30px 20px 24px;gap:26px;border-left:1px solid var(--line)}
 .kick{font:500 11px/1.35 var(--body);letter-spacing:.06em;color:var(--muted)}
@@ -303,7 +304,7 @@ aside{transition:visibility 0s .25s}
 /* dark mode: the light diagram sits on the dark stage as a card */
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .stagewrap{background:#1C1C1E}
   :root:not([data-theme="light"]) .stagewrap iframe{inset:24px;width:calc(100% - 48px);height:calc(100% - 48px);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.06)}}
-:root[data-theme="dark"] .stagewrap{background:#1C1C1E}
+:root[data-theme="dark"] .stagewrap{background:#0B1220}
 :root[data-theme="dark"] .stagewrap iframe{inset:24px;width:calc(100% - 48px);height:calc(100% - 48px);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.06)}
 </style>
 
@@ -328,7 +329,7 @@ aside{transition:visibility 0s .25s}
       <a class="sdi" href="https://system-design.in" target="_blank" rel="noopener"><span class="sdi-mark"><img src="../docs/favicon.png" alt="System-Design.in logo" width="28" height="28"></span><span class="sdi-name">System-Design.in</span></a>
       <h1>Commercial IoT Monitoring System</h1>
       <p class="explored" id="explored" hidden></p>
-      <div class="inforow"><button class="home rolebtn" id="roleBtn" type="button" title="My role on this project (R)"><svg class="emi" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.125em;margin-right:6px"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>My role</button><button class="home" id="reqBtn" type="button" title="Functional and non-functional requirements (Q)"><svg class="emi" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.125em;margin-right:6px"><path d="M9 5h10M9 12h10M9 19h10"/><path d="m4 5 1 1 2-2M4 12l1 1 2-2M4 19l1 1 2-2"/></svg>Requirements</button><button class="home" id="glossBtn" type="button" title="Glossary of terms (G)"><svg class="emi" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.125em;margin-right:6px"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 21.5V4.5"/></svg>Glossary</button></div>
+      <div class="inforow"><button class="home rolebtn" id="roleBtn" type="button" title="My role on this project (R)"><svg class="emi" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.125em;margin-right:6px"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>My role</button><button class="home" id="reqBtn" type="button" title="Functional and non-functional requirements (Q)"><svg class="emi" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.125em;margin-right:6px"><path d="M9 5h10M9 12h10M9 19h10"/><path d="m4 5 1 1 2-2M4 12l1 1 2-2M4 19l1 1 2-2"/></svg>Requirements</button><button class="home" id="glossBtn" type="button" title="Glossary of terms (G)"><svg class="emi" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.125em;margin-right:6px"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 21.5V4.5"/></svg>Glossary</button><button class="home" id="themeBtn" type="button" title="Switch light / dark (T)" aria-label="Switch to light mode"><span id="themeIc" aria-hidden="true">☀️</span><span id="themeTx">Light</span></button></div>
       <div class="navrow"><button class="home" id="home" type="button" hidden><svg class="emi" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.125em;margin-right:6px"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Back to global view</button><button class="share" id="share" type="button" hidden aria-label="Copy link to this flow" title="Copy link to this flow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></button><span class="copied" id="copied" role="status" aria-live="polite"></span></div>
     </div>
     <section class="grp" aria-labelledby="g1"><h2 id="g1"><button class="sectiontoggle" id="flowToggle" type="button" aria-expanded="true" aria-controls="flowNav">Flows<span class="chev" aria-hidden="true">›</span></button></h2>
@@ -546,6 +547,12 @@ $('reqBtn').addEventListener('click', () => openReqs($('reqBtn')));
 $('glossBtn').addEventListener('click', () => openGlossary($('glossBtn')));
 $('home').addEventListener('click', () => select(null));
 $('toGlobal').addEventListener('click', () => select(null));
+// light / dark: dark by default; the choice is stored and every page (flows, HLD) reads it, so the stage reloads
+function syncThemeBtn() { const dark = document.documentElement.dataset.theme === 'dark';
+  $('themeIc').textContent = dark ? '☀️' : '🌙'; $('themeTx').textContent = dark ? 'Light' : 'Dark'; $('themeBtn').setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode'); }
+function toggleTheme() { const t = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = t; try { localStorage.setItem('iot-theme', t); } catch (_) {} syncThemeBtn(); load(current); }
+$('themeBtn').addEventListener('click', toggleTheme); syncThemeBtn();
 addEventListener('message', e => {
   if (!frame || e.source !== frame.contentWindow || e.origin !== location.origin) return;
   const d = e.data; if (!d || typeof d !== 'object') return;
@@ -560,7 +567,8 @@ addEventListener('keydown', e => { if (!$('dmodal').hidden || e.target.closest &
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.key === 'r' || e.key === 'R') openRole(document.activeElement);
   if (e.key === 'q' || e.key === 'Q') openReqs(document.activeElement);
-  if (e.key === 'g' || e.key === 'G') openGlossary(document.activeElement); });
+  if (e.key === 'g' || e.key === 'G') openGlossary(document.activeElement);
+  if (e.key === 't' || e.key === 'T') toggleTheme(); });
 
 // phone: plain video list
 $('vids').innerHTML = ALL.filter(f => f.video).map(f => `<div class="vcard" id="v-${f.slug}"><video controls playsinline preload="none" src="m/${f.video}" poster="m/${f.video.replace('.mp4', '.jpg')}" aria-label="${f.name} walkthrough video"></video><div class="vt"><span class="dot" style="width:11px;height:11px;border-radius:50%;background:${f.color};flex:none"></span><div>${f.infra ? 'Infra issue · ' : ''}${f.name}<small>${f.sub}</small></div></div></div>`).join('');

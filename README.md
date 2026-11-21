@@ -11,6 +11,8 @@ An interactive, click-to-advance walkthrough of a commercial IoT monitoring plat
 ![Commercial IoT Monitoring System architecture](docs/architecture.svg)
 
 ## How to use it
+The whole site opens in **dark mode**; the sun/moon button in the sidebar (or T) switches to light and is remembered. Every diagram, close-up and scene follows the choice.
+
 The walkthrough opens on the **global deployment (HLD)**: AWS regions US East ↔ US West (CCPA) and EU Frankfurt ↔ EU Ireland (GDPR), coordinated by a global control plane (config out, aggregates in, DR only within a zone), plus an independent China deployment on Alibaba Cloud (PIPL). Click a deployment for its regional HLD; the big **Show detail** button opens the full architecture (LLD), where multi-instance services are drawn as stacked cards with their instance counts, and **← Global view** returns.
 
 Open **My role** for the presenter's role, scope, decisions and outcomes, **Requirements** (Q) for the functional and non-functional requirements and the design decisions that meet them (each decision lists the requirements it serves, the rejected alternative and its trade-off), and **Glossary** (G) for plain-English definitions. Expand **Flows**, **Deep dives** or **Deployment & upgrades** and click a walkthrough directly, then press play or step through with the arrow keys. Each section reveals its items immediately; opening another section closes the previous one. Direct links open the selected section. Click or keyboard-activate a component for a close-up. In Tiered Storage, select a store to inspect its example schema; in Edge Site, select a site to open its example network. While a flow plays, the left panel explains each step with a heading and spoken bullets; clicking the component the ball rests on opens an animated view of what happens inside it. Trade-offs appear in a highlighted amber box in the panel; new stops also teach with a "What is it?" line and "If they ask…" follow-ups. Play runs at a presenter-friendly pace and ■ Stop holds the current step. The Datadog observability tiles are always shown. Clicking Edge Site opens the tenant view (with onboarding and site filtering); click a site for an example small-store or flagship network. A platform row under the diagram holds **Kubernetes · EKS** (cluster layout, with deeper views of scaling, the Kafka and Flink operators, and EKS vs ECS) and **Regions** (home regions, standby, and the edge → ingestion path across regions).
@@ -82,6 +84,7 @@ pres/notes-*.js           the other flows' notes: alerts, device, infra, deploy,
 pres/requirements.js      FRs, NFRs and design decisions (Requirements dialog)
 pres/glossary.js          plain-English glossary (Glossary dialog)
 pres/role.js              content of the My role dialog
+pres/theme.js             dark theme for flow pages and the HLD (remaps colour lightness, keeps hue)
 pres/flow*.html           one page per flow (generated)
 iot.html, svcnow.html     the architecture diagram and ServiceNow/Temporal scene (source of truth)
 vid/build.py              assembles each flow page; vid/cicd_data.py holds the CI/CD scenes

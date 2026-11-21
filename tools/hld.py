@@ -138,7 +138,7 @@ def regional(k):
 REGIONAL = {k: regional(k) for k in DEPLOY}
 
 page = '''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Global deployment · IoT monitoring</title>
+<title>Global deployment · IoT monitoring</title><script src="theme.js"></script>
 <style>
 html,body{margin:0;height:100%;background:#EEF3F9;font-family:Inter,"Segoe UI",Helvetica,Arial,sans-serif;color:#0B1F3F;overflow:hidden}
 #wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:18px 24px 96px;box-sizing:border-box}

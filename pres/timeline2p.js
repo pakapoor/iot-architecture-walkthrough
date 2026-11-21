@@ -1059,7 +1059,7 @@ setT(0);
     if (key === xpKey) return; xpKey = key;
     xp.style.setProperty('--xc', color);
     xp.innerHTML = `<div class="xin"><div class="xk"><span>${safeHTML(flowName)}</span><span class="xs">${tag}</span></div>`
-      + `<h2>${safeHTML(noEmoji(body.h))}</h2>` + panelBlocks(body.b) + '</div>';
+      + `<h2>${safeHTML(noEmoji(body.h))}</h2>` + panelBlocks(body.b || []) + '</div>';
     xp.scrollTop = 0;
   }
   // Teaching blocks: "WHAT: …" explains the concept in plain English, "TRADE: …" (and any bullet that starts with
